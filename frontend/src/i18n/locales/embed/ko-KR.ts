@@ -43,7 +43,7 @@ export default {
     loadError: '로드 실패',
     refresh: '새로고침',
     historyTitle: '대화 기록',
-    historyEmpty: '지난 대화가 없습니다',
+    historyEmpty: '지난 대화가 없습니다',    historyDelete: '삭제',    historyDeleteConfirm: '이 대화를 삭제할까요? 삭제 후 복구할 수 없습니다.',    historyDeleted: '대화가 삭제되었습니다',    historyDeleteFailed: '삭제하지 못했습니다. 다시 시도해 주세요',
     historyCurrent: '현재',
     historySwitchTitle: '답변 중',
     historySwitchBody: '전환하면 이번 답변이 중단됩니다. 계속할까요?',
@@ -491,7 +491,9 @@ export default {
       faqEntry: 'FAQ entry'
     },
     knowledgeChunksList: {
-      chunkRange: 'Loaded {fetched} / {total} chunks',
+      chunkRange: '이번에 {from}-{to}번 블록 읽음 (전체 {total}개)',
+
+      chunkSingle: '{index}번 블록 (전체 {total}개)',
       page: 'Page {page}, {pageSize} per page'
     },
     attachmentParsing: {

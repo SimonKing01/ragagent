@@ -43,7 +43,7 @@ export default {
     loadError: 'Failed to load, please try again later',
     refresh: 'Refresh',
     historyTitle: 'Chat history',
-    historyEmpty: 'No past conversations yet',
+    historyEmpty: 'No past conversations yet',    historyDelete: 'Delete',    historyDeleteConfirm: 'Delete this conversation? This cannot be undone.',    historyDeleted: 'Conversation deleted',    historyDeleteFailed: 'Failed to delete, please retry',
     historyCurrent: 'Current',
     historySwitchTitle: 'Replying',
     historySwitchBody: 'Switching will stop the current reply. Continue?',
@@ -491,7 +491,9 @@ export default {
       faqEntry: 'FAQ entry'
     },
     knowledgeChunksList: {
-      chunkRange: 'Loaded {fetched} / {total} chunks',
+      chunkRange: 'Read chunks {from}-{to} (of {total})',
+
+      chunkSingle: 'Chunk {index} (of {total})',
       page: 'Page {page}, {pageSize} per page'
     },
     attachmentParsing: {

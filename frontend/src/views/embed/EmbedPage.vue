@@ -77,14 +77,31 @@
       :current-session-id="sessionId"
       @close="historyOpen = false"
       @select="handleSelectSession"
+      @delete-request="requestDeleteSession"
     />
 
     <t-dialog
+      class="embed-confirm-dialog"
+      v-model:visible="deleteConfirmVisible"
+      :header="$t('embedPublish.historyDelete')"
+      :body="$t('embedPublish.historyDeleteConfirm')"
+      :confirm-btn="{ content: $t('common.confirm'), theme: 'danger' }"
+      :cancel-btn="$t('common.cancel')"
+      :z-index="3500"
+      width="min(320px, 86vw)"
+      @confirm="confirmDeleteSession"
+      @close="cancelDeleteSession"
+    />
+
+    <t-dialog
+      class="embed-confirm-dialog"
       v-model:visible="switchConfirmVisible"
       :header="$t('embedPublish.historySwitchTitle')"
       :body="$t('embedPublish.historySwitchBody')"
       :confirm-btn="$t('embedPublish.historySwitchOk')"
       :cancel-btn="$t('common.cancel')"
+      :z-index="3500"
+      width="min(320px, 86vw)"
       @confirm="confirmSwitchSession"
     />
   </div>
@@ -97,7 +114,11 @@ import { useI18n } from 'vue-i18n'
 import EmbedChatView from '@/views/embed/EmbedChatView.vue'
 import EmbedHistoryDrawer from '@/views/embed/EmbedHistoryDrawer.vue'
 import errorIcon from '@/assets/img/error.svg'
-import { listEmbedVisitorSessions, type EmbedVisitorSessionSummary } from '@/api/embed'
+import {
+  deleteEmbedVisitorSession,
+  listEmbedVisitorSessions,
+  type EmbedVisitorSessionSummary,
+} from '@/api/embed'
 import { useEmbedBridge } from '@/composables/useEmbedBridge'
 import { setDefaultProtectedFileAccess } from '@/utils/protectedFileAccess'
 import { embedToast } from '@/utils/embedToast'
@@ -206,6 +227,43 @@ const handleSelectSession = (item: EmbedVisitorSessionSummary) => {
 
 const confirmSwitchSession = () => {
   if (pendingSession) applySelectSession(pendingSession)
+}
+
+const deleteConfirmVisible = ref(false)
+let pendingDeleteSession: EmbedVisitorSessionSummary | null = null
+
+const requestDeleteSession = (item: EmbedVisitorSessionSummary) => {
+  pendingDeleteSession = item
+  deleteConfirmVisible.value = true
+}
+
+const cancelDeleteSession = () => {
+  deleteConfirmVisible.value = false
+  pendingDeleteSession = null
+}
+
+const confirmDeleteSession = () => {
+  const item = pendingDeleteSession
+  cancelDeleteSession()
+  if (item) void handleDeleteSession(item)
+}
+
+const handleDeleteSession = async (item: EmbedVisitorSessionSummary) => {
+  if (!channelId.value || !token.value || !visitorId.value) return
+  try {
+    await deleteEmbedVisitorSession(channelId.value, item.id, token.value, visitorId.value)
+  } catch (e) {
+    console.error('Failed to delete embed session:', e)
+    embedToast(t('embedPublish.historyDeleteFailed'))
+    return
+  }
+  historySessions.value = historySessions.value.filter((session) => session.id !== item.id)
+  embedToast(t('embedPublish.historyDeleted'))
+  if (item.id === sessionId.value) {
+    // 删掉的是当前会话：回到新会话空白态，避免引用已删除的会话
+    historyOpen.value = false
+    startNewSession()
+  }
 }
 
 const kbIds = computed(() => config.value?.knowledgeBaseIds ?? [])

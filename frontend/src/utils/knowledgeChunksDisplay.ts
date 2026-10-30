@@ -16,18 +16,19 @@ export function getKnowledgeChunksSummaryHtml(
 
   const fetched = Number(toolData.fetchedChunks ?? 0)
   const total = `<strong>${toolData.totalChunks ?? '?'}</strong>`
-  const start = resolveStartChunkIndex(toolData)
+  // startChunkIndex 是后端下推的 0-based 下标；展示给用户要转成 1-based 块号
+  const first = resolveStartChunkIndex(toolData) + 1
 
   if (fetched <= 1) {
     return t('agentStream.knowledgeChunksList.chunkSingle', {
-      index: `<strong>${start}</strong>`,
+      index: `<strong>${first}</strong>`,
       total,
     })
   }
 
   return t('agentStream.knowledgeChunksList.chunkRange', {
-    from: `<strong>${start}</strong>`,
-    to: `<strong>${start + fetched - 1}</strong>`,
+    from: `<strong>${first}</strong>`,
+    to: `<strong>${first + fetched - 1}</strong>`,
     total,
   })
 }

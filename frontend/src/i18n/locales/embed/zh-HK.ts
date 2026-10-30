@@ -66,7 +66,7 @@ export default {
     createdDebugHint: '嵌入渠道已建立，可點擊「偵錯預覽」在新分頁體驗',
     tokenRotated: 'Token 已輪換',
     historyTitle: '歷史對話',
-    historyEmpty: '暫無歷史對話',
+    historyEmpty: '暫無歷史對話',    historyDelete: '刪除',    historyDeleteConfirm: '確定刪除該對話嗎？刪除後無法復原。',    historyDeleted: '對話已刪除',    historyDeleteFailed: '刪除失敗，請重試',
     historyCurrent: '目前',
     historySwitchTitle: '正在回答',
     historySwitchBody: '切換對話將中斷本次回答，確定要切換嗎？',
@@ -483,7 +483,9 @@ export default {
       faqEntry: 'FAQ 條目'
     },
     knowledgeChunksList: {
-      chunkRange: '已載入 {fetched} / {total} 個分段',
+      chunkRange: '本次讀取第 {from}-{to} 塊（共 {total} 塊）',
+
+      chunkSingle: '第 {index} 塊（共 {total} 塊）',
       page: '第 {page} 頁，每頁 {pageSize} 個'
     },
     attachmentParsing: {

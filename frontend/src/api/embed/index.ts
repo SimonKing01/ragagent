@@ -364,6 +364,18 @@ export async function listEmbedVisitorSessions(
   return Array.isArray(data?.sessions) ? data.sessions : []
 }
 
+/** 删除本访客在本渠道的一个历史会话（后端只允许删自己名下的，软删）。 */
+export async function deleteEmbedVisitorSession(
+  channelId: string,
+  sessionId: string,
+  token: string,
+  visitorId: string,
+): Promise<void> {
+  await del(`/api/v1/embed/${channelId}/sessions/${sessionId}`, undefined, {
+    headers: { Authorization: `Embed ${token}`, 'X-Embed-Visitor': visitorId },
+  })
+}
+
 export async function exchangeEmbedSession(channelId: string, publishToken: string) {
   return post<EmbedSessionToken>(
     `/api/v1/embed/${channelId}/exchange`,

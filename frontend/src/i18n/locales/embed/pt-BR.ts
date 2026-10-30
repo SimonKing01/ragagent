@@ -66,7 +66,7 @@ export default {
     createdDebugHint: 'Canal criado — use «Pré-visualização de depuração» para abri-lo em uma nova aba',
     tokenRotated: 'Token rotacionado',
     historyTitle: 'Histórico de conversas',
-    historyEmpty: 'Ainda não há conversas',
+    historyEmpty: 'Ainda não há conversas',    historyDelete: 'Excluir',    historyDeleteConfirm: 'Excluir esta conversa? Não é possível desfazer.',    historyDeleted: 'Conversa excluída',    historyDeleteFailed: 'Não foi possível excluir, tente novamente',
     historyCurrent: 'Atual',
     historySwitchTitle: 'Respondendo',
     historySwitchBody: 'Trocar de conversa interromperá a resposta atual. Continuar?',
@@ -483,7 +483,9 @@ export default {
       faqEntry: 'entrada de FAQ'
     },
     knowledgeChunksList: {
-      chunkRange: 'Carregado(s) {fetched} / {total} fragmentos',
+      chunkRange: 'Lidos os blocos {from}-{to} (de {total})',
+
+      chunkSingle: 'Bloco {index} (de {total})',
       page: 'Página {page}, {pageSize} por página'
     },
     attachmentParsing: {

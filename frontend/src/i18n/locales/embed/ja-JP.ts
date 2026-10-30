@@ -43,7 +43,7 @@ export default {
     loadError: '読み込みに失敗しました',
     refresh: '再読み込み',
     historyTitle: '会話履歴',
-    historyEmpty: '過去の会話はありません',
+    historyEmpty: '過去の会話はありません',    historyDelete: '削除',    historyDeleteConfirm: 'この会話を削除しますか？元に戻せません。',    historyDeleted: '会話を削除しました',    historyDeleteFailed: '削除に失敗しました。再試行してください',
     historyCurrent: '現在',
     historySwitchTitle: '回答中です',
     historySwitchBody: '切り替えると今回の回答は中断されます。よろしいですか？',
@@ -491,7 +491,9 @@ export default {
       faqEntry: 'FAQ項目'
     },
     knowledgeChunksList: {
-      chunkRange: '{total}件中{fetched}件のチャンクを読み込みました',
+      chunkRange: '今回 {from}-{to} 番目のブロックを読み込み（全 {total} 件）',
+
+      chunkSingle: '{index} 番目のブロック（全 {total} 件）',
       page: '{page}ページ目、1ページ{pageSize}件'
     },
     attachmentParsing: {

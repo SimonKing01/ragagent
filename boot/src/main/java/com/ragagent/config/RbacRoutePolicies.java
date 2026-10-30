@@ -540,6 +540,7 @@ final class RbacRoutePolicies {
         rbac.addPublicRule("GET", "/api/v1/auth/oidc/start");
         rbac.addPublicRule("GET", "/api/v1/auth/oidc/url");
         rbac.addPublicRule("GET", "/api/v1/auth/validate");
+        rbac.addPublicRule("DELETE", "/api/v1/embed/*/sessions/*");
         rbac.addPublicRule("GET", "/api/v1/embed/*/chunks/*");
         rbac.addPublicRule("GET", "/api/v1/embed/*/config");
         rbac.addPublicRule("GET", "/api/v1/embed/*/files");

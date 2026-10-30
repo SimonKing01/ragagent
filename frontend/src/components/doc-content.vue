@@ -626,10 +626,41 @@ const mergeChunks = (chunks: any[]): string => {
   return merged;
 };
 
+// v-html 重建 DOM 时，已换成 blob 的受保护图片会被占位图覆盖、auth-hydrated 标记丢失。
+// 观察新增节点：一旦出现带 data-protected-src 的 <img>，就补一次水合（幂等 + 80ms 节流）。
+let protectedImageObserver: MutationObserver | null = null;
+let protectedImageTimer: number | null = null;
+
+const scheduleProtectedImageHydration = () => {
+  if (protectedImageTimer !== null) {
+    return;
+  }
+  protectedImageTimer = window.setTimeout(() => {
+    protectedImageTimer = null;
+    void hydrateProtectedFileImages(
+      document,
+      props.kbId ? { mode: 'knowledgeBase', kbId: props.kbId } : undefined,
+    );
+  }, 80);
+};
+
 onMounted(() => {
   loadTraceDrawerWidth();
   loadMainDrawerWidth();
   window.addEventListener('resize', onTraceDrawerWindowResize, { passive: true });
+  protectedImageObserver = new MutationObserver((mutations) => {
+    const hasProtectedImage = mutations.some((mutation) =>
+      Array.from(mutation.addedNodes).some((node) =>
+        node instanceof HTMLElement
+        && (node.matches('img[data-protected-src]')
+          || Boolean(node.querySelector('img[data-protected-src]'))),
+      ),
+    );
+    if (hasProtectedImage) {
+      scheduleProtectedImageHydration();
+    }
+  });
+  protectedImageObserver.observe(document.body, { childList: true, subtree: true });
 });
 
 watch(() => props.details?.id, () => {
@@ -650,6 +681,12 @@ watch(() => props.details?.chunkLoading, (val) => {
   }
 });
 onUnmounted(() => {
+  protectedImageObserver?.disconnect();
+  protectedImageObserver = null;
+  if (protectedImageTimer !== null) {
+    window.clearTimeout(protectedImageTimer);
+    protectedImageTimer = null;
+  }
   stopSummaryStatusPolling();
   window.removeEventListener('resize', onTraceDrawerWindowResize);
   cleanupTraceDrawerResize();
@@ -823,6 +860,14 @@ const runMarkdownPostRenderPipeline = async () => {
 watch(() => props.details.md, () => {
   runMarkdownPostRenderPipeline();
 }, { immediate: true, deep: true, flush: 'post' })
+
+// v-html 会按新字符串重建 DOM：已换成 blob 的受保护图片会被占位图覆盖，
+// 且 auth-hydrated 标记丢失。内容一变就重跑一次水合，把图片补回来。
+watch(mergedContent, () => {
+  if (viewMode.value === 'merged' && props.visible) {
+    runMarkdownPostRenderPipeline();
+  }
+}, { flush: 'post' });
 
 watch(() => viewMode.value, (mode) => {
   if ((mode === 'chunks' || mode === 'merged') && props.visible) {

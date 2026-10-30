@@ -16,15 +16,36 @@
           class="embed-welcome-bubble"
         >
           <p class="embed-welcome-bubble__text">{{ welcomeText }}</p>
+          <button
+            v-if="starterQuestionsEnabled"
+            type="button"
+            class="embed-refresh-btn embed-welcome-bubble__refresh"
+            :title="t('common.refresh')"
+            :aria-label="t('common.refresh')"
+            :disabled="suggestedLoading"
+            @click="refreshSuggestedQuestions"
+          >
+            <t-icon name="refresh" size="14px" :class="{ 'is-spinning': suggestedLoading }" />
+          </button>
         </div>
 
         <div
           v-if="showSuggestedBlock"
           class="embed-suggested"
         >
-          <p v-if="suggestedQuestions.length > 0" class="embed-suggested__title">
-            {{ t('chat.suggestedQuestions') }}
-          </p>
+          <div v-if="suggestedQuestions.length > 0" class="embed-suggested__head">
+            <p class="embed-suggested__title">{{ t('chat.suggestedQuestions') }}</p>
+            <button
+              type="button"
+              class="embed-refresh-btn"
+              :title="t('common.refresh')"
+              :aria-label="t('common.refresh')"
+              :disabled="suggestedLoading"
+              @click="refreshSuggestedQuestions"
+            >
+              <t-icon name="refresh" size="14px" :class="{ 'is-spinning': suggestedLoading }" />
+            </button>
+          </div>
           <div v-if="suggestedLoading && suggestedQuestions.length === 0" class="embed-suggested__grid">
             <div v-for="n in 4" :key="`sq-skel-${n}`" class="embed-suggested__card embed-suggested__card--skeleton" />
           </div>
@@ -347,6 +368,12 @@ const fetchSuggestedQuestions = async () => {
   }
 }
 
+/** 问候语旁的刷新按钮：重新拉一批推荐问题（失败时保持空态，不打断对话）。 */
+const refreshSuggestedQuestions = () => {
+  if (suggestedLoading.value) return
+  void fetchSuggestedQuestions()
+}
+
 const onSendMsg = (query: string, imageFiles: File[] = [], attachmentFiles: File[] = []) => {
   void sendMsg(query, {
     webSearchEnabled: webSearchEnabled.value,
@@ -515,6 +542,56 @@ watch(
     word-break: break-word;
     background: var(--td-bg-color-secondarycontainer);
     border-radius: 4px 14px 14px 14px;
+  }
+
+  &__refresh {
+    align-self: flex-end;
+    margin-left: 8px;
+    margin-bottom: 2px;
+  }
+}
+
+// 推荐问题刷新按钮（欢迎语气泡与标题行共用）
+.embed-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--td-text-color-placeholder);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+
+  &:hover:not(:disabled) {
+    color: var(--td-brand-color, #0052d9);
+    background: var(--td-bg-color-container-hover, rgba(0, 0, 0, 0.04));
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  .is-spinning {
+    animation: embed-refresh-spin 0.9s linear infinite;
+  }
+}
+
+.embed-suggested__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+@keyframes embed-refresh-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

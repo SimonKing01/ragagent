@@ -54,10 +54,32 @@ onBeforeUnmount(() => {
   }
 
   &__text {
+    display: inline-block;
     font-size: 13px;
     line-height: 1;
-    color: var(--td-text-color-secondary);
     white-space: nowrap;
+    // 与展开态思考过程一致的流光闪烁：渐变扫过文字，而不是静态灰字
+    background: linear-gradient(90deg,
+        var(--td-text-color-secondary) 0%,
+        var(--td-text-color-secondary) 35%,
+        var(--td-brand-color, #2f52f8) 50%,
+        var(--td-text-color-secondary) 65%,
+        var(--td-text-color-secondary) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: embed-thinking-shimmer 2.8s ease-in-out infinite;
+  }
+}
+
+@keyframes embed-thinking-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
   }
 }
 
@@ -78,6 +100,14 @@ onBeforeUnmount(() => {
   .embed-thinking__icon {
     animation: none;
     opacity: 1;
+  }
+
+  .embed-thinking__text {
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    color: var(--td-text-color-secondary);
+    animation: none;
   }
 }
 </style>

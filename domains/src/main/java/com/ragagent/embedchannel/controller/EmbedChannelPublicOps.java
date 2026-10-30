@@ -139,6 +139,37 @@ final class EmbedChannelPublicOps {
     }
 
     /**
+     * 删除本访客在本渠道下的一个历史会话（软删）。
+     *
+     * <p>只允许删本渠道 marker + 本访客名下的会话；不属于该访客时返回 404，
+     * 不泄露会话是否存在。删除后该会话不再出现在历史列表里。</p>
+     */
+    public ResponseEntity<Map<String, Object>> deleteSession(
+            @PathVariable("channelId") String channelId,
+            @PathVariable("sessionId") String sessionId) {
+        EmbedChannelEntity ch = EmbedChannelRows.channel(EmbedChannelController.request0());
+        long tenantId = EmbedChannelController.currentTenant();
+        String visitor = EmbedChannelController.trim(
+                EmbedChannelController.request0().getHeader("X-Embed-Visitor"));
+        if (!EmbedChannelController.validVisitor(visitor)) {
+            return EmbedChannelController.plainError(400, "invalid embed visitor id");
+        }
+        boolean deleted;
+        try {
+            deleted = ctrl.embedSessionOps.deleteVisitorSession(tenantId,
+                    EmbedChannelService.embedSessionDescription(ch.getId()), visitor, sessionId);
+        } catch (RuntimeException e) {
+            return EmbedChannelController.plainError(500, "failed to delete session");
+        }
+        if (!deleted) {
+            return EmbedChannelController.plainError(404, "session not found");
+        }
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("deleted", true);
+        return ResponseEntity.ok(data);
+    }
+
+    /**
      * 访客历史会话列表：{@code {sessions:[{id, title, updatedAt, sig}]}}。
      *
      * <p>只含本渠道 + 本访客、**说过话**的会话（空会话不进列表）；按最后活动倒序，

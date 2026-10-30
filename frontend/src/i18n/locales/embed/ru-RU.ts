@@ -43,7 +43,7 @@ export default {
     loadError: 'Не удалось загрузить',
     refresh: 'Обновить',
     historyTitle: 'История чатов',
-    historyEmpty: 'Прошлых чатов пока нет',
+    historyEmpty: 'Прошлых чатов пока нет',    historyDelete: 'Удалить',    historyDeleteConfirm: 'Удалить этот чат? Действие необратимо.',    historyDeleted: 'Чат удалён',    historyDeleteFailed: 'Не удалось удалить, попробуйте снова',
     historyCurrent: 'Текущий',
     historySwitchTitle: 'Идёт ответ',
     historySwitchBody: 'Переключение прервёт текущий ответ. Продолжить?',
@@ -491,7 +491,9 @@ export default {
       faqEntry: 'FAQ entry'
     },
     knowledgeChunksList: {
-      chunkRange: 'Loaded {fetched} / {total} chunks',
+      chunkRange: 'Прочитаны блоки {from}-{to} (из {total})',
+
+      chunkSingle: 'Блок {index} (из {total})',
       page: 'Page {page}, {pageSize} per page'
     },
     attachmentParsing: {

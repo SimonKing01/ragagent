@@ -20,7 +20,7 @@ test('summary shows the exact block range read this time', () => {
     totalChunks: 67,
     startChunkIndex: 26,
   })
-  assert.equal(html, 'read <strong>26</strong>-<strong>35</strong> of <strong>67</strong>')
+  assert.equal(html, 'read <strong>27</strong>-<strong>36</strong> of <strong>67</strong>')
 })
 
 test('summary uses single-block wording when one block is read', () => {
@@ -30,7 +30,7 @@ test('summary uses single-block wording when one block is read', () => {
     totalChunks: 67,
     startChunkIndex: 24,
   })
-  assert.equal(html, 'chunk <strong>24</strong> of <strong>67</strong>')
+  assert.equal(html, 'chunk <strong>25</strong> of <strong>67</strong>')
 })
 
 test('summary falls back to page/pageSize for old payloads', () => {
@@ -41,5 +41,5 @@ test('summary falls back to page/pageSize for old payloads', () => {
     page: 3,
     pageSize: 20,
   })
-  assert.match(html, /read <strong>40<\/strong>-<strong>59<\/strong>/)
+  assert.match(html, /read <strong>41<\/strong>-<strong>60<\/strong>/)
 })

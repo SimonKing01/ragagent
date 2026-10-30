@@ -1595,7 +1595,7 @@ const handleUploadFinishedEvent = (event: Event) => {
 
 .kb-card {
   border: 1px solid var(--td-component-stroke);
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
   box-sizing: border-box;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -1639,7 +1639,7 @@ const handleUploadFinishedEvent = (event: Event) => {
     background: linear-gradient(135deg, var(--td-bg-color-container) 0%, rgba(7, 192, 95, 0.04) 100%);
 
     &:hover {
-      border-color: var(--td-brand-color);
+      border-color: var(--td-brand-color-3);
       background: linear-gradient(135deg, var(--td-bg-color-container) 0%, rgba(7, 192, 95, 0.08) 100%);
     }
 

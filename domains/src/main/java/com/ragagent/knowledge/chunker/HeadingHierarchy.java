@@ -1,6 +1,7 @@
 package com.ragagent.knowledge.chunker;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 
@@ -16,6 +17,9 @@ public final class HeadingHierarchy {
     private int depth;
 
     public HeadingHierarchy() {
+        // 元素默认 null，而 observe/breadcrumb 都按「空串 = 该级无活动标题」判定：
+        // 不预填会在「以 H2/H3 开头后遇到同层级标题」时 NPE（PDF 解析出的 markdown 常见）
+        Arrays.fill(stack, "");
     }
 
     /** 复制构造。 */

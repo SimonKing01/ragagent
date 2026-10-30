@@ -83,6 +83,7 @@
 | GET | `/api/v1/embed/{channelId}/messages/{sessionId}/load` | PUBLIC | `EmbedChannelController` |
 | GET | `/api/v1/embed/{channelId}/sessions` | PUBLIC | `EmbedChannelController` |
 | POST | `/api/v1/embed/{channelId}/sessions` | PUBLIC | `EmbedChannelController` |
+| DELETE | `/api/v1/embed/{channelId}/sessions/{sessionId}` | PUBLIC | `EmbedChannelController` |
 | POST | `/api/v1/embed/{channelId}/sessions/{sessionId}/events` | PUBLIC | `EmbedChannelController` |
 | POST | `/api/v1/embed/{channelId}/sessions/{sessionId}/mcp-oauth-resolutions/{pendingId}` | PUBLIC | `EmbedChannelController` |
 | POST | `/api/v1/embed/{channelId}/sessions/{sessionId}/mcp-oauth-resolutions/{pendingId}/cancel` | PUBLIC | `EmbedChannelController` |

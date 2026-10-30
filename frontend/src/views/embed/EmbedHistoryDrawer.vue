@@ -47,6 +47,18 @@
                   {{ t('embedPublish.historyCurrent') }}
                 </span>
                 <span class="embed-history__time">{{ formatTime(item.updatedAt) }}</span>
+                <span
+                  class="embed-history__delete"
+                  role="button"
+                  tabindex="0"
+                  :aria-label="t('embedPublish.historyDelete')"
+                  :title="t('embedPublish.historyDelete')"
+                  @click.stop="requestDelete(item)"
+                  @keydown.enter.stop="requestDelete(item)"
+                  @keydown.space.stop.prevent="requestDelete(item)"
+                >
+                  <span>{{ t('embedPublish.historyDelete') }}</span>
+                </span>
               </button>
             </section>
           </template>
@@ -76,7 +88,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'close'): void
   (e: 'select', item: EmbedVisitorSessionSummary): void
+  // 二次确认由父组件用 t-dialog 呈现（可控制 z-index，避免被抽屉遮挡）
+  (e: 'delete-request', item: EmbedVisitorSessionSummary): void
 }>()
+
+const requestDelete = (item: EmbedVisitorSessionSummary) => {
+  emit('delete-request', item)
+}
 
 const { t } = useI18n()
 
@@ -238,6 +256,26 @@ onUnmounted(() => {
   flex-shrink: 0;
   font-size: 11px;
   color: var(--td-text-color-placeholder);
+}
+
+.embed-history__item:hover .embed-history__time,
+.embed-history__item:focus-within .embed-history__time {
+  display: none;
+}
+
+.embed-history__delete {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--td-error-color, #d54941);
+  cursor: pointer;
+}
+
+.embed-history__item:hover .embed-history__delete,
+.embed-history__item:focus-within .embed-history__delete {
+  display: inline-flex;
 }
 
 .embed-history__empty {

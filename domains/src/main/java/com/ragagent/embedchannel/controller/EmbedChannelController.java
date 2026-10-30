@@ -186,6 +186,13 @@ final FileProxyPort fileProxyService;
         return publicOps.createSession(channelId);
     }
 
+    @DeleteMapping("/api/v1/embed/{channelId}/sessions/{sessionId}")
+    public ResponseEntity<Map<String, Object>> deleteSession(
+            @PathVariable("channelId") String channelId,
+            @PathVariable("sessionId") String sessionId) {
+        return publicOps.deleteSession(channelId, sessionId);
+    }
+
 
     @PostMapping("/api/v1/embed/{channelId}/knowledge-chat/{sessionId}")
     public void knowledgeChat(@PathVariable("sessionId") String sessionId,

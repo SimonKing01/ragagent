@@ -38,6 +38,13 @@ public interface EmbedSessionOps {
     /** 访客历史会话行（按最后活动倒序，上限 {@code limit}）。 */
     List<VisitorSessionRow> visitorSessions(long tenantId, String marker, String visitorId, int limit);
 
+    /**
+     * 删除本访客在本渠道下的某个会话（软删）。
+     *
+     * @return true=确实删除；false=会话不属于该访客/渠道或已删除（调用方按 404 处理）
+     */
+    boolean deleteVisitorSession(long tenantId, String marker, String visitorId, String sessionId);
+
     /** 会话归属视图（三字段；与 {@code Session} 实体同名同义）。 */
     record OwnershipView(Long tenantId, String description, String userId) {
     }

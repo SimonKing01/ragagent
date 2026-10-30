@@ -43,7 +43,7 @@ export default {
     loadError: '加载失败',
     refresh: '刷新',
     historyTitle: '历史会话',
-    historyEmpty: '暂无历史会话',
+    historyEmpty: '暂无历史会话',    historyDelete: '删除',    historyDeleteConfirm: '确定删除该会话吗？删除后不可恢复。',    historyDeleted: '会话已删除',    historyDeleteFailed: '删除失败，请重试',
     historyCurrent: '当前',
     historySwitchTitle: '正在回答',
     historySwitchBody: '切换会话将中断本次回答，确定要切换吗？',
@@ -491,7 +491,9 @@ export default {
       faqEntry: 'FAQ 条目'
     },
     knowledgeChunksList: {
-      chunkRange: '已加载 {fetched} / {total} 个分块',
+      chunkRange: '本次读取第 {from}-{to} 块（共 {total} 块）',
+
+      chunkSingle: '第 {index} 块（共 {total} 块）',
       page: '第 {page} 页，每页 {pageSize} 个'
     },
     attachmentParsing: {

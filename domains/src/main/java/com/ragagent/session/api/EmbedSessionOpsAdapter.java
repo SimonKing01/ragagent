@@ -22,6 +22,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class EmbedSessionOpsAdapter implements EmbedSessionOps {
 
+    /** 归属校验的扫描上限：与公开列表同一量级，足够覆盖单访客历史。 */
+    private static final int VISITOR_SESSION_SCAN_LIMIT = 200;
+
     private final SessionService sessionService;
     private final SessionRepository sessionRepository;
 
@@ -82,6 +85,22 @@ public class EmbedSessionOpsAdapter implements EmbedSessionOps {
             out.add(new VisitorSessionRow(row.getId(), row.getTitle(), row.getUpdatedAt()));
         }
         return out;
+    }
+
+    @Override
+    public boolean deleteVisitorSession(long tenantId, String marker, String visitorId, String sessionId) {
+        if (sessionId == null || sessionId.isBlank()) {
+            return false;
+        }
+        // 归属校验：只允许删本渠道 marker + 本访客名下的会话
+        boolean owned = sessionRepository
+                .listEmbedVisitorSessions(tenantId, marker, visitorId, VISITOR_SESSION_SCAN_LIMIT)
+                .stream()
+                .anyMatch(row -> sessionId.equals(row.getId()));
+        if (!owned) {
+            return false;
+        }
+        return sessionRepository.delete(tenantId, null, sessionId) > 0;
     }
 
     /** owner 串规则（{@code EMBED_SESSION_PREFIX + tenantId:channelId:sessionId}）只在本域成形。 */

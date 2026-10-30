@@ -66,7 +66,7 @@ export default {
     createdDebugHint: 'สร้างช่องแล้ว — ใช้ «ตัวอย่างสำหรับดีบัก» เพื่อเปิดในแท็บใหม่',
     tokenRotated: 'หมุนเวียนโทเคนแล้ว',
     historyTitle: 'ประวัติการสนทนา',
-    historyEmpty: 'ยังไม่มีการสนทนาก่อนหน้า',
+    historyEmpty: 'ยังไม่มีการสนทนาก่อนหน้า',    historyDelete: 'ลบ',    historyDeleteConfirm: 'ต้องการลบการสนทนานี้หรือไม่? ไม่สามารถกู้คืนได้',    historyDeleted: 'ลบการสนทนาแล้ว',    historyDeleteFailed: 'ลบไม่สำเร็จ โปรดลองอีกครั้ง',
     historyCurrent: 'ปัจจุบัน',
     historySwitchTitle: 'กำลังตอบ',
     historySwitchBody: 'การสลับการสนทนาจะหยุดคำตอบปัจจุบัน ดำเนินการต่อหรือไม่?',
@@ -483,7 +483,9 @@ export default {
       faqEntry: 'รายการ FAQ'
     },
     knowledgeChunksList: {
-      chunkRange: 'โหลดแล้ว {fetched} / {total} ส่วนย่อย',
+      chunkRange: 'อ่านบล็อก {from}-{to} (จาก {total})',
+
+      chunkSingle: 'บล็อก {index} (จาก {total})',
       page: 'หน้า {page}, {pageSize} ต่อหน้า'
     },
     attachmentParsing: {

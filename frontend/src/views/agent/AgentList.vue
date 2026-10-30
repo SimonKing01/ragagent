@@ -1320,7 +1320,7 @@ defineExpose({
 /* 与知识库列表卡片统一尺寸：紧凑行高、148px 卡片高 */
 .agent-card {
   border: 1px solid var(--td-component-stroke);
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
   box-sizing: border-box;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -1335,7 +1335,7 @@ defineExpose({
   min-height: 136px;
 
   &:hover {
-    border-color: var(--td-brand-color);
+    border-color: var(--td-brand-color-3);
     box-shadow: 0 4px 12px rgba(7, 192, 95, 0.12);
   }
 
@@ -1379,7 +1379,7 @@ defineExpose({
     background: linear-gradient(135deg, var(--td-bg-color-container) 0%, rgba(7, 192, 95, 0.04) 100%);
 
     &:hover {
-      border-color: var(--td-brand-color);
+      border-color: var(--td-brand-color-3);
       background: linear-gradient(135deg, var(--td-bg-color-container) 0%, rgba(7, 192, 95, 0.08) 100%);
     }
 
@@ -1397,7 +1397,7 @@ defineExpose({
     background: linear-gradient(135deg, var(--td-bg-color-container) 0%, rgba(124, 77, 255, 0.04) 100%);
 
     &:hover {
-      border-color: var(--td-brand-color);
+      border-color: var(--td-brand-color-3);
       box-shadow: 0 4px 12px rgba(124, 77, 255, 0.12);
       background: linear-gradient(135deg, var(--td-bg-color-container) 0%, rgba(124, 77, 255, 0.08) 100%);
     }
