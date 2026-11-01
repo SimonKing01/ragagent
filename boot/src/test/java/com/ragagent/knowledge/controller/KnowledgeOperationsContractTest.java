@@ -603,6 +603,10 @@ class KnowledgeOperationsContractTest {
 
     // ════════════════ 14) clear contents ════════════════
 
+    /**
+     * 第二次清空返回 0（不再是录像里的 1）：清空现在直接软删行并回收资源，
+     * 不再把 {@code deleting} 行重复计入下一次计数。
+     */
     @Test
     void clearContentsMatchesGo() throws Exception {
         assertDelete("/api/v1/knowledge-bases/" + KB2 + "/knowledge", "kg-clear-nonempty.json");

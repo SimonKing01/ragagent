@@ -12,7 +12,6 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 批量面：批量删除 / 批量重解析 / 重建索引 / 清空 KB 内容。
@@ -84,24 +83,13 @@ public class KnowledgeBatchOpsService {
     }
 
     /**
-     * 列表计数），录制的两次连续 clear 都是 "task submitted" + 相同计数（worker 尚未
-     * 动行）——Java 用 parse_status='deleting' 标记 + 计数维持这个窗口（行为收敛：
-     * 后续读路径对 KB2 无感知；真正的回收与既有 deleteKnowledge 语义一致地缺位，
-     * 见类注释实现边界 ①）。
-     * @return 本次列入清理的条数
+     * 清空知识库：库内软删与物理回收全部复用 {@link KnowledgeRecycleService}
+     * （资源清单与单条删除一致），不再只置 {@code deleting} 而没有后续动作。
+     *
+     * @return 本次回收的条数
      */
-    @Transactional
     public int clearKnowledgeBaseContents(String kbId) {
-        List<Knowledge> rows = knowledgeRepository.listByTenantAndKb(KnowledgeTenants.tenantId(), kbId);
-        for (Knowledge row : rows) {
-            ChunkAccessGuard.rejectMovingKnowledge(row);
-        }
-        if (rows.isEmpty()) {
-            return 0;
-        }
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-        knowledgeRepository.setParseStatusDeleting(rows.stream().map(Knowledge::getId).toList(), now);
-        return rows.size();
+        return recycleService.clearKnowledgeBase(kbId);
     }
 
     /** 内部：worker 使用的按 id 加载（无租户条件，任务可能跨请求线程） */

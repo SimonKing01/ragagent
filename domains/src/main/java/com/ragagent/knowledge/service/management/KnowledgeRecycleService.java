@@ -7,6 +7,7 @@ import com.ragagent.knowledge.index.KnowledgeIndexCleaner;
 import com.ragagent.knowledge.repository.ChunkRepository;
 import com.ragagent.knowledge.repository.KnowledgeRepository;
 import com.ragagent.knowledge.service.KnowledgeAccessHelper;
+import com.ragagent.knowledge.service.access.ChunkAccessGuard;
 import com.ragagent.knowledge.service.image.ExtractedImageStore;
 import com.ragagent.knowledge.storage.TenantFileStorage;
 import java.time.OffsetDateTime;
@@ -98,6 +99,43 @@ public class KnowledgeRecycleService {
         }
         scheduleCleanup(targets);
         return UUID.randomUUID().toString();
+    }
+
+    /**
+     * 清空知识库：资源清单与单条删除一致，范围是 KB 内全部存活行。
+     *
+     * <p>不单独开事务——调用方（清空入口 / 删库）通常已在事务里；无事务时清理立即执行。
+     * 行会被直接软删，`deleting` 只作为过渡标记，不再留下无终态的中间态。</p>
+     *
+     * @return 本次回收的条数
+     */
+    public int recycleKnowledgeBaseContents(String kbId) {
+        KnowledgeBase kb = access.findKb(kbId);
+        long tenantId = KnowledgeTenants.tenantId();
+        List<Knowledge> rows = knowledgeRepository.listByTenantAndKb(tenantId, kbId);
+        for (Knowledge row : rows) {
+            ChunkAccessGuard.rejectMovingKnowledge(row);
+        }
+        if (rows.isEmpty()) {
+            return 0;
+        }
+        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+        List<String> ids = rows.stream().map(Knowledge::getId).toList();
+        knowledgeRepository.setParseStatusDeleting(ids, now);
+        List<CleanupTarget> targets = new ArrayList<>();
+        for (Knowledge row : rows) {
+            knowledgeRepository.softDelete(row.getId(), now);
+            chunkRepository.softDeleteByKnowledgeId(row.getId(), now);
+            targets.add(targetOf(row, kb));
+        }
+        scheduleCleanup(targets);
+        return rows.size();
+    }
+
+    /** 清空知识库（HTTP 入口）：一个事务内推进库内状态，提交后清理物理资源。 */
+    @Transactional
+    public int clearKnowledgeBase(String kbId) {
+        return recycleKnowledgeBaseContents(kbId);
     }
 
     private static CleanupTarget targetOf(Knowledge k, KnowledgeBase kb) {

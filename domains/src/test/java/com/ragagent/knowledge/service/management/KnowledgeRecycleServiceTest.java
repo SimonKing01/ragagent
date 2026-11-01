@@ -137,6 +137,37 @@ class KnowledgeRecycleServiceTest {
         verify(indexCleaner).cleanup(eq(k), any(KnowledgeBase.class));
     }
 
+    @Test
+    void clearKnowledgeBase_softDeletesEveryRowAndCleansEach() {
+        Knowledge a = knowledge("k-1");
+        Knowledge b = knowledge("k-2");
+        when(access.findKb(KB)).thenReturn(kb());
+        when(knowledgeRepository.listByTenantAndKb(TENANT, KB)).thenReturn(List.of(a, b));
+
+        int count = service.clearKnowledgeBase(KB);
+
+        assertThat(count).isEqualTo(2);
+        verify(knowledgeRepository).setParseStatusDeleting(eq(List.of("k-1", "k-2")), any(OffsetDateTime.class));
+        verify(knowledgeRepository).softDelete(eq("k-1"), any(OffsetDateTime.class));
+        verify(knowledgeRepository).softDelete(eq("k-2"), any(OffsetDateTime.class));
+        verify(chunkRepository).softDeleteByKnowledgeId(eq("k-1"), any(OffsetDateTime.class));
+        verify(chunkRepository).softDeleteByKnowledgeId(eq("k-2"), any(OffsetDateTime.class));
+        verify(fileStorage).delete(TENANT, "k-1", a.getFilePath());
+        verify(fileStorage).delete(TENANT, "k-2", b.getFilePath());
+        verify(indexCleaner).cleanup(eq(a), any(KnowledgeBase.class));
+        verify(indexCleaner).cleanup(eq(b), any(KnowledgeBase.class));
+    }
+
+    @Test
+    void clearKnowledgeBase_emptyBase_reportsZeroAndTouchesNothing() {
+        when(access.findKb(KB)).thenReturn(kb());
+        when(knowledgeRepository.listByTenantAndKb(TENANT, KB)).thenReturn(List.of());
+
+        assertThat(service.clearKnowledgeBase(KB)).isZero();
+
+        verifyNoInteractions(fileStorage, extractedImageStore, indexCleaner);
+    }
+
     private static Knowledge knowledge(String id) {
         Knowledge k = new Knowledge();
         k.setId(id);

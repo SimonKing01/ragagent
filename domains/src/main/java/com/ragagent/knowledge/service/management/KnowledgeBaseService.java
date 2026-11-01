@@ -25,7 +25,6 @@ import com.ragagent.knowledge.repository.ChunkRepository;
 import com.ragagent.knowledge.repository.KnowledgeBaseRepository;
 import com.ragagent.knowledge.repository.KnowledgeRepository;
 import com.ragagent.knowledge.repository.UserKbPinRepository;
-import com.ragagent.knowledge.service.image.ExtractedImageStore;
 import com.ragagent.knowledge.support.KnowledgeBaseConfigCodec;
 import com.ragagent.platform.access.TenantContext;
 import com.ragagent.platform.config.RetrievalDriverProperties;
@@ -66,7 +65,7 @@ public class KnowledgeBaseService
     private final String retrieveDriver;
     private final IndexEngineResolver indexEngineResolver;
     /** 抽取图片回收（删库时逐篇清理）。 */
-    private final ExtractedImageStore extractedImageStore;
+    private final KnowledgeRecycleService recycleService;
 
     public KnowledgeBaseService(KnowledgeBaseRepository kbRepository,
                                 KnowledgeRepository knowledgeRepository,
@@ -77,7 +76,7 @@ public class KnowledgeBaseService
                                 UserNameLookup userNameLookup,
                                 IndexEngineResolver indexEngineResolver,
                                 RetrievalDriverProperties driverProperties,
-                                ExtractedImageStore extractedImageStore) {
+                                KnowledgeRecycleService recycleService) {
         this.kbRepository = kbRepository;
         this.knowledgeRepository = knowledgeRepository;
         this.chunkRepository = chunkRepository;
@@ -86,7 +85,7 @@ public class KnowledgeBaseService
         this.tenantConfigLookup = tenantConfigLookup;
         this.userNameLookup = userNameLookup;
         this.indexEngineResolver = indexEngineResolver;
-        this.extractedImageStore = extractedImageStore;
+        this.recycleService = recycleService;
         String env = driverProperties.driver();
         this.retrieveDriver = env == null || env.isBlank() ? "postgres" : env;
     }
@@ -594,11 +593,9 @@ public class KnowledgeBaseService
         if (kb == null) {
             throw new BizException(AppError.notFound("knowledge base not found"));
         }
-        long tenant = tenantId();
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-        for (Knowledge k : knowledgeRepository.listByTenantAndKb(tenant, id)) {
-            extractedImageStore.releaseFor(tenant, k.getId());
-        }
+        // 文档侧交给统一回收用例（软删 + 文件/图片/索引），再做 KB 行本身的软删。
+        recycleService.recycleKnowledgeBaseContents(id);
         kbRepository.softDelete(id, now);
         knowledgeRepository.softDeleteByKnowledgeBaseId(id, now);
         chunkRepository.softDeleteByKnowledgeBaseId(id, now);
