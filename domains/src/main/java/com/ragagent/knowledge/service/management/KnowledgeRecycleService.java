@@ -102,6 +102,27 @@ public class KnowledgeRecycleService {
     }
 
     /**
+     * 显式租户的单条回收：供同步 worker 等**没有租户上下文**的调用方使用
+     * （datasource 同步在线程池里跑，{@code TenantContext} 为空）。
+     *
+     * <p>幂等：行不存在或已软删都只做一次软删 + 清理，重复调用不报错。</p>
+     */
+    @Transactional
+    public void recycleForTenant(long tenantId, String knowledgeId, OffsetDateTime now) {
+        if (knowledgeId == null || knowledgeId.isEmpty()) {
+            return;
+        }
+        Knowledge k = knowledgeRepository.findById(tenantId, knowledgeId);
+        if (k == null) {
+            return;
+        }
+        KnowledgeBase kb = access.findKb(k.getKnowledgeBaseId());
+        knowledgeRepository.softDelete(k.getId(), now);
+        chunkRepository.softDeleteByKnowledgeId(k.getId(), now);
+        scheduleCleanup(List.of(targetOf(k, kb)));
+    }
+
+    /**
      * 清空知识库：资源清单与单条删除一致，范围是 KB 内全部存活行。
      *
      * <p>不单独开事务——调用方（清空入口 / 删库）通常已在事务里；无事务时清理立即执行。

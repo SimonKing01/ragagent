@@ -12,12 +12,10 @@ import com.ragagent.contract.knowledge.KnowledgePageView;
 import com.ragagent.contract.knowledge.KnowledgeRowView;
 import com.ragagent.contract.knowledge.KnowledgeTagView;
 import com.ragagent.contract.pagination.PageResult;
-import com.ragagent.knowledge.domain.Chunk;
 import com.ragagent.knowledge.domain.Knowledge;
 import com.ragagent.knowledge.domain.KnowledgeBase;
 import com.ragagent.knowledge.domain.KnowledgeTag;
 import com.ragagent.knowledge.dto.faq.FaqEntry;
-import com.ragagent.knowledge.mapper.ChunkMapper;
 import com.ragagent.knowledge.mapper.KnowledgeBaseMapper;
 import com.ragagent.knowledge.mapper.KnowledgeMapper;
 import com.ragagent.knowledge.repository.ChunkRepository;
@@ -25,6 +23,7 @@ import com.ragagent.knowledge.repository.KnowledgeTagRepository;
 import com.ragagent.knowledge.service.access.KnowledgeAccessGuard;
 import com.ragagent.knowledge.service.faq.FaqEntryQueryService;
 import com.ragagent.knowledge.service.management.KnowledgeBaseService;
+import com.ragagent.knowledge.service.management.KnowledgeRecycleService;
 import com.ragagent.knowledge.service.management.KnowledgeService;
 import com.ragagent.knowledge.service.management.KnowledgeTagService;
 import com.ragagent.knowledge.storage.TenantFileStorage;
@@ -58,35 +57,35 @@ public class KnowledgeCatalogAdapter implements KnowledgeCatalogPort {
     private final KnowledgeAccessGuard accessGuard;
     private final KnowledgeBaseMapper knowledgeBaseMapper;
     private final KnowledgeMapper knowledgeMapper;
-    private final ChunkMapper chunkMapper;
     private final KnowledgeTagService knowledgeTagService;
     private final KnowledgeTagRepository knowledgeTagRepository;
     private final TenantFileStorage tenantFileStorage;
     private final ChunkRepository chunkRepository;
     private final FaqEntryQueryService faqEntryQueryService;
+    private final KnowledgeRecycleService recycleService;
 
     public KnowledgeCatalogAdapter(KnowledgeService knowledgeService,
                                    KnowledgeBaseService knowledgeBaseService,
                                    KnowledgeAccessGuard accessGuard,
                                    KnowledgeBaseMapper knowledgeBaseMapper,
                                    KnowledgeMapper knowledgeMapper,
-                                   ChunkMapper chunkMapper,
                                    KnowledgeTagService knowledgeTagService,
                                    KnowledgeTagRepository knowledgeTagRepository,
                                    TenantFileStorage tenantFileStorage,
                                    ChunkRepository chunkRepository,
-                                   FaqEntryQueryService faqEntryQueryService) {
+                                   FaqEntryQueryService faqEntryQueryService,
+                                   KnowledgeRecycleService recycleService) {
         this.knowledgeService = knowledgeService;
         this.knowledgeBaseService = knowledgeBaseService;
         this.accessGuard = accessGuard;
         this.knowledgeBaseMapper = knowledgeBaseMapper;
         this.knowledgeMapper = knowledgeMapper;
-        this.chunkMapper = chunkMapper;
         this.knowledgeTagService = knowledgeTagService;
         this.knowledgeTagRepository = knowledgeTagRepository;
         this.tenantFileStorage = tenantFileStorage;
         this.chunkRepository = chunkRepository;
         this.faqEntryQueryService = faqEntryQueryService;
+        this.recycleService = recycleService;
     }
 
     @Override
@@ -341,20 +340,13 @@ public class KnowledgeCatalogAdapter implements KnowledgeCatalogPort {
 
     @Override
     public void softDeleteKnowledgeFull(String knowledgeId, long tenantId, OffsetDateTime now) {
-        knowledgeMapper.update(null, new LambdaUpdateWrapper<Knowledge>()
-                .eq(Knowledge::getId, knowledgeId).eq(Knowledge::getTenantId, tenantId)
-                .set(Knowledge::getDeletedAt, now));
-        chunkMapper.update(null, new LambdaUpdateWrapper<Chunk>()
-                .eq(Chunk::getKnowledgeId, knowledgeId).set(Chunk::getDeletedAt, now));
-        Knowledge row = knowledgeMapper.selectOne(new LambdaQueryWrapper<Knowledge>()
-                .eq(Knowledge::getId, knowledgeId)
-                .eq(Knowledge::getTenantId, tenantId)
-                .last("LIMIT 1"));
-        tenantFileStorage.delete(tenantId, knowledgeId, row == null ? null : row.getFilePath());
+        // 同步 worker 没有租户上下文，走显式租户的回收用例（软删 + 文件/图片/索引清理）。
+        recycleService.recycleForTenant(tenantId, knowledgeId, now);
     }
 
     @Override
     public void hardDeleteKnowledge(String knowledgeId, long tenantId) {
+        recycleService.recycleForTenant(tenantId, knowledgeId, OffsetDateTime.now(ZoneOffset.UTC));
         knowledgeMapper.delete(new LambdaQueryWrapper<Knowledge>()
                 .eq(Knowledge::getId, knowledgeId)
                 .eq(Knowledge::getTenantId, tenantId));
@@ -362,6 +354,12 @@ public class KnowledgeCatalogAdapter implements KnowledgeCatalogPort {
 
     @Override
     public void hardDeleteKnowledgeBatch(long tenantId, List<String> knowledgeIds) {
+        if (knowledgeIds != null) {
+            OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+            for (String id : knowledgeIds) {
+                recycleService.recycleForTenant(tenantId, id, now);
+            }
+        }
         knowledgeMapper.delete(new LambdaQueryWrapper<Knowledge>()
                 .eq(Knowledge::getTenantId, tenantId)
                 .in(Knowledge::getId, knowledgeIds));
