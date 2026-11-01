@@ -2247,7 +2247,7 @@ const handleKBEditorSuccess = (kbIdValue: string) => {
                     <t-skeleton animation="gradient" :row-col="[{ width: '120px', height: '20px' }]" />
                   </template>
                   <template v-else>
-                    <span>{{ kbInfo.name }}</span>
+                    <span class="breadcrumb-current">{{ kbInfo.name }}</span>
                     <t-icon name="chevron-down" />
                   </template>
                 </button>
@@ -2260,7 +2260,7 @@ const handleKBEditorSuccess = (kbIdValue: string) => {
                   {{ kbInfo.name }}
                 </template>
               </button>
-              <t-icon name="chevron-right" class="breadcrumb-separator" />
+              <!-- <t-icon name="chevron-right" class="breadcrumb-separator" /> -->
               <template v-if="isWiki">
                 <span :class="['breadcrumb-tab', { active: activeKbTab === 'documents' }]"
                   @click="activeKbTab = 'documents'">{{ $t('knowledgeEditor.wikiBrowser.tabDocuments') }}</span>
@@ -2283,28 +2283,18 @@ const handleKBEditorSuccess = (kbIdValue: string) => {
                   </span>
                 </t-tooltip>
               </template>
-              <span v-else class="breadcrumb-current">{{ $t('knowledgeEditor.document.title') }}</span>
+              <!-- <span v-else class="breadcrumb-current">{{ $t('knowledgeEditor.document.title') }}</span> -->
             </h2>
             <!-- 标题行右侧的动作锚点：聚拢"信息"和"设置"两个圆形按钮。 -->
             <div class="kb-title-actions">
-              <KBInfoPopover v-if="kbInfo && !authStore.isLiteMode" :kb-info="kbInfo"
-                :supported-file-types="[...supportedFileTypes]" />
-              <t-tooltip v-if="canManage" :content="$t('knowledgeBase.settings')" placement="top">
-                <button type="button" class="kb-settings-button" :disabled="!kbId" @click="handleOpenKBSettings">
-                  <t-icon name="setting" size="16px" />
-                </button>
-              </t-tooltip>
+              <button v-if="canManage" type="button" class="kb-settings-button" :disabled="!kbId"
+                @click="handleOpenKBSettings">
+                <t-icon name="setting" size="16px" />
+                <span>{{ $t('knowledgeBase.settings') }}</span>
+              </button>
             </div>
           </div>
           <p class="document-subtitle">{{ $t('knowledgeEditor.document.subtitle') }}</p>
-          <p v-if="unsupportedFileTypes.length" class="parser-hint" @click="goToParserSettings">
-            <t-icon name="info-circle" class="parser-hint-icon" />
-            <span>{{$t('knowledgeBase.unsupportedTypesHint', {
-              types: unsupportedFileTypes.map(t => '.' + t).join('、')
-            })
-              }}</span>
-            <span class="parser-hint-link">{{ $t('knowledgeBase.goToParserSettings') }} →</span>
-          </p>
           <p v-if="missingStorageEngine" class="storage-engine-warning" @click="handleOpenKBSettings">
             <t-icon name="info-circle" class="warning-icon" />
             <span>{{ $t('knowledgeBase.missingStorageEngine') }}</span>
@@ -2716,13 +2706,12 @@ const handleKBEditorSuccess = (kbIdValue: string) => {
 .knowledge-layout {
   display: flex;
   flex-direction: column;
-  margin: 0 16px 0 4px;
   gap: 20px;
   height: 100%;
   flex: 1;
   width: 100%;
   min-width: 0;
-  padding: 24px 32px 0px;
+  padding: 20px 28px 0px;
   box-sizing: border-box;
 }
 
@@ -3253,8 +3242,13 @@ const handleKBEditorSuccess = (kbIdValue: string) => {
     // TDesign focuses both the outer popup reference and inner inputs, which
     // visually stacks into a "double border" — drop the inner shadow.
     :deep(.t-input--focused),
-    :deep(.t-is-focused) {
+    :deep(.t-is-focused),
+    :deep(.t-range-input) {
       box-shadow: none;
+      background-color: var(--td-bg-color-secondarycontainer);
+      border-color: transparent;
+      border-radius:6px;
+
     }
   }
 
@@ -3385,7 +3379,7 @@ const handleKBEditorSuccess = (kbIdValue: string) => {
 // Header 样式（无底部分割线，留更多空间给下方内容区）
 .document-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
@@ -3424,7 +3418,7 @@ const handleKBEditorSuccess = (kbIdValue: string) => {
     align-items: center;
     gap: 6px;
     margin: 0;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 600;
     color: var(--td-text-color-primary);
   }
@@ -3444,7 +3438,7 @@ const handleKBEditorSuccess = (kbIdValue: string) => {
     transition: all 0.12s ease;
 
     &:hover:not(:disabled) {
-      color: var(--td-success-color);
+      color: var(--td-brand-color);
       background: var(--td-bg-color-container);
     }
 
@@ -3596,21 +3590,24 @@ const handleKBEditorSuccess = (kbIdValue: string) => {
 }
 
 .kb-settings-button {
-  width: 30px;
   height: 30px;
+  padding: 0 10px;
   border: none;
-  border-radius: 50%;
-  background: var(--td-bg-color-secondarycontainer);
+  border-radius: var(--td-radius-default);
+  background: transparent;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
   color: var(--td-text-color-secondary);
+  font-family: var(--app-font-family);
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
   cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 0;
+  transition: color 0.2s ease, background-color 0.2s ease;
 
   &:hover:not(:disabled) {
-    background: var(--td-success-color-light);
+    background: var(--td-bg-color-secondarycontainer);
     color: var(--td-brand-color);
     box-shadow: none;
   }
