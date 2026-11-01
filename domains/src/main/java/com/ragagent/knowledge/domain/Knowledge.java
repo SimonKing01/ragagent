@@ -29,6 +29,8 @@ public class Knowledge {
     public static final String PARSE_FAILED = KnowledgeParseStatus.PARSE_FAILED;
     public static final String PARSE_DELETING = KnowledgeParseStatus.PARSE_DELETING;
     public static final String PARSE_CANCELLED = KnowledgeParseStatus.PARSE_CANCELLED;
+    public static final String PARSE_DELETED = KnowledgeParseStatus.PARSE_DELETED;
+    public static final String PARSE_DELETE_FAILED = KnowledgeParseStatus.PARSE_DELETE_FAILED;
 
     @TableId(type = IdType.INPUT)
     private String id;

@@ -1,6 +1,7 @@
 package com.ragagent.config;
 
 import com.ragagent.knowledge.recovery.KnowledgeStartupRecovery;
+import com.ragagent.knowledge.service.management.KnowledgeRecycleService;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import org.slf4j.Logger;
@@ -51,6 +52,9 @@ public class StartupTaskRecovery {
     /** 陈旧窗：30 分钟。 */
     static final long STALE_WINDOW_MINUTES = 30;
 
+    /** 单次启动最多重试多少条删除清理（避免故障积压拖慢启动）。 */
+    static final int CLEANUP_RETRY_LIMIT = 200;
+
     /** 知识/摘要行复位时的 error_message 文案。 */
     public static final String RESTART_INTERRUPTED_MESSAGE =
             KnowledgeStartupRecovery.RESTART_INTERRUPTED_MESSAGE;
@@ -61,6 +65,7 @@ public class StartupTaskRecovery {
 
     private final JdbcTemplate jdbc;
     private final KnowledgeStartupRecovery knowledgeRecovery;
+    private final KnowledgeRecycleService recycleService;
     /** 知识 Redis 面是否装配（= {@code KnowledgeRedisWiring} 的同一开关）。 */
     private final boolean knowledgeRedisEnabled;
     /** 数据源任务队列是否装配 Redis 版（= {@code DataSourceTaskQueueWiring} 的同一开关）。 */
@@ -68,10 +73,12 @@ public class StartupTaskRecovery {
 
     public StartupTaskRecovery(JdbcTemplate jdbc,
             KnowledgeStartupRecovery knowledgeRecovery,
+            KnowledgeRecycleService recycleService,
             @Value("${knowledge.redis-enabled:false}") boolean knowledgeRedisEnabled,
             @Value("${datasource.redis-enabled:false}") boolean datasourceRedisEnabled) {
         this.jdbc = jdbc;
         this.knowledgeRecovery = knowledgeRecovery;
+        this.recycleService = recycleService;
         this.knowledgeRedisEnabled = knowledgeRedisEnabled;
         this.datasourceRedisEnabled = datasourceRedisEnabled;
     }
@@ -103,6 +110,11 @@ public class StartupTaskRecovery {
             resetStuckSyncLogs(syncDistributed);
         } catch (RuntimeException e) {
             log.warn("resetPendingTasks: reset pending data source sync tasks failed", e);
+        }
+        try {
+            recycleService.retryFailedCleanups(CLEANUP_RETRY_LIMIT);
+        } catch (RuntimeException e) {
+            log.warn("resetPendingTasks: retry failed knowledge cleanups failed", e);
         }
     }
 

@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -135,6 +137,56 @@ class KnowledgeRecycleServiceTest {
 
         verify(extractedImageStore).releaseFor(TENANT, "k-1");
         verify(indexCleaner).cleanup(eq(k), any(KnowledgeBase.class));
+    }
+
+    @Test
+    void recycleOne_marksDeleteFailedWhenCleanupFails() {
+        Knowledge k = knowledge("k-1");
+        when(access.getKnowledge("k-1")).thenReturn(k);
+        when(access.findKb(KB)).thenReturn(kb());
+        doThrow(new IllegalStateException("disk full"))
+                .when(fileStorage).delete(TENANT, "k-1", k.getFilePath());
+
+        service.recycleOne("k-1");
+
+        verify(knowledgeRepository).updateStatusColumns(eq("k-1"), eq(Knowledge.PARSE_DELETE_FAILED),
+                contains("file"), isNull(), any(OffsetDateTime.class));
+    }
+
+    @Test
+    void retryFailedCleanups_retriesEachAndMarksDeleted() {
+        Knowledge k1 = knowledge("k-1");
+        Knowledge k2 = knowledge("k-2");
+        when(knowledgeRepository.listCleanupFailedIds(10)).thenReturn(List.of("k-1", "k-2"));
+        when(knowledgeRepository.findByIdAny("k-1")).thenReturn(k1);
+        when(knowledgeRepository.findByIdAny("k-2")).thenReturn(k2);
+        when(access.findKb(KB)).thenReturn(kb());
+
+        int done = service.retryFailedCleanups(10);
+
+        assertThat(done).isEqualTo(2);
+        verify(fileStorage).delete(TENANT, "k-1", k1.getFilePath());
+        verify(fileStorage).delete(TENANT, "k-2", k2.getFilePath());
+        verify(knowledgeRepository).updateStatusColumns(eq("k-1"), eq(Knowledge.PARSE_DELETED),
+                eq(""), isNull(), any(OffsetDateTime.class));
+        verify(knowledgeRepository).updateStatusColumns(eq("k-2"), eq(Knowledge.PARSE_DELETED),
+                eq(""), isNull(), any(OffsetDateTime.class));
+    }
+
+    @Test
+    void retryCleanup_keepsDeleteFailedWhenStillFailing() {
+        Knowledge k = knowledge("k-1");
+        when(knowledgeRepository.findByIdAny("k-1")).thenReturn(k);
+        when(access.findKb(KB)).thenReturn(kb());
+        when(indexCleaner.cleanup(any(Knowledge.class), any(KnowledgeBase.class)))
+                .thenThrow(new IllegalStateException("engine down"));
+
+        assertThat(service.retryCleanup("k-1")).isFalse();
+
+        verify(knowledgeRepository).updateStatusColumns(eq("k-1"), eq(Knowledge.PARSE_DELETE_FAILED),
+                contains("index"), isNull(), any(OffsetDateTime.class));
+        verify(knowledgeRepository, never()).updateStatusColumns(eq("k-1"), eq(Knowledge.PARSE_DELETED),
+                anyString(), any(), any(OffsetDateTime.class));
     }
 
     @Test

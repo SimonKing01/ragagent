@@ -397,6 +397,22 @@ public class KnowledgeRepository {
         return knowledgeMapper.update(null, uw);
     }
 
+    /**
+     * 待重试的删除清理行：已软删、但物理资源（文件/图片/索引）回收失败。
+     * 按 {@code updated_at} 升序，先失败先重试。
+     */
+    public List<String> listCleanupFailedIds(int limit) {
+        LambdaQueryWrapper<Knowledge> qw = new LambdaQueryWrapper<Knowledge>()
+                .select(Knowledge::getId)
+                .eq(Knowledge::getParseStatus, Knowledge.PARSE_DELETE_FAILED)
+                .isNotNull(Knowledge::getDeletedAt)
+                .orderByAsc(Knowledge::getUpdatedAt);
+        Page<Knowledge> page = new Page<>(1, Math.max(1, limit));
+        return knowledgeMapper.selectPage(page, qw).getRecords().stream()
+                .map(Knowledge::getId)
+                .toList();
+    }
+
     /** 只写 {@code summary_status}（pending/failed 等；由 service 直连归位）。 */
     public int setSummaryStatus(String id, String summaryStatus) {
         return knowledgeMapper.update(null, new LambdaUpdateWrapper<Knowledge>()

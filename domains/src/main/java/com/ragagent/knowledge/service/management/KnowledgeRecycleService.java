@@ -183,30 +183,98 @@ public class KnowledgeRecycleService {
         cleanup(targets);
     }
 
-    /** 逐项独立兜底：一项失败不能挡住同批其余文档的回收。 */
+    /** 逐项独立兜底：一项失败不能挡住同批其余文档的回收；有失败的行标记为待重试。 */
     private void cleanup(List<CleanupTarget> targets) {
         for (CleanupTarget t : targets) {
-            try {
-                fileStorage.delete(t.tenantId(), t.knowledgeId(), t.filePath());
-            } catch (RuntimeException e) {
-                log.warn("File cleanup failed, tenant={} knowledge={}", t.tenantId(), t.knowledgeId(), e);
-            }
-            try {
-                extractedImageStore.releaseFor(t.tenantId(), t.knowledgeId());
-            } catch (RuntimeException e) {
-                log.warn("Extracted image cleanup failed, tenant={} knowledge={}",
-                        t.tenantId(), t.knowledgeId(), e);
-            }
-            try {
-                int failed = indexCleaner.cleanup(t.knowledge(), t.kb());
-                if (failed > 0) {
-                    log.warn("Index cleanup incomplete, tenant={} knowledge={} failedItems={}",
-                            t.tenantId(), t.knowledgeId(), failed);
-                }
-            } catch (RuntimeException e) {
-                log.warn("Index cleanup failed, tenant={} knowledge={}", t.tenantId(), t.knowledgeId(), e);
+            List<String> failed = cleanupOne(t);
+            if (!failed.isEmpty()) {
+                markCleanupFailed(t, failed);
             }
         }
+    }
+
+    /** 执行单条的全部物理清理，返回失败资源名（空 = 全部成功）。 */
+    private List<String> cleanupOne(CleanupTarget t) {
+        List<String> failed = new ArrayList<>();
+        try {
+            fileStorage.delete(t.tenantId(), t.knowledgeId(), t.filePath());
+        } catch (RuntimeException e) {
+            log.warn("File cleanup failed, tenant={} knowledge={}", t.tenantId(), t.knowledgeId(), e);
+            failed.add("file");
+        }
+        try {
+            extractedImageStore.releaseFor(t.tenantId(), t.knowledgeId());
+        } catch (RuntimeException e) {
+            log.warn("Extracted image cleanup failed, tenant={} knowledge={}",
+                    t.tenantId(), t.knowledgeId(), e);
+            failed.add("images");
+        }
+        try {
+            int failedItems = indexCleaner.cleanup(t.knowledge(), t.kb());
+            if (failedItems > 0) {
+                log.warn("Index cleanup incomplete, tenant={} knowledge={} failedItems={}",
+                        t.tenantId(), t.knowledgeId(), failedItems);
+                failed.add("index");
+            }
+        } catch (RuntimeException e) {
+            log.warn("Index cleanup failed, tenant={} knowledge={}", t.tenantId(), t.knowledgeId(), e);
+            failed.add("index");
+        }
+        return failed;
+    }
+
+    /**
+     * 清理失败的行打上 {@code delete_failed} 终态：行已软删（检索不可见），
+     * 但物理资源需要重启后重试——否则失败只留在日志里，无任何补救入口。
+     */
+    private void markCleanupFailed(CleanupTarget t, List<String> failed) {
+        try {
+            knowledgeRepository.updateStatusColumns(t.knowledgeId(), Knowledge.PARSE_DELETE_FAILED,
+                    "cleanup failed: " + String.join(",", failed),
+                    null, OffsetDateTime.now(ZoneOffset.UTC));
+        } catch (RuntimeException e) {
+            log.warn("Failed to mark cleanup failure, knowledge={}", t.knowledgeId(), e);
+        }
+    }
+
+    /**
+     * 启动重试：扫描 {@code delete_failed} 行并逐条重跑物理清理（幂等）。
+     *
+     * @return 本次完成的行数
+     */
+    public int retryFailedCleanups(int limit) {
+        List<String> ids = knowledgeRepository.listCleanupFailedIds(limit);
+        int done = 0;
+        for (String id : ids) {
+            if (retryCleanup(id)) {
+                done++;
+            }
+        }
+        if (!ids.isEmpty()) {
+            log.info("Retried failed knowledge cleanups: attempted={} completed={}", ids.size(), done);
+        }
+        return done;
+    }
+
+    /**
+     * 重试单条已软删文档的物理清理；全部成功则落 {@code deleted} 终态。
+     *
+     * @return 是否清理完成
+     */
+    public boolean retryCleanup(String knowledgeId) {
+        Knowledge k = knowledgeRepository.findByIdAny(knowledgeId);
+        if (k == null) {
+            return false;
+        }
+        CleanupTarget target = targetOf(k, access.findKb(k.getKnowledgeBaseId()));
+        List<String> failed = cleanupOne(target);
+        if (!failed.isEmpty()) {
+            markCleanupFailed(target, failed);
+            return false;
+        }
+        knowledgeRepository.updateStatusColumns(knowledgeId, Knowledge.PARSE_DELETED, "",
+                null, OffsetDateTime.now(ZoneOffset.UTC));
+        return true;
     }
 
     /** 物理清理所需的快照：实体行在提交后仍可读，避免二次查库拿到已删行。 */

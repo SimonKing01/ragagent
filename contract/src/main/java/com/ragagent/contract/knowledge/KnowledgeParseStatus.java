@@ -11,6 +11,10 @@ public final class KnowledgeParseStatus {
     public static final String PARSE_FAILED = "failed";
     public static final String PARSE_DELETING = "deleting";
     public static final String PARSE_CANCELLED = "cancelled";
+    /** 删除完成：行已软删且物理资源（文件/图片/索引）已回收。 */
+    public static final String PARSE_DELETED = "deleted";
+    /** 行已软删但物理清理失败，待启动重试。 */
+    public static final String PARSE_DELETE_FAILED = "delete_failed";
 
     private KnowledgeParseStatus() {
     }
