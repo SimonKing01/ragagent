@@ -163,7 +163,7 @@
 | `:domains` | `com.ragagent.knowledge.dto.faq` | FAQ 面载荷：条目/导入/搜索/合并（Faq*）与生成问题（*GeneratedQuestion*、AddSimilarQuestions*）。 |
 | `:domains` | `com.ragagent.knowledge.dto.kb` | 知识库本体载荷：增删改查/复制/副本，以及它的配置视图（ASR / VLM / 分块 / 索引策略 / 解析引擎规则）。 |
 | `:domains` | `com.ragagent.knowledge.dto.tag` | 标签面载荷：标签增删改查分页，以及知识库标签批量绑定与统计。 |
-| `:domains` | `com.ragagent.knowledge.index` | 索引面：知识条目与向量/检索引擎的绑定与写入适配。 |
+| `:domains` | `com.ragagent.knowledge.index` | 索引面：知识条目与向量/检索引擎的绑定、写入与回收适配。 |
 | `:domains` | `com.ragagent.knowledge.mapper` | MyBatis-Plus mapper 接口层：每张表一个 *Mapper，只声明 SQL/条件构造， 不承载业务规则。 |
 | `:domains` | `com.ragagent.knowledge.recovery` | 知识侧启动恢复：重启后把卡在 pending/processing/finalizing/deleting 的解析行复位为 failed 并取消孤儿 span，summary 的 pending/processing 同样复位。 |
 | `:domains` | `com.ragagent.knowledge.repository` | 仓储门面层：把 mapper 的原子操作组合成领域可用的读写契约，并集中承载 软删三面孔、全字段 UPDATE、乐观锁冲突与 PG/H2 方言分支。 |

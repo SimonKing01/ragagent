@@ -4,11 +4,9 @@ import com.ragagent.contract.knowledge.KnowledgeIngest;
 import com.ragagent.knowledge.domain.Knowledge;
 import com.ragagent.knowledge.domain.KnowledgeBase;
 import com.ragagent.knowledge.domain.KnowledgeTenants;
-import com.ragagent.knowledge.repository.ChunkRepository;
 import com.ragagent.knowledge.repository.KnowledgeRepository;
 import com.ragagent.knowledge.service.KnowledgeAccessHelper;
 import com.ragagent.knowledge.service.access.ChunkAccessGuard;
-import com.ragagent.knowledge.service.image.ExtractedImageStore;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -26,42 +24,31 @@ import org.springframework.transaction.annotation.Transactional;
 public class KnowledgeBatchOpsService {
 
     private final KnowledgeRepository knowledgeRepository;
-    private final ChunkRepository chunkRepository;
     private final KnowledgeIngest knowledgeIngest;
     private final KnowledgeFileService knowledgeFileService;
     private final KnowledgeAccessHelper access;
-    private final ExtractedImageStore extractedImageStore;
+    private final KnowledgeRecycleService recycleService;
 
     public KnowledgeBatchOpsService(KnowledgeRepository knowledgeRepository,
-                                    ChunkRepository chunkRepository,
                                     KnowledgeIngest knowledgeIngest,
                                     KnowledgeFileService knowledgeFileService,
                                     KnowledgeAccessHelper access,
-                                    ExtractedImageStore extractedImageStore) {
+                                    KnowledgeRecycleService recycleService) {
         this.knowledgeRepository = knowledgeRepository;
-        this.chunkRepository = chunkRepository;
         this.knowledgeIngest = knowledgeIngest;
         this.knowledgeFileService = knowledgeFileService;
         this.access = access;
-        this.extractedImageStore = extractedImageStore;
+        this.recycleService = recycleService;
     }
 
     // ── 批量删除 / 批量重解析 / 清空（任务队列 → 同步尽力而为，响应契约一致） ──
 
     /**
-     * Java 同步软删（chunk + knowledge + 本地文件），HTTP 契约（task_id/文案）一致。
-     * 注意调用方已做过 RejectMoving/kb 归属校验。
+     * 批量删除：与单条共用 {@link KnowledgeRecycleService} 的资源清单（库内软删 +
+     * 提交后清文件/图片/索引）。注意调用方已做过 RejectMoving/kb 归属校验。
      */
-    @Transactional
     public String batchDeleteKnowledge(String kbId, List<String> ids) {
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-        long tenantId = KnowledgeTenants.tenantId();
-        for (String id : ids) {
-            extractedImageStore.releaseFor(tenantId, id);
-            knowledgeRepository.softDeleteIfActive(id, now);
-            chunkRepository.softDeleteByKnowledgeId(id, now);
-        }
-        return UUID.randomUUID().toString();
+        return recycleService.recycleBatch(kbId, ids);
     }
 
     /**
