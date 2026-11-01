@@ -610,15 +610,6 @@ const remainingCount = computed(() => Math.max(0, selectedKbs.value.length - 2))
 
 // 根据不同状态组合计算输入框的 placeholder
 const inputPlaceholder = computed(() => {
-  // 如果选择了自定义智能体
-  if (isCustomAgent.value && selectedAgent.value) {
-    // 有描述时显示描述，否则显示"向 [名称] 提问"
-    if (selectedAgent.value.description) {
-      return selectedAgent.value.description;
-    }
-    return t('input.placeholderAgent', { name: selectedAgent.value.name });
-  }
-
   const hasKnowledge = allSelectedItems.value.length > 0;
   const hasWebSearch = isWebSearchEnabled.value && isWebSearchConfigured.value;
 
@@ -2889,7 +2880,7 @@ defineExpose({
   min-height: 72px !important;
   resize: none;
   color: var(--td-text-color-primary, #000000e6);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 400;
   line-height: 24px;
   font-family: var(--app-font-family);
@@ -2908,7 +2899,7 @@ defineExpose({
   &::placeholder {
     color: var(--td-text-color-placeholder, #00000066);
     font-family: var(--app-font-family);
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 400;
     line-height: 24px;
   }

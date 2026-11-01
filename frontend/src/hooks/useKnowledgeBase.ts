@@ -174,7 +174,7 @@ export default function (knowledgeBaseId?: string) {
         if (result) {
           const data = result;
           Object.assign(details, {
-            title: data.fileName || data.title || data.source || t('knowledgeBase.untitledDocument'),
+            title: data.title || data.fileName || data.source || t('knowledgeBase.untitledDocument'),
             time: formatStringDate(new Date(data.updatedAt)),
             id: data.id,
             type: data.type || 'file',
