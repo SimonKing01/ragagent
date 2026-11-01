@@ -1097,6 +1097,28 @@ export function useChatStreamHandler(options: UseChatStreamHandlerOptions) {
     scrollToBottom()
   }
 
+  /**
+   * 把本地乐观追加的用户消息并进服务端行。
+   *
+   * 乐观那条没有 id，历史加载按 id 去重认不出它，同一个问题会显示两遍。
+   * 只有在本轮 requestId 已知、且服务端行与本条内容一致时才合并——requestId
+   * 每轮唯一，不会把用户重复问的同一句话误删。
+   */
+  const mergeOptimisticUserDuplicate = (list: ChatMessage[], requestId: string) => {
+    const serverRow = list.find(
+      (item) => item.role === 'user' && (item.requestId === requestId || item.id === requestId),
+    )
+    if (!serverRow) return
+    const content = String(serverRow.content || '')
+    for (let i = list.length - 1; i >= 0; i--) {
+      const item = list[i]
+      if (item === serverRow) continue
+      if (item.role === 'user' && !item.id && String(item.content || '') === content) {
+        list.splice(i, 1)
+      }
+    }
+  }
+
   const processStreamChunk = (raw: unknown) => {
     const data = normalizeStreamEvent(raw)
     if (!data) {
@@ -1121,6 +1143,7 @@ export function useChatStreamHandler(options: UseChatStreamHandlerOptions) {
       if (data.id) {
         const earlyMsg = getTrailingIncompleteAssistant()
         if (earlyMsg) earlyMsg.requestId = data.id
+        mergeOptimisticUserDuplicate(messagesList, String(data.id))
       }
       if (data.assistantMessageId) {
         currentAssistantMessageId.value = data.assistantMessageId as string

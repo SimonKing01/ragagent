@@ -66,6 +66,10 @@ export function useEmbedChatSession(options: {
   const created_at = ref('')
   const fullContent = ref('')
   let pendingSuggestionAttribution: { suggestionSetId: string; questionId: string } | null = null
+  // 发送期间让路：首条消息建会话时 sessionId 从空变成新 id，会触发下面的
+  // resetAndLoad（stopStream + 清空列表 + 拉历史），与正在跑的这一轮竞争。
+  let sending = false
+  let sendingSessionId = ''
   const scrollContainer = ref<HTMLElement | null>(null)
   const userHasScrolledUp = ref(false)
   const SCROLL_BOTTOM_THRESHOLD = 80
@@ -250,7 +254,27 @@ export function useEmbedChatSession(options: {
     isReplying.value = false
   }
 
+  /**
+   * 发送入口：发送期间屏蔽 sessionId 变化触发的历史重置。
+   * 首条消息建会话时 sessionId 从空变成新 id，resetAndLoad 会停止当前流、清空列表
+   * 并拉历史；那次重置与这一轮发送竞争——历史里若已包含刚落库的用户消息，界面会
+   * 显示两个问题，占位行还会顶掉流式回答。
+   */
   const sendMsg = async (
+    value: string,
+    opts: { webSearchEnabled?: boolean; imageFiles?: File[]; attachmentFiles?: File[] } = {},
+  ) => {
+    sending = true
+    sendingSessionId = options.sessionId.value
+    try {
+      await submitMessage(value, opts)
+    } finally {
+      sending = false
+      sendingSessionId = ''
+    }
+  }
+
+  const submitMessage = async (
     value: string,
     opts: { webSearchEnabled?: boolean; imageFiles?: File[]; attachmentFiles?: File[] } = {},
   ) => {
@@ -261,6 +285,8 @@ export function useEmbedChatSession(options: {
         embedToast(t('embedPublish.sessionFailed'))
         return
       }
+      // 新建成功后目标会话才确定，后续同 id 的 sessionId 变化一律让路。
+      sendingSessionId = options.sessionId.value
     }
     stopStream()
     prepareForNewOutgoingMessage()
@@ -368,6 +394,15 @@ export function useEmbedChatSession(options: {
   })
 
   const resetAndLoad = (sid: string) => {
+    // 正在发送的这一轮：本地乐观消息与在跑的回答都在这份列表里，重置会把它们
+    // 清掉；历史里若已包含刚落库的用户消息，还会把同一句话显示成两遍。
+    if (sending && (sendingSessionId === '' || sid === sendingSessionId)) {
+      sendingSessionId = sid
+      // 刚建的会话没有更早的历史；留着 true 会让"滚到顶"用空游标再拉一次
+      // 最新消息（即屏幕上这些），把同一句话又插一遍。
+      hasMoreHistory.value = false
+      return
+    }
     // 切换会话先断掉旧流：否则上一会话的 chunk 会写进新会话的消息列表。
     stopStream()
     messagesList.splice(0)

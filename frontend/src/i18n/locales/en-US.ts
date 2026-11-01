@@ -594,7 +594,7 @@ export default {
     clearSelection: 'Deselect all',
     batchDelete: 'Delete selected',
     confirmBatchDeleteDocument: 'Delete {count} selected documents? This action cannot be undone.',
-    deleteSubmitted: 'Delete request submitted. Waiting for completion.',
+    deleteSubmitted: 'Delete request submitted. Waiting for completion...',
     deletePending: 'Deletion is still pending. Refresh later to check the result.',
     deleteTaskFailed: 'Deletion failed. Check the document error details and try again.',
     deleteStatusUnavailable: 'Could not confirm the deletion result. Refresh later to check the document status.',

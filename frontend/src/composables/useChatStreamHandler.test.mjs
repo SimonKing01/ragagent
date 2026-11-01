@@ -44,10 +44,36 @@ test('replaying agentQuery binds the first segment and preserves distinct row ID
     getTrailingIncompleteAssistant: () => [...messagesList].reverse().find(m => m.role === 'assistant' && !m.completed),
     findLastMessage: fn => [...messagesList].reverse().find(fn),
     log() {}, ensureAgentMessageShell() {}, bindServerTurnTimestamps() {}, onAgentQuery() {},
+    mergeOptimisticUserDuplicate() {},
   })
   process({ responseType: 'agentQuery', id: 'r', assistantMessageId: 'a' })
   assert.deepEqual(messagesList.map(m => m.id), ['a', 'u', 'a:steer:1'])
   assert.equal(replaySegments.get('r'), messagesList[0])
+})
+
+test('历史回灌的同一轮用户消息与本地乐观那条合并（不重复显示）', () => {
+  const start = source.indexOf('const mergeOptimisticUserDuplicate =')
+  const block = source.slice(start, source.indexOf('\n  const processStreamChunk', start))
+  const merge = vm.runInNewContext(ts.transpile(`${block}\nmergeOptimisticUserDuplicate`), {})
+
+  // 历史里已有本轮服务端行（带 id/requestId）+ 本地乐观那条（无 id）：只留服务端行
+  const list = [
+    { role: 'user', content: '同一个问题', id: 'u1', requestId: 'r1' },
+    { role: 'assistant', content: '', requestId: 'r1', completed: false },
+    { role: 'user', content: '同一个问题' },
+  ]
+  merge(list, 'r1')
+  assert.equal(list.filter((m) => m.role === 'user').length, 1)
+  assert.equal(list[0].id, 'u1')
+
+  // 内容不同的消息不会被合并（本轮的乐观消息尚未回灌时保持原样）
+  const other = [
+    { role: 'user', content: '旧问题', id: 'u2', requestId: 'r2' },
+    { role: 'user', content: '新问题' },
+    { role: 'user', content: '新问题' },
+  ]
+  merge(other, 'r2')
+  assert.equal(other.length, 3)
 })
 
 test('failed tool results keep stdout/output instead of replacing it with the short error', () => {

@@ -5654,7 +5654,7 @@ export default {
     clearSelection: '取消选择',
     batchDelete: '批量删除',
     confirmBatchDeleteDocument: '确认删除选中的 {count} 个文档？删除后将无法恢复。',
-    deleteSubmitted: '删除任务已提交，正在等待完成。',
+    deleteSubmitted: '删除任务已提交，正在等待完成...',
     deletePending: '删除尚未完成，请稍后刷新查看结果。',
     deleteTaskFailed: '删除任务失败，请查看文档错误详情后重试。',
     deleteStatusUnavailable: '暂时无法确认删除结果，请稍后刷新查看文档状态。',

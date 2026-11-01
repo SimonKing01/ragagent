@@ -40,10 +40,32 @@ test('embed 会话懒创建：不再打开即建、发送前确保、切换不�
     'ensureSession 必须在写入本地用户消息之前——创建失败时不留下半成品消息',
   )
   const resetIndex = session.indexOf('const resetAndLoad = (sid: string)')
+  const resetBody = session.slice(resetIndex, session.indexOf('getmsgList({ sessionId: sid', resetIndex))
   assert.match(
-    session.slice(resetIndex, resetIndex + 200),
+    resetBody,
     /stopStream\(\)/,
     '切换会话（resetAndLoad）必须先停旧流，否则上一会话的 chunk 会写进新会话列表',
+  )
+  assert.match(
+    resetBody,
+    /if \(sending && \(sendingSessionId === '' \|\| sid === sendingSessionId\)\)/,
+    '首条消息建会话时 sessionId 变化不得触发重置：那次 stopStream + 清空列表会与正在跑的这一轮竞争',
+  )
+  assert.match(
+    resetBody,
+    /if \(sending[\s\S]{0,240}hasMoreHistory\.value = false/,
+    '让路时要把 hasMoreHistory 关掉：新会话没有更早历史，否则滚到顶会再拉一次最新消息造成重复',
+  )
+  assert.match(
+    session,
+    /const sendMsg = async[\s\S]*?await submitMessage\(value, opts\)/,
+    '发送入口必须包住 submitMessage（发送期间屏蔽历史重置）',
+  )
+  const handler = readFileSync(join(SRC, 'composables/useChatStreamHandler.ts'), 'utf8')
+  assert.match(
+    handler,
+    /mergeOptimisticUserDuplicate\(messagesList, String\(data\.id\)\)/,
+    'agentQuery 到达时必须合并历史回灌的同一轮用户消息（否则同一句话显示两遍）',
   )
 
   const page = readFileSync(join(SRC, 'views/embed/EmbedPage.vue'), 'utf8')

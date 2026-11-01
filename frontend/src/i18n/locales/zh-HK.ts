@@ -594,7 +594,7 @@ export default {
     clearSelection: '取消全選',
     batchDelete: '刪除所選',
     confirmBatchDeleteDocument: '確定要刪除所選的 {count} 份文件嗎？此操作無法復原。',
-    deleteSubmitted: '刪除請求已提交，等待完成。',
+    deleteSubmitted: '刪除請求已提交，等待完成...',
     deletePending: '刪除仍在處理中。請稍後重新整理查看結果。',
     deleteTaskFailed: '刪除失敗。請查看文件錯誤詳情後重試。',
     deleteStatusUnavailable: '無法確認刪除結果。請稍後重新整理查看文件狀態。',
