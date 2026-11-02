@@ -113,7 +113,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         try {
             chunk = guard.writableChunk(chunkId);
         } catch (BizException e) {
-            throw BizException.badRequest(e.getMessage());
+            throw e;
         }
         DocumentChunkMetadata meta;
         try {
@@ -296,7 +296,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         try {
             write = guard.loadKnowledgeWrite(chunk.getKnowledgeId());
         } catch (BizException e) {
-            throw BizException.badRequest(e.getMessage());
+            throw e;
         }
         Knowledge knowledge = write.knowledge();
         KnowledgeBase kb = write.kb();
@@ -511,10 +511,10 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         try {
             response = chatModel.chat(List.of(ChatMessage.user(prompt)), options);
         } catch (BizException e) {
-            throw BizException.badRequest(e.getMessage());
+            throw e;
         } catch (RuntimeException e) {
-            throw BizException.badRequest("failed to generate questions: "
-                    + (e.getMessage() == null ? e.toString() : e.getMessage()));
+            log.warn("Failed to generate questions", e);
+            throw BizException.internal("failed to generate questions");
         }
         String text = response == null || response.getContent() == null ? "" : response.getContent();
         return parseGeneratedQuestions(text, questionCount);

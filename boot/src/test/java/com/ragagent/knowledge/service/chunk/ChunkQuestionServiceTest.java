@@ -214,7 +214,7 @@ class ChunkQuestionServiceTest {
     }
 
     @Test
-    void upsertGeneratedQuestionFailuresUseGoTexts() {
+    void upsertGeneratedQuestionFailuresKeepOriginalErrorCodes() {
         kb(KB, false);
         knowledge(DOC, KB);
         Chunk c = chunk(DOC, "body");
@@ -231,14 +231,13 @@ class ChunkQuestionServiceTest {
                     assertThat(e.appError().httpCode()).isEqualTo(400);
                     assertThat(e.appError().message()).isEqualTo("question not found");
                 });
-        // chunk 缺失：writableChunk 的 AppError 被 400 原文包装，信封
-        // code=1000，message = "error code: 1003, error message: chunk not found"
+        // chunk 缺失：writableChunk 的 AppError 原样上抛（不再被 400 包装，
+        // 消息里也不再嵌 "error code: 1003, ..." 这种内部格式串）
         assertThatThrownBy(() -> service.upsertGeneratedQuestion("missing", "", "q"))
                 .isInstanceOfSatisfying(BizException.class, e -> {
-                    assertThat(e.appError().httpCode()).isEqualTo(400);
-                    assertThat(e.appError().code()).isEqualTo(1000);
-                    assertThat(e.appError().message())
-                            .isEqualTo("error code: 1003, error message: chunk not found");
+                    assertThat(e.appError().httpCode()).isEqualTo(404);
+                    assertThat(e.appError().code()).isEqualTo(1003);
+                    assertThat(e.appError().message()).isEqualTo("chunk not found");
                 });
     }
 
