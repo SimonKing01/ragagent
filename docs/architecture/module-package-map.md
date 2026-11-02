@@ -13,14 +13,14 @@
 | `:model-runtime` | `embedding`、`llm`、`modelcontext`、`modelruntime`、`rerank` | 20 | 156 | 0 |
 | `:retrieval-engine` | `retrieval` | 15 | 95 | 0 |
 | `:agent-engine` | `agent` | 9 | 72 | 0 |
-| `:domains` | `agentmanagement`、`agenttools`、`audit`、`auth`、`datasource`、`embedchannel`、`favorite`、`im`、`initialization`、`knowledge`、`mcp`、`memory`、`model`、`session`、`storage`、`system`、`vectorstore`、`websearch`、`wiki` | 252 | 1632 | 51 |
+| `:domains` | `agentmanagement`、`agenttools`、`audit`、`auth`、`datasource`、`embedchannel`、`favorite`、`im`、`initialization`、`knowledge`、`mcp`、`memory`、`model`、`session`、`storage`、`system`、`vectorstore`、`websearch`、`wiki` | 252 | 1633 | 51 |
 | `:boot` | `(根包)`、`config` | 2 | 19 | 0 |
 
 ## 19 个业务域（domains）
 
 | 域 | 主码包 | 文件 | 控制器 |
 |---|---|---:|---:|
-| `agentmanagement` | `com.ragagent.agentmanagement` | 26 | 2 |
+| `agentmanagement` | `com.ragagent.agentmanagement` | 27 | 2 |
 | `agenttools` | `com.ragagent.agenttools` | 59 | 0 |
 | `audit` | `com.ragagent.audit` | 20 | 1 |
 | `auth` | `com.ragagent.auth` | 122 | 6 |

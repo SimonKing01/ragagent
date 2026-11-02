@@ -1,6 +1,7 @@
 package com.ragagent.agentmanagement.controller;
 
 import com.ragagent.agentmanagement.dto.AgentResponses;
+import com.ragagent.agentmanagement.dto.AgentView;
 import com.ragagent.agentmanagement.service.AgentSuggestedQuestions.TagScope;
 import com.ragagent.agentmanagement.service.CustomAgentService;
 import com.ragagent.agentmanagement.service.builtin.BuiltinAgentRegistry;
@@ -72,7 +73,7 @@ public class AgentController {
             HttpServletRequest req) {
         String locale = BuiltinAgentRegistry.localeFromRequest(req.getHeader("Accept-Language"));
         var result = service.listAgents(creator == null ? "" : creator.toLowerCase().trim(), locale);
-        List<Object> rows = new ArrayList<>();
+        List<AgentView> rows = new ArrayList<>();
         for (var r : result.agents()) {
             rows.add(AgentResponses.agent(r));
         }
@@ -95,7 +96,7 @@ public class AgentController {
 
     // ── POST /agents ──
     @PostMapping("/api/v1/agents")
-    public ResponseEntity<Map<String, Object>> create(
+    public ResponseEntity<AgentView> create(
             @RequestBody(required = false) String rawBody) {
         AgentRequest parsed = bindAgentRequest(rawBody, true);
         ObjectNode cfg = configNode(parsed);
@@ -106,7 +107,7 @@ public class AgentController {
 
     // ── GET /agents/:id ──
     @GetMapping("/api/v1/agents/{id}")
-    public ResponseEntity<Map<String, Object>> get(@PathVariable("id") String id,
+    public ResponseEntity<AgentView> get(@PathVariable("id") String id,
             HttpServletRequest req) {
         requireNonEmpty(id);
         String locale = BuiltinAgentRegistry.localeFromRequest(req.getHeader("Accept-Language"));
@@ -116,7 +117,7 @@ public class AgentController {
 
     // ── PUT /agents/:id ──
     @PutMapping("/api/v1/agents/{id}")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable("id") String id,
+    public ResponseEntity<AgentView> update(@PathVariable("id") String id,
             @RequestBody(required = false) String rawBody, HttpServletRequest req) {
         requireNonEmpty(id);
         AgentRequest parsed = bindAgentRequest(rawBody, false);
@@ -141,7 +142,7 @@ public class AgentController {
 
     // ── POST /agents/:id/copy ──
     @PostMapping("/api/v1/agents/{id}/copy")
-    public ResponseEntity<Map<String, Object>> copy(@PathVariable("id") String id,
+    public ResponseEntity<AgentView> copy(@PathVariable("id") String id,
             HttpServletRequest req) {
         requireNonEmpty(id);
         String locale = BuiltinAgentRegistry.localeFromRequest(req.getHeader("Accept-Language"));

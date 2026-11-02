@@ -23,27 +23,27 @@ public final class AgentResponses {
 
     private AgentResponses() {}
 
-    public static Map<String, Object> agent(CustomAgentResult r) {
+    public static AgentView agent(CustomAgentResult r) {
         return agent(r.row(), r.config());
     }
 
-    public static Map<String, Object> agent(CustomAgentEntity row, Object config) {
-        Map<String, Object> m = new LinkedHashMap<>();
-        m.put("id", row.getId());
-        m.put("name", nz(row.getName()));
-        m.put("description", nz(row.getDescription()));
-        m.put("avatar", nz(row.getAvatar()));
-        m.put("builtin", row.isBuiltin());
-        m.put("tenantId", row.getTenantId() == null ? 0L : row.getTenantId());
-        m.put("createdBy", nz(row.getCreatedBy()));
-        m.put("config", agentConfigMap(asTree(config)));
-        m.put("createdAt", row.getCreatedAt() == null ? ZeroTimeSerializer.ZERO_TIME_LITERAL : row.getCreatedAt());
-        m.put("updatedAt", row.getUpdatedAt() == null ? ZeroTimeSerializer.ZERO_TIME_LITERAL : row.getUpdatedAt());
-        m.put("deletedAt", null);
-        if (row.getCreatorName() != null && !row.getCreatorName().isEmpty()) {
-            m.put("creatorName", row.getCreatorName());
-        }
-        return m;
+    public static AgentView agent(CustomAgentEntity row, Object config) {
+        // 键序由 AgentView 的 @JsonPropertyOrder 固定；creatorName 空则省略（NON_NULL），
+        // deletedAt 恒输出 null —— 三者共同维持手搓 Map 时期的线格式。
+        return new AgentView(
+                row.getId(),
+                nz(row.getName()),
+                nz(row.getDescription()),
+                nz(row.getAvatar()),
+                row.isBuiltin(),
+                row.getTenantId() == null ? 0L : row.getTenantId(),
+                nz(row.getCreatedBy()),
+                agentConfigMap(asTree(config)),
+                row.getCreatedAt() == null ? ZeroTimeSerializer.ZERO_TIME_LITERAL : row.getCreatedAt(),
+                row.getUpdatedAt() == null ? ZeroTimeSerializer.ZERO_TIME_LITERAL : row.getUpdatedAt(),
+                null,
+                row.getCreatorName() == null || row.getCreatorName().isEmpty()
+                        ? null : row.getCreatorName());
     }
 
     /** 列表载荷（就是外壳 {@code data} 的内容；外壳不再由本类构造）。 */
