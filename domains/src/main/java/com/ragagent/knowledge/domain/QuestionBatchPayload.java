@@ -1,10 +1,10 @@
 package com.ragagent.knowledge.domain;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.access.TracingContext;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 问题生成**批**任务的载荷。

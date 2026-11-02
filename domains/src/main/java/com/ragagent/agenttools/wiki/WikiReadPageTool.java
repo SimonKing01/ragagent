@@ -1,5 +1,6 @@
 package com.ragagent.agenttools.wiki;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.agent.SearchAuth;
 import com.ragagent.contract.agent.SearchAuth.KnowledgeTagsFetcher;
 import com.ragagent.contract.tool.BaseTool;
@@ -14,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import tools.jackson.databind.JsonNode;
 
 /**
  * wiki_read_page 工具。

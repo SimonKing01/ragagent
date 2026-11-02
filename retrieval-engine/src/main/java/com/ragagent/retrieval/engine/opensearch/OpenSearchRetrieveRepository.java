@@ -2,6 +2,7 @@ package com.ragagent.retrieval.engine.opensearch;
 
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.vectorstore.IndexConfig;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.platform.web.JsonMappers;
@@ -24,7 +25,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * OpenSearch k-NN 检索引擎仓库。HTTP 自持（java.net.http），与 ES v7/v8 驱动同一姿态。
@@ -532,7 +532,7 @@ public class OpenSearchRetrieveRepository
         String errorType = "";
         try {
             if (body != null && body.length > 0) {
-                errorType = MAPPER.readTree(body).path("error").path("type").asString("");
+                errorType = MAPPER.readTree(body).path("error").path("type").asText("");
             }
         } catch (Exception ignored) {
             // 非法 JSON 体——类型留空，按状态分类

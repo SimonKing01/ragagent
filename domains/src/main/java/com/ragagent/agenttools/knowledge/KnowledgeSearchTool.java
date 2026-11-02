@@ -1,5 +1,6 @@
 package com.ragagent.agenttools.knowledge;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.agent.SearchAuth;
 import com.ragagent.contract.knowledge.ChunkFacts;
 import com.ragagent.contract.retrieval.SearchTarget;
@@ -17,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * knowledge_search 工具。
@@ -277,8 +277,8 @@ public class KnowledgeSearchTool extends BaseTool {
         JsonNode kbNode = args.get("knowledgeBaseIds");
         if (kbNode != null && kbNode.isArray()) {
             for (JsonNode item : kbNode) {
-                if (item.isString()) {
-                    userSpecifiedKBs.add(item.asString());
+                if (item.isTextual()) {
+                    userSpecifiedKBs.add(item.asText());
                 }
             }
         }
@@ -324,8 +324,8 @@ public class KnowledgeSearchTool extends BaseTool {
         JsonNode qNode = args.get("queries");
         if (qNode != null && qNode.isArray()) {
             for (JsonNode item : qNode) {
-                if (item.isString()) {
-                    queries.add(item.asString());
+                if (item.isTextual()) {
+                    queries.add(item.asText());
                 }
             }
         }
@@ -577,6 +577,6 @@ public class KnowledgeSearchTool extends BaseTool {
 
     /** 重排：失败回落原序。 */
     public static final class RecordingSupportHolder {
-        public static final tools.jackson.databind.ObjectMapper MAPPER = JsonMappers.lenient();
+        public static final com.fasterxml.jackson.databind.ObjectMapper MAPPER = JsonMappers.lenient();
     }
 }

@@ -1,5 +1,7 @@
 package com.ragagent.rerank.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.ragagent.contract.model.RankResult;
 import com.ragagent.contract.model.Reranker;
 import com.ragagent.platform.security.Hashes;
@@ -12,8 +14,6 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
 
 /**
  * 火山引擎（托管知识服务）rerank 客户端。
@@ -183,7 +183,7 @@ public     static final int MAX_DOCUMENTS = 50;
         int code = root.path("code").asInt(0);
         if (code != 0) {
             throw new RerankHttp.RerankException("Volcengine rerank API error " + code
-                    + ": " + root.path("message").asString(""));
+                    + ": " + root.path("message").asText(""));
         }
         JsonNode scoresNode = root.path("data").path("scores");
         if (!scoresNode.isArray() || scoresNode.size() != documents.size()) {

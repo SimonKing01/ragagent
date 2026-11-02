@@ -69,13 +69,17 @@
     </dependency>
     <dependency>
       <groupId>com.baomidou</groupId>
-      <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
+      <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
     </dependency>
-    <!-- Flyway 自动配置：Boot 4 已把它从 autoconfigure 拆成独立模块，
-         缺这条则 spring.flyway.* 配置无人消费、迁移不会随启动执行 -->
+    <!-- Flyway：Boot 3.3 由 autoconfigure 直接接管 spring.flyway.*；
+         PG 方言需要独立模块（Flyway 10 起从 core 拆出） -->
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-flyway</artifactId>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-database-postgresql</artifactId>
     </dependency>
     <!-- OpenAPI JSON（dev-only，默认关闭；UI 由 boot 的 /scalar 页面承载） -->
     <dependency>
@@ -121,12 +125,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <!-- Boot 4：@AutoConfigureMockMvc 迁到 spring-boot-webmvc-test -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-webmvc-test</artifactId>
       <scope>test</scope>
     </dependency>
     <!-- 集成测试走内存库（test scope 不可传递 ⇒ 必须显式声明，

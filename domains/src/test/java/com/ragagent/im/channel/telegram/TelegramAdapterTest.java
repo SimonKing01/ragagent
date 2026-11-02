@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.CallbackExchange;
 import com.ragagent.im.runtime.ImTypes;
@@ -25,7 +26,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Telegram 出站客户端的行为验收。
@@ -59,7 +59,7 @@ class TelegramAdapterTest {
         server.createContext("/", exchange -> {
             byte[] raw = exchange.getRequestBody().readAllBytes();
             Map<String, Object> parsed = raw.length == 0 ? Map.of()
-                    : MAPPER.readValue(raw, new tools.jackson.core.type.TypeReference<>() {
+                    : MAPPER.readValue(raw, new com.fasterxml.jackson.core.type.TypeReference<>() {
                     });
             Captured req = new Captured(exchange.getRequestURI().getPath(), parsed);
             captured.add(req);

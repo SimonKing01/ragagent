@@ -49,7 +49,7 @@ import org.springframework.web.servlet.HandlerMapping;
 public class RbacInterceptor implements HandlerInterceptor {
 
     /** 外壳序列化用（消息为常量，序列化不会失败；失败有字符串回落兜底）。 */
-    private static final tools.jackson.databind.ObjectMapper ENVELOPE_JSON =
+    private static final com.fasterxml.jackson.databind.ObjectMapper ENVELOPE_JSON =
             JsonMappers.lenient();
 
     private static final Logger log = LoggerFactory.getLogger(RbacInterceptor.class);
@@ -223,7 +223,7 @@ public class RbacInterceptor implements HandlerInterceptor {
         try {
             return ENVELOPE_JSON.writeValueAsString(
                     ApiResponse.fail(ErrorCode.FORBIDDEN.value(), message));
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (RuntimeException | com.fasterxml.jackson.core.JsonProcessingException e) {
             return "{\"code\":1002,\"message\":\"" + message + "\",\"data\":null}";
         }
     }

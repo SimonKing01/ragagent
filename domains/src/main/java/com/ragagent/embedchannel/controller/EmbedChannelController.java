@@ -1,5 +1,7 @@
 package com.ragagent.embedchannel.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.session.EmbedSessionOps;
@@ -31,8 +33,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * embed 渠道 HTTP 层（管理面/公开面路由）。
@@ -158,7 +158,7 @@ final FileProxyPort fileProxyService;
     }
 
     @GetMapping("/api/v1/embed/{channelId}/config")
-    public ResponseEntity<tools.jackson.databind.node.ObjectNode> config(@PathVariable("channelId") String channelId) {
+    public ResponseEntity<com.fasterxml.jackson.databind.node.ObjectNode> config(@PathVariable("channelId") String channelId) {
         return publicOps.config(channelId);
     }
 
@@ -431,7 +431,7 @@ void ensureSession(String sessionId) {
         }
         if (node.isArray()) {
             for (JsonNode n : node) {
-                out.add(n.asString(""));
+                out.add(n.asText(""));
             }
         }
         return out;

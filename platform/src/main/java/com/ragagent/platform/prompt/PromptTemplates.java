@@ -1,11 +1,11 @@
 package com.ragagent.platform.prompt;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 提示词模板的按 id 取值（L1 唯一 YAML 解析点）。
@@ -39,7 +39,7 @@ public final class PromptTemplates {
 
     private static String field(String fileName, String templateId, String field) {
         JsonNode template = templates(fileName).get(templateId);
-        return template == null ? "" : template.path(field).asString("");
+        return template == null ? "" : template.path(field).asText("");
     }
 
     /** 装载并缓存某文件里 id → 模板节点（首个 id 命中胜）。 */
@@ -54,7 +54,7 @@ public final class PromptTemplates {
                 JsonNode list = root == null ? null : root.get("templates");
                 if (list != null && list.isArray()) {
                     for (JsonNode t : list) {
-                        String id = t.path("id").asString("");
+                        String id = t.path("id").asText("");
                         if (!id.isEmpty()) {
                             byId.putIfAbsent(id, t);
                         }

@@ -1,5 +1,7 @@
 package com.ragagent.session.domain;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -8,8 +10,6 @@ import java.sql.SQLException;
 import java.util.List;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 元素类型已知的 JSON 数组列处理器基类。

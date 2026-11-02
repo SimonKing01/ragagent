@@ -1,14 +1,14 @@
 package com.ragagent.embedding.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.embedding.EmbedderPooler;
 import com.ragagent.embedding.EmbeddingHttp;
 import com.ragagent.platform.web.ProviderJson;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 火山引擎 Ark 多模态 embedding 客户端。
@@ -84,10 +84,10 @@ public final class VolcengineEmbedder extends BaseEmbedder {
 
             if (resp.status() != 200) {
                 JsonNode errResp = ProviderJson.parse(resp.bodyText());
-                String msg = errResp == null ? "" : errResp.path("error").path("message").asString("");
+                String msg = errResp == null ? "" : errResp.path("error").path("message").asText("");
                 if (!msg.isEmpty()) {
                     throw new EmbeddingHttp.EmbeddingException("API error: "
-                            + errResp.path("error").path("code").asString("") + " - " + msg);
+                            + errResp.path("error").path("code").asText("") + " - " + msg);
                 }
                 throw new EmbeddingHttp.EmbeddingException("BatchEmbed API error: Http Status "
                         + resp.statusLine());

@@ -1,10 +1,10 @@
 package com.ragagent.knowledge.support;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.knowledge.projection.KnowledgeProjectionAdapter;
 import com.ragagent.knowledge.domain.KnowledgeTag;
 import com.ragagent.platform.web.JsonMappers;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 标签实体 → JSON 视图投影（域内；方法体自 L1

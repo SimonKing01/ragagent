@@ -2,6 +2,7 @@ package com.ragagent.agenttools.knowledge;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.ContractJson;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenB;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 4.5b 回放：grep_chunks 的录制回放。
@@ -248,7 +248,7 @@ class GrepChunksRecordingTest {
                         out.add(v);
                     }
                 }
-            } catch (java.sql.SQLException e) {
+            } catch (java.sql.SQLException | java.io.IOException e) {
                 throw new RuntimeException(e);
             }
 
@@ -303,7 +303,7 @@ class GrepChunksRecordingTest {
     private static ToolRequest req(String argsJson) {
         try {
             return ToolRequest.of(RecordingSupport.PLAIN.readTree(argsJson));
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (java.io.IOException e) {
             throw new IllegalStateException(e);
         }
     }
@@ -313,8 +313,8 @@ class GrepChunksRecordingTest {
         assertThat(result.isSuccess()).as("%s success", label).isEqualTo(r.get("success").asBoolean());
         // 输出数字形态与录制侧不同（1 vs 1.0）——语义比较吸收
         assertThat(ContractJson.deep(result.getOutput())).as("%s output", label)
-                .isEqualTo(ContractJson.deep(r.get("output").asString()));
-        String wantError = r.hasNonNull("error") ? r.get("error").asString() : "";
+                .isEqualTo(ContractJson.deep(r.get("output").asText()));
+        String wantError = r.hasNonNull("error") ? r.get("error").asText() : "";
         if (!wantError.isEmpty()) {
             assertThat(result.getError()).as("%s error", label).isEqualTo(wantError);
         }

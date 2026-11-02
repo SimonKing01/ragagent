@@ -113,7 +113,7 @@ public final class VlmClient {
             throw new VlmException("OpenAI VLM request: " + e.getMessage());
         }
 
-        tools.jackson.databind.JsonNode root;
+        com.fasterxml.jackson.databind.JsonNode root;
         try {
             root = JsonMappers.lenient().readTree(respBody);
         } catch (Exception e) {
@@ -124,9 +124,9 @@ public final class VlmClient {
             throw new VlmException("OpenAI VLM returned no choices");
         }
         var choice = choices.get(0);
-        String content = choice.path("message").path("content").asString("");
+        String content = choice.path("message").path("content").asText("");
         if (content.strip().isEmpty()
-                && "length".equals(choice.path("finish_reason").asString(""))) {
+                && "length".equals(choice.path("finish_reason").asText(""))) {
             throw new VlmException("OpenAI VLM returned no content: completion truncated at "
                     + DEFAULT_MAX_TOKS + " tokens (finish_reason=length)");
         }

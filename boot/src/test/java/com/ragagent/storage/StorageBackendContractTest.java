@@ -20,8 +20,8 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -128,8 +128,8 @@ class StorageBackendContractTest {
                             .contentType("application/json")
                             .content("{\"email\":\"" + email + "\",\"password\":\"Passw0rd!\"}"))
                     .andReturn();
-            return new tools.jackson.databind.ObjectMapper()
-                    .readTree(result.getResponse().getContentAsString()).path("data").get("token").asString();
+            return new com.fasterxml.jackson.databind.ObjectMapper()
+                    .readTree(result.getResponse().getContentAsString()).path("data").get("token").asText();
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -202,8 +202,8 @@ class StorageBackendContractTest {
         String diag = bodyStr;
         assertEquals(201, result.getResponse().getStatus(),
                 () -> "seed create failed: " + diag);
-        return new tools.jackson.databind.ObjectMapper()
-                .readTree(result.getResponse().getContentAsString()).path("data").get("id").asString();   // 外壳下钻
+        return new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(result.getResponse().getContentAsString()).path("data").get("id").asText();   // 外壳下钻
     }
 
     private String latestId(String name) {

@@ -1,8 +1,8 @@
 package com.ragagent.modelruntime.adapter.provider.chat.common;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.model.ChatOptions;
 import java.util.Map;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * thinking 策略的四个实现。

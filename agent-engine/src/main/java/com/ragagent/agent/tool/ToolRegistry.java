@@ -1,5 +1,6 @@
 package com.ragagent.agent.tool;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.agent.Cleanable;
 import com.ragagent.contract.agent.ToolCallTarget;
 import com.ragagent.contract.error.BizException;
@@ -26,7 +27,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 工具注册表。

@@ -1,5 +1,8 @@
 package com.ragagent.initialization.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.apikey.APIKeyScopeContext;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
@@ -22,9 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * initialization config 端点用例：KB 配置读写与请求绑定。
@@ -112,8 +112,8 @@ public final class InitializationConfigService {
         boolean vlmEnabled = false;
         String vlmModelId = "";
         JsonNode vlmReq = req.vlmConfig();
-        if (vlmReq != null && req.multimodalEnabled() && !vlmReq.path("modelId").asString("").isEmpty()) {
-            String candidate = vlmReq.path("modelId").asString("");
+        if (vlmReq != null && req.multimodalEnabled() && !vlmReq.path("modelId").asText("").isEmpty()) {
+            String candidate = vlmReq.path("modelId").asText("");
             try {
                 if (modelCatalog.findModel(candidate) != null) {
                     vlmEnabled = vlmReq.path("enabled").asBoolean(false);
@@ -131,12 +131,12 @@ public final class InitializationConfigService {
         String asrLanguage = "";
         JsonNode asrReq = req.asrConfig();
         if (asrReq != null && asrReq.path("enabled").asBoolean(false)
-                && !asrReq.path("modelId").asString("").isEmpty()) {
+                && !asrReq.path("modelId").asText("").isEmpty()) {
             try {
-                if (modelCatalog.findModel(asrReq.path("modelId").asString()) != null) {
+                if (modelCatalog.findModel(asrReq.path("modelId").asText()) != null) {
                     asrEnabled = true;
-                    asrModelId = asrReq.path("modelId").asString();
-                    asrLanguage = asrReq.path("language").asString("");
+                    asrModelId = asrReq.path("modelId").asText();
+                    asrLanguage = asrReq.path("language").asText("");
                 }
             } catch (Exception ignored) {
                 // 查询失败 → 忽略，ASR 保持未启用
@@ -172,8 +172,8 @@ public final class InitializationConfigService {
         String vlmDescLang = null;
         String vlmCustomInstr = null;
         if (vlmReq != null) {
-            vlmDescLang = vlmReq.path("descriptionLanguage").asString("").trim();
-            vlmCustomInstr = vlmReq.path("customInstructions").asString("").trim();
+            vlmDescLang = vlmReq.path("descriptionLanguage").asText("").trim();
+            vlmCustomInstr = vlmReq.path("customInstructions").asText("").trim();
         }
         kb.setVlmConfig(new VlmConfigView(vlmEnabled, vlmModelId, vlmDescLang, vlmCustomInstr,
                 "", "", ""));
@@ -229,7 +229,7 @@ public final class InitializationConfigService {
         }
         Map<String, String> out = new TreeMap<>();
         for (var e : n.properties()) {
-            out.put(e.getKey(), e.getValue().isNull() ? null : e.getValue().asString(""));
+            out.put(e.getKey(), e.getValue().isNull() ? null : e.getValue().asText(""));
         }
         return out;
     }
@@ -449,11 +449,11 @@ public final class InitializationConfigService {
         if (extract != null) {
             Map<String, Object> ne = new TreeMap<>();
             ne.put("enabled", extract.path("enabled").asBoolean(false));
-            ne.put("text", extract.path("text").asString(""));
+            ne.put("text", extract.path("text").asText(""));
             ne.put("tags", extract.get("tags"));
             ne.put("nodes", extract.get("nodes"));
             ne.put("relations", extract.get("relations"));
-            String ci = extract.path("customInstructions").asString("");
+            String ci = extract.path("customInstructions").asText("");
             if (!ci.isEmpty()) {
                 ne.put("customInstructions", ci);
             }
@@ -467,7 +467,7 @@ public final class InitializationConfigService {
             config.put("questionGeneration", sortedBlock(Map.of(
                     "enabled", qg.path("enabled").asBoolean(false),
                     "questionCount", qg.path("questionCount").asInt(0),
-                    "customInstructions", qg.path("customInstructions").asString(""))));
+                    "customInstructions", qg.path("customInstructions").asText(""))));
         } else {
             config.put("questionGeneration", sortedBlock(Map.of("enabled", false)));
         }

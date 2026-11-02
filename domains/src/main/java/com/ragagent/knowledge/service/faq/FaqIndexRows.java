@@ -1,5 +1,6 @@
 package com.ragagent.knowledge.service.faq;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.knowledge.FaqChunkMetadata;
 import com.ragagent.contract.retrieval.IndexRow;
 import com.ragagent.knowledge.domain.Chunk;
@@ -7,7 +8,6 @@ import com.ragagent.knowledge.domain.KnowledgeBase;
 import com.ragagent.platform.knowledge.FaqChunkMetadataCodec;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * FAQ 索引行组装。 走查批接线：此前的
@@ -101,14 +101,14 @@ final class FaqIndexRows {
 
     static String faqIndexMode(KnowledgeBase kb) {
         JsonNode cfg = kb.getFaqConfig();
-        String mode = cfg == null ? "" : cfg.path("indexMode").asString("");
+        String mode = cfg == null ? "" : cfg.path("indexMode").asText("");
         return mode.isEmpty() ? "question_answer" : mode;
     }
 
     /** combined。 */
     static String faqQuestionIndexMode(KnowledgeBase kb) {
         JsonNode cfg = kb.getFaqConfig();
-        String mode = cfg == null ? "" : cfg.path("questionIndexMode").asString("");
+        String mode = cfg == null ? "" : cfg.path("questionIndexMode").asText("");
         return mode.isEmpty() ? "combined" : mode;
     }
 }

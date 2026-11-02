@@ -2,6 +2,7 @@ package com.ragagent.agenttools;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenA;
 import com.ragagent.contract.agent.OutputBudgets;
@@ -10,7 +11,6 @@ import com.ragagent.contract.tool.ToolRequest;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * OutputBudgets.splitBudgetFairly 的录制判定（10 组，max-min 公平分配）+
@@ -46,7 +46,7 @@ class OutputBudgetsRecordingTest {
             List<Integer> want = new ArrayList<>();
             r.get("out").forEach(n -> want.add(n.asInt()));
             assertThat(toList(got))
-                    .as("splitBudgetFairly %s", r.get("id").asString())
+                    .as("splitBudgetFairly %s", r.get("id").asText())
                     .containsExactlyElementsOf(want);
         }
     }

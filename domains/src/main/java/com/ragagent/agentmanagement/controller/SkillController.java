@@ -1,5 +1,7 @@
 package com.ragagent.agentmanagement.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.agent.SkillCatalogPort;
 import com.ragagent.contract.audit.AuditAction;
 import com.ragagent.contract.audit.AuditOutcome;
@@ -25,8 +27,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 技能 HTTP 面：选择器（{@code GET /skills}）与管理面（{@code /skills/catalog/**}）。

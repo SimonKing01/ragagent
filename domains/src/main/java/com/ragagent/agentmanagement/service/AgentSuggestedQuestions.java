@@ -1,5 +1,9 @@
 package com.ragagent.agentmanagement.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.agentmanagement.dto.CustomAgentResult;
 import com.ragagent.agentmanagement.repository.AgentQuestionRepository;
 import com.ragagent.agentmanagement.service.config.AgentConfigJson;
@@ -13,10 +17,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 智能体推荐问题流：按知识库/FAQ 桶轮询取问题、混合模式归并、tag 范围解析与
@@ -89,13 +89,13 @@ public final class AgentSuggestedQuestions {
             if (!limitProvided && starters.path("count").asInt(0) > 0) {
                 limit = starters.path("count").asInt();
             }
-            String mode = starters.path("mode").asString("");
+            String mode = starters.path("mode").asText("");
             starterMode = mode;
             if (AgentConfigJson.SUGGESTION_CURATED.equals(mode) || AgentConfigJson.SUGGESTION_HYBRID.equals(mode)) {
                 JsonNode items = starters.get("items");
                 if (items != null && items.isArray()) {
                     for (JsonNode item : items) {
-                        String prompt = item.asString("");
+                        String prompt = item.asText("");
                         if (prompt.trim().isEmpty()) {
                             continue;
                         }
@@ -126,11 +126,11 @@ public final class AgentSuggestedQuestions {
         List<String> effectiveKbIds = new ArrayList<>(orEmpty(kbIds));
         if (effectiveKbIds.isEmpty() && (knowledgeIds == null || knowledgeIds.isEmpty())
                 && tagIdsByTenant.isEmpty()) {
-            String kbMode = cfg.path("kbSelectionMode").asString("");
+            String kbMode = cfg.path("kbSelectionMode").asText("");
             switch (kbMode) {
                 case "all" -> {
                     List<String> ids = new ArrayList<>();
-                    boolean quickAnswer = "quick-answer".equals(cfg.path("agentMode").asString(""));
+                    boolean quickAnswer = "quick-answer".equals(cfg.path("agentMode").asText(""));
                     for (KnowledgeBaseCatalogPort.KbCapability kb : kbCatalog.listActiveCapabilities(null)) {
                         if (quickAnswer && !(kb.vector() || kb.keyword())) {
                             continue;
@@ -146,7 +146,7 @@ public final class AgentSuggestedQuestions {
                     JsonNode kbs = cfg.get("knowledgeBases");
                     if (kbs != null && kbs.isArray()) {
                         for (JsonNode k : kbs) {
-                            effectiveKbIds.add(k.asString(""));
+                            effectiveKbIds.add(k.asText(""));
                         }
                     }
                 }
@@ -232,7 +232,7 @@ public final class AgentSuggestedQuestions {
             return null;
         }
         try {
-            return MAPPER.readTree(metadata).path("standardQuestion").asString("").trim();
+            return MAPPER.readTree(metadata).path("standardQuestion").asText("").trim();
         } catch (Exception e) {
             return null;
         }
@@ -257,7 +257,7 @@ public final class AgentSuggestedQuestions {
                 return null;
             }
             JsonNode first = qs.get(0);
-            String q = first.isObject() ? first.path("question").asString("") : first.asString("");
+            String q = first.isObject() ? first.path("question").asText("") : first.asText("");
             return q == null ? "" : q;
         } catch (Exception e) {
             return null;

@@ -1,7 +1,7 @@
 package com.ragagent.platform.tool;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 工具 schema 的技术适配：JSON 字符串 → 纯 JDK 值（{@code Map}/{@code List}/标量），

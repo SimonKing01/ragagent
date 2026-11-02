@@ -1,9 +1,9 @@
 package com.ragagent.system.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.system.domain.SystemSetting;
 import java.time.OffsetDateTime;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /** 系统设置响应：字段名/顺序对齐实体既有 JSON；虚拟行 id 归一为 0。 */
 public record SystemSettingResponse(

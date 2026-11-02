@@ -1,5 +1,9 @@
 package com.ragagent.im.channel.dingtalk;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.ImTypes;
 import com.ragagent.im.runtime.IncomingMessage;
@@ -22,10 +26,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 钉钉 HTTP 面：token、发送、下载三件事。
@@ -176,7 +176,7 @@ final class DingtalkApiClient {
         byte[] respBody = dingtalkApi("POST", "/v1.0/robot/messageFiles/download", body);
 
         JsonNode parsed = MAPPER.readTree(respBody);
-        String downloadUrl = parsed.path("downloadUrl").asString("");
+        String downloadUrl = parsed.path("downloadUrl").asText("");
         if (downloadUrl.isEmpty()) {
             throw new IllegalStateException("download response has no downloadUrl: "
                     + new String(respBody, StandardCharsets.UTF_8));
@@ -313,7 +313,7 @@ final class DingtalkApiClient {
                     StandardCharsets.UTF_8));
         }
         JsonNode result = MAPPER.readTree(response.body());
-        String accessToken = result.path("accessToken").asString("");
+        String accessToken = result.path("accessToken").asText("");
         if (accessToken.isEmpty()) {
             throw new IllegalStateException("empty access token from dingtalk");
         }

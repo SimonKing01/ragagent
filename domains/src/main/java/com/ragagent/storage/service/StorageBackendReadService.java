@@ -1,5 +1,6 @@
 package com.ragagent.storage.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.storage.domain.StorageBackend;
@@ -11,7 +12,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
 
 /** 存储后端控制面读模型：控制器只拿响应 DTO。 */
 @Service

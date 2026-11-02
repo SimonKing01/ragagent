@@ -1,7 +1,7 @@
 package com.ragagent.mcp.protocol;
 
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * JSON-RPC 2.0 请求（对照 mcp-go {@code client/transport.JSONRPCRequest}）。

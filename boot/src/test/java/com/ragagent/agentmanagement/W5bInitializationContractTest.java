@@ -20,8 +20,8 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -318,8 +318,8 @@ class W5bInitializationContractTest {
         expected = Pattern.compile("\"tags\":\\[[^]]*\\]")
                 .matcher(expected).replaceAll("\"tags\":<tags>");
         org.junit.jupiter.api.Assertions.assertEquals(expected, masked);
-        tools.jackson.databind.JsonNode tags =
-                new tools.jackson.databind.ObjectMapper().readTree(body)
+        com.fasterxml.jackson.databind.JsonNode tags =
+                new com.fasterxml.jackson.databind.ObjectMapper().readTree(body)
                 // 统一外壳下取 data 后比较
                 .path("data")
                         .path("tags");
@@ -327,7 +327,7 @@ class W5bInitializationContractTest {
         Set<String> options = Set.of("Content", "Culture", "Person", "Event", "Time",
                 "Location", "Work", "Author", "Relation", "Attribute");
         Set<String> seen = new HashSet<>();
-        tags.forEach(t -> seen.add(t.asString()));
+        tags.forEach(t -> seen.add(t.asText()));
         assertTrue(seen.size() == tags.size() && options.containsAll(seen),
                 "tags must be distinct and within tagOptions: " + seen);
     }
@@ -339,8 +339,8 @@ class W5bInitializationContractTest {
                         .post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\":\"" + email + "\",\"password\":\"Passw0rd!\"}"))
                 .andReturn();
-        return new tools.jackson.databind.ObjectMapper()
-                .readTree(raw(r)).path("data").path("token").asString();
+        return new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(raw(r)).path("data").path("token").asText();
     }
 
     private String viewerBearer() throws Exception {
@@ -407,8 +407,8 @@ class W5bInitializationContractTest {
     }
 
     private static String jsonPath(MvcResult r, String path) throws Exception {
-        tools.jackson.databind.JsonNode node =
-                new tools.jackson.databind.ObjectMapper().readTree(raw(r));
+        com.fasterxml.jackson.databind.JsonNode node =
+                new com.fasterxml.jackson.databind.ObjectMapper().readTree(raw(r));
         // 统一外壳（有 code+data）且路径不以 data 开头时，先下钻 data
         if (!path.startsWith("data") && node.isObject() && node.has("code") && node.has("data")) {
             node = node.get("data");
@@ -420,11 +420,11 @@ class W5bInitializationContractTest {
                 node = node.get(seg);
             }
         }
-        return node.asString();
+        return node.asText();
     }
 
-    private static final tools.jackson.databind.ObjectMapper RAW_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper RAW_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String raw(MvcResult r) throws Exception {
         // PR4 语义比较：与 golden 同侧归一（非 JSON 文本原样）

@@ -1,5 +1,6 @@
 package com.ragagent.modelruntime.adapter.provider.chat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.model.ResponseType;
 import com.ragagent.contract.model.StreamResponse;
 import com.ragagent.contract.model.TokenUsage;
@@ -13,7 +14,6 @@ import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 流式解析协作者（自 {@link RemoteApiChat} 拆出）：
@@ -79,7 +79,7 @@ final class RemoteApiStreamOps {
                 JsonNode chunk;
                 try {
                     chunk = RemoteApiChat.MAPPER.readTree(data);
-                } catch (tools.jackson.core.JacksonException e) {
+                } catch (IOException e) {
                     log.error("Failed to parse stream response", e);
                     continue;
                 }

@@ -1,5 +1,6 @@
 package com.ragagent.agenttools.web;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.tenant.WebSearchConfig;
 import com.ragagent.contract.tool.BaseTool;
 import com.ragagent.contract.tool.ToolDefinitions;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.LongSupplier;
-import tools.jackson.databind.JsonNode;
 
 /**
  * web_search 工具。
@@ -282,7 +282,7 @@ public class WebSearchTool extends BaseTool {
         JsonNode freshness = args.path("freshness");
         JsonNode content = args.path("content");
         // 缺失/null → 空串（不是类型错误；空串由后面的 query 校验拒绝）
-        if (!query.isString() && !(query.isMissingNode() || query.isNull())) {
+        if (!query.isTextual() && !(query.isMissingNode() || query.isNull())) {
             throw new IllegalArgumentException(RequestFields.wrongType("query", "string",
                     ToolJson.nodeTypeLabel(query)));
         }
@@ -294,11 +294,11 @@ public class WebSearchTool extends BaseTool {
             }
             countValue = count.asInt();
         }
-        if (!(country.isMissingNode() || country.isNull() || country.isString())) {
+        if (!(country.isMissingNode() || country.isNull() || country.isTextual())) {
             throw new IllegalArgumentException(RequestFields.wrongType("country", "string",
                     ToolJson.nodeTypeLabel(country)));
         }
-        if (!(freshness.isMissingNode() || freshness.isNull() || freshness.isString())) {
+        if (!(freshness.isMissingNode() || freshness.isNull() || freshness.isTextual())) {
             throw new IllegalArgumentException(RequestFields.wrongType("freshness", "string",
                     ToolJson.nodeTypeLabel(freshness)));
         }
@@ -310,9 +310,9 @@ public class WebSearchTool extends BaseTool {
             }
             contentValue = content.asBoolean();
         }
-        return new SearchInput(query.isString() ? query.asString() : "", countValue,
-                country.isString() ? country.asString() : "",
-                freshness.isString() ? freshness.asString() : "", contentValue);
+        return new SearchInput(query.isTextual() ? query.asText() : "", countValue,
+                country.isTextual() ? country.asText() : "",
+                freshness.isTextual() ? freshness.asText() : "", contentValue);
     }
 
     /**

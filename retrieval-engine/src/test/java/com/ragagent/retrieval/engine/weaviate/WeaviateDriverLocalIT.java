@@ -2,6 +2,8 @@ package com.ragagent.retrieval.engine.weaviate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.vectorstore.IndexConfig;
 import com.ragagent.retrieval.engine.EngineTypes;
 import com.ragagent.retrieval.engine.EngineTypes.IndexInfo;
@@ -21,8 +23,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Weaviate 驱动对<b>真实服务端</b>的端到端验证（env 门控，默认跳过）：
@@ -68,7 +68,7 @@ class WeaviateDriverLocalIT {
                         URI.create("http://" + HOST + "/v1/schema")).GET().build(),
                 HttpResponse.BodyHandlers.ofString());
         for (JsonNode cls : MAPPER.readTree(schema.body()).path("classes")) {
-            String name = cls.path("class").asString("");
+            String name = cls.path("class").asText("");
             if (name.startsWith(base)) {
                 http.send(HttpRequest.newBuilder(
                                 URI.create("http://" + HOST + "/v1/schema/" + name))

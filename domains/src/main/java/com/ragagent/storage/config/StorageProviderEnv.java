@@ -1,7 +1,7 @@
 package com.ragagent.storage.config;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 存储后端默认装配读取的 provider 环境变量族（进程级 env 快照）。

@@ -1,12 +1,13 @@
 package com.ragagent.datasource.connector.yuque;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.io.IOException;
 import java.util.List;
-import tools.jackson.core.JsonParser;
-import tools.jackson.databind.DeserializationContext;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ValueDeserializer;
-import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * 语雀 Open API v2 的响应形状。
@@ -77,24 +78,25 @@ public final class YuqueApiTypes {
          * {@code null} → {@code ""}；字符串原样；整数 → 十进制字符串；
          * 其余（浮点 / 布尔 / 数组 / 对象）抛错。
          */
-        public static class Deserializer extends ValueDeserializer<FlexibleStatus> {
+        public static class Deserializer extends JsonDeserializer<FlexibleStatus> {
 
             @Override
-            public FlexibleStatus deserialize(JsonParser parser, DeserializationContext context) {
+            public FlexibleStatus deserialize(JsonParser parser, DeserializationContext context)
+                    throws IOException {
                 JsonNode node = parser.readValueAsTree();
                 if (node == null || node.isNull()) {
                     return new FlexibleStatus("");
                 }
-                if (node.isString()) {
-                    return new FlexibleStatus(node.stringValue());
+                if (node.isTextual()) {
+                    return new FlexibleStatus(node.textValue());
                 }
                 // 整数形态：解到 int64 语义，于是浮点 / 布尔 / 数组 / 对象会
                 // 大声失败，而不是被悄悄字符串化。
                 if (node.isIntegralNumber() && node.canConvertToLong()) {
                     return new FlexibleStatus(Long.toString(node.longValue()));
                 }
-                throw tools.jackson.databind.DatabindException.from(
-                        parser, "flexibleStatus: expected string or integer, got " + node);
+                throw new IOException("flexibleStatus: expected string or integer, got "
+                        + node.toString());
             }
         }
     }

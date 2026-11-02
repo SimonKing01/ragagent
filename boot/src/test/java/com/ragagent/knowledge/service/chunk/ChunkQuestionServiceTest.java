@@ -5,6 +5,8 @@ package com.ragagent.knowledge.service.chunk;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.TestSchema;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.knowledge.GeneratedQuestion;
@@ -26,11 +28,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * chunk 生成问题链路语义（H2）：Upsert/Delete/Regenerate 的 400 原文与 metadata
@@ -178,7 +178,7 @@ class ChunkQuestionServiceTest {
 
         JsonNode meta = json(metadataJson(c.getId()));
         assertThat(meta.path("generatedQuestions")).hasSize(1);
-        assertThat(meta.path("generatedQuestions").get(0).path("id").asString())
+        assertThat(meta.path("generatedQuestions").get(0).path("id").asText())
                 .isEqualTo(created.getId());
         // generated_questions_revision 恒输出：0 有意义（从未重新生成过）
         assertThat(meta.path("generatedQuestionsRevision").asInt()).isZero();
@@ -260,7 +260,7 @@ class ChunkQuestionServiceTest {
 
         JsonNode meta = json(metadataJson(c.getId()));
         assertThat(meta.path("generatedQuestions")).hasSize(1);
-        assertThat(meta.path("generatedQuestions").get(0).path("id").asString()).isEqualTo("q2");
+        assertThat(meta.path("generatedQuestions").get(0).path("id").asText()).isEqualTo("q2");
 
         // 再删不存在的 → 报错文案原样保留
         assertThatThrownBy(() -> service.deleteGeneratedQuestion(c.getId(), "q1"))

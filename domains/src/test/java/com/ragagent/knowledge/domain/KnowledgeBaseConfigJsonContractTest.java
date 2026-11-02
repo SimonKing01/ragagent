@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.knowledge.support.KnowledgeBaseConfigCodec;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.List;
@@ -13,8 +15,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 知识库配置 jsonb（{@code knowledge_bases.config} 列）的**序列化契约**。
@@ -35,7 +35,7 @@ class KnowledgeBaseConfigJsonContractTest {
     private static final ObjectMapper MAPPER = JsonMappers.lenient();
 
     private static Set<String> keysOf(JsonNode node) {
-        return StreamSupport.stream(node.propertyNames().spliterator(), false)
+        return StreamSupport.stream(((Iterable<String>) () -> node.fieldNames()).spliterator(), false)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
@@ -68,7 +68,7 @@ class KnowledgeBaseConfigJsonContractTest {
 
         JsonNode n = MAPPER.valueToTree(rule);
         assertEquals(Set.of("fileTypes", "engine", "xlsxFirstRowAsHeader"), keysOf(n));
-        assertEquals("excel", n.get("engine").asString());
+        assertEquals("excel", n.get("engine").asText());
         assertTrue(n.get("xlsxFirstRowAsHeader").asBoolean());
     }
 

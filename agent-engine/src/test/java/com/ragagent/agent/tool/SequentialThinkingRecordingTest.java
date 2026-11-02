@@ -2,11 +2,11 @@ package com.ragagent.agent.tool;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenA;
 import com.ragagent.contract.tool.ToolRequest;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * SequentialThinkingTool 的录制状态机（case1..case9 + case11 共 10 步，
@@ -38,33 +38,33 @@ class SequentialThinkingRecordingTest {
         SequentialThinkingTool tool = new SequentialThinkingTool();
         for (String name : CASES) {
             JsonNode r = RecordingSupport.rec(field(name));
-            JsonNode args = RecordingSupport.readTree(r.get("args").asString());
+            JsonNode args = RecordingSupport.readTree(r.get("args").asText());
             var result = tool.execute(ToolRequest.of(args));
 
             assertThat(result.isSuccess())
-                    .as("seqthink %s success", r.get("id").asString())
+                    .as("seqthink %s success", r.get("id").asText())
                     .isEqualTo(r.get("success").asBoolean());
             if (r.has("output")) {
                 assertThat(result.getOutput())
-                        .as("seqthink %s output", r.get("id").asString())
-                        .isEqualTo(r.get("output").asString());
+                        .as("seqthink %s output", r.get("id").asText())
+                        .isEqualTo(r.get("output").asText());
             }
             if (r.hasNonNull("goErr")) {
                 // 录制里的错误通道折叠进 result.Error（Java 签名说明见 ToolRegistry 类注释）
                 assertThat(result.getError())
-                        .as("seqthink %s error", r.get("id").asString())
+                        .as("seqthink %s error", r.get("id").asText())
                         .isEqualTo("Validation failed: " + validationMessage(r));
             } else {
                 assertThat(RecordingSupport.canonicalJson(RecordingSupport.PLAIN.valueToTree(result.getData())))
-                        .as("seqthink %s data", r.get("id").asString())
-                        .isEqualTo(RecordingSupport.canonicalJson(RecordingSupport.readTree(r.get("data").asString())));
+                        .as("seqthink %s data", r.get("id").asText())
+                        .isEqualTo(RecordingSupport.canonicalJson(RecordingSupport.readTree(r.get("data").asText())));
             }
         }
     }
 
     /** case7/8/9 的校验错误文案（逐字）。 */
     private static String validationMessage(JsonNode r) {
-        String args = r.get("args").asString();
+        String args = r.get("args").asText();
         if (args.contains("\"thought\":\"\"")) {
             return "invalid thought: must be a non-empty string";
         }

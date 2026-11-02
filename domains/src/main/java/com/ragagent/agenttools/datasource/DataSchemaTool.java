@@ -1,5 +1,6 @@
 package com.ragagent.agenttools.datasource;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.tool.BaseTool;
 import com.ragagent.contract.tool.ToolDefinitions;
 import com.ragagent.contract.tool.ToolRequest;
@@ -9,7 +10,6 @@ import com.ragagent.platform.web.JsonMappers;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * data_schema 工具。
@@ -86,7 +86,7 @@ public class DataSchemaTool extends BaseTool {
     @Override
     public ToolResult execute(ToolRequest request) {
         JsonNode args = JsonMappers.toJsonNode(request.args());
-        String knowledgeId = args.path("knowledgeId").asString("");
+        String knowledgeId = args.path("knowledgeId").asText("");
 
         // 取知识以拿租户（IDOnly 以支持跨租户共享 KB；设置了授权器则走授权）
         KnowledgeView knowledge;

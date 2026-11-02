@@ -1,8 +1,8 @@
 package com.ragagent.agenttools.datasource;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.tool.ToolRequest;
 import com.ragagent.contract.tool.ToolResult;
-import tools.jackson.databind.JsonNode;
 
 /**
  * DataAnalysisTool 包内面的公开桥。

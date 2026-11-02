@@ -1,5 +1,6 @@
 package com.ragagent.websearch.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.websearch.WebSearchResult;
 import com.ragagent.platform.web.ProviderJson;
 import com.ragagent.websearch.config.WebSearchProviderParams;
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import tools.jackson.databind.JsonNode;
 
 /**
  * Metaso（秘塔）搜索 provider。
@@ -108,23 +108,23 @@ public final class MetasoProvider implements WebSearchProvider {
         }
         List<WebSearchResult> results = new ArrayList<>();
         for (JsonNode item : response.path("webpages")) {
-            if (item.path("title").asString("").trim().isEmpty()
-                    && item.path("link").asString("").trim().isEmpty()) {
+            if (item.path("title").asText("").trim().isEmpty()
+                    && item.path("link").asText("").trim().isEmpty()) {
                 continue;
             }
-            String snippet = item.path("summary").asString("").trim();
+            String snippet = item.path("summary").asText("").trim();
             if (snippet.isEmpty()) {
-                snippet = item.path("snippet").asString("").trim();
+                snippet = item.path("snippet").asText("").trim();
             }
             WebSearchResult result = new WebSearchResult();
-            result.setTitle(item.path("title").asString(""));
-            result.setUrl(item.path("link").asString(""));
+            result.setTitle(item.path("title").asText(""));
+            result.setUrl(item.path("link").asText(""));
             result.setSnippet(snippet);
-            result.setContent(item.path("rawContent").asString(""));
+            result.setContent(item.path("rawContent").asText(""));
             result.setSource("metaso");
             if (includeDate) {
                 OffsetDateTime publishedAt = BochaProvider.parseFlexibleDate(
-                        item.path("date").asString(""), false);
+                        item.path("date").asText(""), false);
                 if (publishedAt != null) {
                     result.setPublishedAt(publishedAt);
                 }
@@ -141,9 +141,9 @@ public final class MetasoProvider implements WebSearchProvider {
     static SearchHttp.SearchHttpException metasoHttpError(int statusCode, byte[] body) {
         JsonNode apiError = ProviderJson.parse(body);
         if (apiError != null && apiError.isObject()) {
-            String detail = apiError.path("message").asString("").trim();
+            String detail = apiError.path("message").asText("").trim();
             if (detail.isEmpty()) {
-                detail = apiError.path("error").asString("").trim();
+                detail = apiError.path("error").asText("").trim();
             }
             if (!detail.isEmpty()) {
                 return new SearchHttp.SearchHttpException(

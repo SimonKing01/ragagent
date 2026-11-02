@@ -1,5 +1,8 @@
 package com.ragagent.retrieval.engine.elasticsearch;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.retrieval.engine.EngineTypes.IndexInfo;
 import com.ragagent.retrieval.engine.EngineTypes.RetrieveParams;
 import com.ragagent.retrieval.engine.elasticsearch.ElasticsearchV7RetrieveRepository.HttpResult;
@@ -10,9 +13,6 @@ import java.util.Map;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Elasticsearch v7 引擎的写入/删除/批量更新/拷贝簇：bulk NDJSON、terms 删除、
@@ -263,7 +263,7 @@ final class ElasticsearchV7WriteOps {
             log.info("[ElasticsearchV7] Source index data missing chunk_id field");
             return null;
         }
-        String sourceChunkId = sourceObj.path("chunk_id").asString();
+        String sourceChunkId = sourceObj.path("chunk_id").asText();
         String targetChunkId = sourceToTargetChunkIdMap.get(sourceChunkId);
         if (targetChunkId == null) {
             log.debug("[ElasticsearchV7] Source chunk ID {} not found in mapping", sourceChunkId);
@@ -273,7 +273,7 @@ final class ElasticsearchV7WriteOps {
             log.info("[ElasticsearchV7] Source index data missing knowledge_id field");
             return null;
         }
-        String sourceKnowledgeId = sourceObj.path("knowledge_id").asString();
+        String sourceKnowledgeId = sourceObj.path("knowledge_id").asText();
         String targetKnowledgeId = sourceToTargetKbIdMap.get(sourceKnowledgeId);
         if (targetKnowledgeId == null) {
             log.debug("[ElasticsearchV7] Source knowledge ID {} not found in mapping",
@@ -281,14 +281,14 @@ final class ElasticsearchV7WriteOps {
             return null;
         }
 
-        String content = sourceObj.path("content").asString("");
-        String originalSourceId = sourceObj.path("source_id").asString("");
+        String content = sourceObj.path("content").asText("");
+        String originalSourceId = sourceObj.path("source_id").asText("");
         int sourceType = sourceObj.path("source_type").asInt(0);
         // is_enabled 缺省 true、is_recommended 缺省 false
         boolean isEnabled = !sourceObj.has("is_enabled") || sourceObj.path("is_enabled")
                 .asBoolean(true);
         boolean isRecommended = sourceObj.path("is_recommended").asBoolean(false);
-        String tagId = sourceObj.path("tag_id").asString("");
+        String tagId = sourceObj.path("tag_id").asText("");
 
         String targetSourceId;
         if (originalSourceId.equals(sourceChunkId)) {

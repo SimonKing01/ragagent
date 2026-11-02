@@ -3,6 +3,7 @@ package com.ragagent.modelcontext;
 import static com.ragagent.modelcontext.ModelContextGolden.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.model.ChatMessage;
 import com.ragagent.contract.model.ChatResponse;
 import com.ragagent.contract.model.ChatTool;
@@ -18,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 4.6a modelcontext 包的录制回放（常量见 {@link ModelContextGolden}——字节断言为准）。
@@ -31,7 +31,7 @@ class ModelContextRecordingTest {
     }
 
     private static String out(String constant) {
-        return rec(constant).get("out").asString();
+        return rec(constant).get("out").asText();
     }
 
     private static List<String> listOfStrings(JsonNode node) {
@@ -40,7 +40,7 @@ class ModelContextRecordingTest {
             return out;
         }
         for (JsonNode n : node) {
-            out.add(n.isNull() ? null : n.asString());
+            out.add(n.isNull() ? null : n.asText());
         }
         return out;
     }
@@ -101,10 +101,10 @@ class ModelContextRecordingTest {
         String h1Again = ht.register("11111111-1111-1111-1111-111111111111");
         HandleTable.Resolved v = ht.resolve(h1Again);
         JsonNode resolveRec = rec(R_HANDLE_TABLE_RESOLVE).get("out");
-        assertThat(v.value()).isEqualTo(resolveRec.get("v").asString());
+        assertThat(v.value()).isEqualTo(resolveRec.get("v").asText());
         assertThat(v.ok()).isEqualTo(resolveRec.get("ok").asBoolean());
         HandleTable.Resolved vu = ht.resolve("c777");
-        assertThat(vu.value()).isEqualTo(resolveRec.get("vu").asString());
+        assertThat(vu.value()).isEqualTo(resolveRec.get("vu").asText());
         assertThat(vu.ok()).isEqualTo(resolveRec.get("oku").asBoolean());
 
         JsonNode lenRec = rec(R_HANDLE_TABLE_LEN_EMPTY).get("out");
@@ -150,7 +150,7 @@ class ModelContextRecordingTest {
         ref.chunkIndex = 2;
         ref.chunkType = "text";
         String h = r.registerChunk(ref);
-        assertThat(h).isEqualTo(rec(R_CITATIONS_EXPAND_KB).get("handle").asString());
+        assertThat(h).isEqualTo(rec(R_CITATIONS_EXPAND_KB).get("handle").asText());
         String text = "before <ref id=\"" + h.toLowerCase() + "\"/> mid <ref id=\"c999\"/> after"
                 + " <kb doc=\"z\" chunk_id=\"w\"> <web url=\"http://a\">";
         assertThat(r.expandText(text)).isEqualTo(out(R_CITATIONS_EXPAND_KB));
@@ -171,8 +171,8 @@ class ModelContextRecordingTest {
                 "<kb doc=\"doc-uuid-3\" chunk_id=\"chunk-uuid-3\">x</kb> then <kb chunk_id=\"chunk-uuid-3\" kb_id=\"kb-uuid-3\">", true);
         String expanded = rc.expandText(comp + " " + comp);
         JsonNode expected = rec(R_CITATIONS_COMPACT_KB_ROUNDTRIP).get("out");
-        assertThat(comp).isEqualTo(expected.get("compact").asString());
-        assertThat(expanded).isEqualTo(expected.get("expand").asString());
+        assertThat(comp).isEqualTo(expected.get("compact").asText());
+        assertThat(expanded).isEqualTo(expected.get("expand").asText());
 
         assertThat(rc.compactPublicCitations("<kb doc=\"d\">", true)).isEqualTo(out(R_CITATIONS_COMPACT_NO_CHUNK));
 
@@ -181,14 +181,14 @@ class ModelContextRecordingTest {
                 "<web url=\"https://example.com/p?x=1#frag\" title=\"T1\"> and <web url=\"https://example.com/p?x=1#other\" title=\"T2\">", true);
         String ew = rw.expandText(cw);
         JsonNode web = rec(R_CITATIONS_COMPACT_WEB).get("out");
-        assertThat(cw).isEqualTo(web.get("compact").asString());
-        assertThat(ew).isEqualTo(web.get("expand").asString());
+        assertThat(cw).isEqualTo(web.get("compact").asText());
+        assertThat(ew).isEqualTo(web.get("expand").asText());
 
         SourceRegistry rh2 = new SourceRegistry(true);
         String ch = rh2.compactPublicCitations("<kb chunk_id=\"a&amp;b\" doc=\"t\">", true);
         JsonNode unesc = rec(R_CITATIONS_COMPACT_ATTR_UNESCAPE).get("out");
-        assertThat(ch).isEqualTo(unesc.get("compact").asString());
-        assertThat(rh2.expandText(ch)).isEqualTo(unesc.get("expand").asString());
+        assertThat(ch).isEqualTo(unesc.get("compact").asText());
+        assertThat(rh2.expandText(ch)).isEqualTo(unesc.get("expand").asText());
     }
 
     @Test
@@ -199,7 +199,7 @@ class ModelContextRecordingTest {
         String ch9 = rl.chunkHandle("ch-9").toLowerCase();
         String fq1 = rl.chunkHandle("fq-1").toLowerCase();
         assertThat(rl.expandText("<ref id=\"" + ch9 + "\"/><ref id=\"" + fq1 + "\"/>"))
-                .isEqualTo(rec(R_CITATIONS_LEGACY_REFS).get("out").get("expand").asString());
+                .isEqualTo(rec(R_CITATIONS_LEGACY_REFS).get("out").get("expand").asText());
 
         SourceRegistry rm = new SourceRegistry(true);
         rm.registerLabeledReferences("a knowledgeId=\"doc-elem-1\" <knowledgeId> doc-elem-2 </knowledgeId>"
@@ -207,10 +207,10 @@ class ModelContextRecordingTest {
                 + " plain 12345678-1234-1234-1234-123456789abc text");
         JsonNode labeled = rec(R_CITATIONS_LABELED_REFS).get("out");
         // 探针用 fmt.Sprintf("%v", []string{...}) 记录 → "[d1 d2]" 字符串
-        assertThat(sliceText(labeled.get("docs").asString(), 0)).isEqualTo(rm.docsHandle("doc-elem-1"));
-        assertThat(sliceText(labeled.get("docs").asString(), 1)).isEqualTo(rm.docsHandle("doc-elem-2"));
-        assertThat(sliceText(labeled.get("kbs").asString(), 0)).isEqualTo(rm.kbsHandle("kb-elem-1"));
-        assertThat(sliceText(labeled.get("kbs").asString(), 1)).isEqualTo(rm.kbsHandle("kb-elem-2"));
+        assertThat(sliceText(labeled.get("docs").asText(), 0)).isEqualTo(rm.docsHandle("doc-elem-1"));
+        assertThat(sliceText(labeled.get("docs").asText(), 1)).isEqualTo(rm.docsHandle("doc-elem-2"));
+        assertThat(sliceText(labeled.get("kbs").asText(), 0)).isEqualTo(rm.kbsHandle("kb-elem-1"));
+        assertThat(sliceText(labeled.get("kbs").asText(), 1)).isEqualTo(rm.kbsHandle("kb-elem-2"));
     }
 
     // ---- citation_stream ----
@@ -310,11 +310,11 @@ class ModelContextRecordingTest {
         JsonNode expected = rec(R_TOOL_POLICY_DECODE_STATES).get("out");
         for (int i = 0; i < calls.size(); i++) {
             JsonNode exp = expected.get(i);
-            assertThat(calls.get(i).getFunction().getArguments()).as("case %d args", i).isEqualTo(exp.get("args").asString());
-            assertThat(calls.get(i).getArgumentResolution()).as("case %d res", i).isEqualTo(exp.get("res").asString());
+            assertThat(calls.get(i).getFunction().getArguments()).as("case %d args", i).isEqualTo(exp.get("args").asText());
+            assertThat(calls.get(i).getArgumentResolution()).as("case %d res", i).isEqualTo(exp.get("res").asText());
             assertThat(listOrEmpty(calls.get(i).getUnresolvedHandles()))
                     .containsExactlyElementsOf(listOfStrings(exp.get("unres")));
-            assertThat(calls.get(i).getModelArguments()).as("case %d modelarg", i).isEqualTo(exp.get("modelarg").asString());
+            assertThat(calls.get(i).getModelArguments()).as("case %d modelarg", i).isEqualTo(exp.get("modelarg").asText());
         }
     }
 
@@ -352,11 +352,11 @@ class ModelContextRecordingTest {
         c5b.add(call("wiki_update_issue", "{\"issueId\":\"i9\"}"));
         r4.decodeToolCalls(c5b);
         JsonNode expected = rec(R_TOOL_POLICY_ISSUE_DECODE).get("out");
-        assertThat(ih).isEqualTo(expected.get("encoded").asString());
-        assertThat(c5.get(0).getFunction().getArguments()).isEqualTo(expected.get("ok_args").asString());
-        assertThat(c5.get(0).getArgumentResolution()).isEqualTo(expected.get("ok_res").asString());
-        assertThat(c5b.get(0).getFunction().getArguments()).isEqualTo(expected.get("miss_args").asString());
-        assertThat(c5b.get(0).getArgumentResolution()).isEqualTo(expected.get("miss_res").asString());
+        assertThat(ih).isEqualTo(expected.get("encoded").asText());
+        assertThat(c5.get(0).getFunction().getArguments()).isEqualTo(expected.get("ok_args").asText());
+        assertThat(c5.get(0).getArgumentResolution()).isEqualTo(expected.get("ok_res").asText());
+        assertThat(c5b.get(0).getFunction().getArguments()).isEqualTo(expected.get("miss_args").asText());
+        assertThat(c5b.get(0).getArgumentResolution()).isEqualTo(expected.get("miss_res").asText());
         assertThat(listOrEmpty(c5b.get(0).getUnresolvedHandles()))
                 .containsExactlyElementsOf(listOfStrings(expected.get("miss_unres")));
 
@@ -553,7 +553,7 @@ class ModelContextRecordingTest {
         String longText = "汉".repeat(30) + "a".repeat(10);
         ModelOutput.Truncated limited = ModelOutput.truncateModelEvidence(longText, 25);
         JsonNode expected = rec(R_MODEL_OUTPUT_TRUNCATE_RUNES).get("out");
-        assertThat(limited.value()).isEqualTo(expected.get("out").asString());
+        assertThat(limited.value()).isEqualTo(expected.get("out").asText());
         assertThat(limited.value().codePointCount(0, limited.value().length())).isEqualTo(expected.get("n").asInt());
         assertThat(limited.truncated()).isEqualTo(expected.get("trunc").asBoolean());
 
@@ -631,8 +631,8 @@ class ModelContextRecordingTest {
         List<ChatTool> enc2 = r2.encodeTools(List.of(
                 tool("mcp_custom", "[MCP service srv-uuid-7 (external)] does things", "{}")));
         JsonNode expected = rec(R_MCP_DESC_EXTERNAL_REWRITE).get("out");
-        assertThat(registered).isEqualTo(expected.get("registered").asString());
-        assertThat(enc2.get(0).getFunction().getDescription()).isEqualTo(expected.get("desc").asString());
+        assertThat(registered).isEqualTo(expected.get("registered").asText());
+        assertThat(enc2.get(0).getFunction().getDescription()).isEqualTo(expected.get("desc").asText());
 
         Registry r3 = new Registry(true);
         ToolResult reg8 = new ToolResult();
@@ -751,8 +751,8 @@ class ModelContextRecordingTest {
         r3.registerSourceIDByKey("url", "https://ok.example/x", true);
         r3.registerSourceIDByKey("chunkId", "  ", true);
         JsonNode keySpaces = rec(R_SOURCES_KEY_SPACES).get("out");
-        assertThat(r3.docsHandle("doc-ref-uuid")).isEqualTo(keySpaces.get("doc").asString());
-        assertThat(r3.websHandle("https://ok.example/x")).isEqualTo(keySpaces.get("web").asString());
+        assertThat(r3.docsHandle("doc-ref-uuid")).isEqualTo(keySpaces.get("doc").asText());
+        assertThat(r3.websHandle("https://ok.example/x")).isEqualTo(keySpaces.get("web").asText());
         assertThat(r3.websCount()).isEqualTo(keySpaces.get("nour").asInt());
     }
 
@@ -785,10 +785,10 @@ class ModelContextRecordingTest {
         List<ChatMessage> out = r5.encodeMessagesWithPolicies(
                 msgs, ToolPolicy::sourceArgumentAllowed, ToolPolicy::sourceOutputAllowed);
         JsonNode expected = rec(R_SOURCES_ENCODE_MESSAGES).get("out");
-        assertThat(out.get(1).getContent()).isEqualTo(expected.get("tool").asString());
-        assertThat(out.get(2).getContent()).isEqualTo(expected.get("asst").asString());
-        assertThat(out.get(2).getToolCalls().get(0).getFunction().getArguments()).isEqualTo(expected.get("args").asString());
-        assertThat(r5.expandText(out.get(1).getContent())).isEqualTo(expected.get("tool_expand").asString());
+        assertThat(out.get(1).getContent()).isEqualTo(expected.get("tool").asText());
+        assertThat(out.get(2).getContent()).isEqualTo(expected.get("asst").asText());
+        assertThat(out.get(2).getToolCalls().get(0).getFunction().getArguments()).isEqualTo(expected.get("args").asText());
+        assertThat(r5.expandText(out.get(1).getContent())).isEqualTo(expected.get("tool_expand").asText());
     }
 
     // ---- registry 聚合 ----
@@ -803,9 +803,9 @@ class ModelContextRecordingTest {
         String hEv = r.registerChunk(chunkRef("ctx-chunk-1", ""));
         String text = r.decodeOutputText("<ref id=\"" + h.toLowerCase() + "\"/> <ref id=\"" + hEv.toLowerCase() + "\"/>");
         JsonNode expected = rec(R_REGISTRY_CONTEXT_VS_EVIDENCE).get("out");
-        assertThat(h).isEqualTo(expected.get("h").asString());
-        assertThat(hEv).isEqualTo(expected.get("hev").asString());
-        assertThat(text).isEqualTo(expected.get("text").asString());
+        assertThat(h).isEqualTo(expected.get("h").asText());
+        assertThat(hEv).isEqualTo(expected.get("hev").asText());
+        assertThat(text).isEqualTo(expected.get("text").asText());
 
         Registry r2 = new Registry(true);
         SearchResult sr = new SearchResult();
@@ -828,8 +828,8 @@ class ModelContextRecordingTest {
         resp.setToolCalls(new ArrayList<>(List.of(call("web_fetch", "{\"urls\":[\"w1\"]}"))));
         r3.decodeResponse(resp);
         JsonNode expected = rec(R_REGISTRY_DECODE_RESPONSE).get("out");
-        assertThat(resp.getContent()).isEqualTo(expected.get("content").asString());
-        assertThat(resp.getToolCalls().get(0).getFunction().getArguments()).isEqualTo(expected.get("args").asString());
+        assertThat(resp.getContent()).isEqualTo(expected.get("content").asText());
+        assertThat(resp.getToolCalls().get(0).getFunction().getArguments()).isEqualTo(expected.get("args").asText());
 
         Registry r4 = new Registry(true);
         assertThat(r4.orphanResourceHandles("a res://7 b res://7 c res://8"))

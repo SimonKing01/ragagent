@@ -1,11 +1,13 @@
 package com.ragagent.agent.tool;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.platform.web.ToolJson;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.JsonNodeFactory;
-import tools.jackson.databind.node.ObjectNode;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * 参数类型矫正。
@@ -46,7 +48,9 @@ public final class ParamCaster {
         ObjectNode argsMap = ((ObjectNode) args).deepCopy();
         boolean changed = false;
 
-        for (var entry : argsMap.properties()) {
+        Iterator<Map.Entry<String, JsonNode>> it = argsMap.fields();
+        while (it.hasNext()) {
+            Map.Entry<String, JsonNode> entry = it.next();
             String key = entry.getKey();
             JsonNode propDef = properties.get(key);
             if (propDef == null) {
@@ -56,7 +60,7 @@ public final class ParamCaster {
                 continue;
             }
             JsonNode typeNode = propDef.get("type");
-            String targetType = typeNode != null && typeNode.isString() ? typeNode.stringValue() : "";
+            String targetType = typeNode != null && typeNode.isTextual() ? typeNode.textValue() : "";
             if (targetType.isEmpty()) {
                 continue;
             }
@@ -86,8 +90,8 @@ public final class ParamCaster {
     static JsonNode castValue(JsonNode val, String targetType) {
         switch (targetType) {
             case "array": {
-                if (val.isString()) {
-                    String s = val.stringValue();
+                if (val.isTextual()) {
+                    String s = val.textValue();
                     // 先试 JSON 解析（处理 "[{...}]" → 数组）
                     try {
                         JsonNode parsed = ObjectMapperHolder.MAPPER.readTree(s);
@@ -105,8 +109,8 @@ public final class ParamCaster {
                 break;
             }
             case "boolean": {
-                if (val.isString()) {
-                    String lower = val.stringValue().toLowerCase();
+                if (val.isTextual()) {
+                    String lower = val.textValue().toLowerCase();
                     switch (lower) {
                         case "true", "1", "yes":
                             return F.booleanNode(true);
@@ -129,9 +133,9 @@ public final class ParamCaster {
                 break;
             }
             case "integer": {
-                if (val.isString()) {
+                if (val.isTextual()) {
                     try {
-                        long i = Long.parseLong(val.stringValue());
+                        long i = Long.parseLong(val.textValue());
                         return F.numberNode(i);
                     } catch (NumberFormatException ignored) {
                         // fall through
@@ -147,9 +151,9 @@ public final class ParamCaster {
                 break;
             }
             case "number": {
-                if (val.isString()) {
+                if (val.isTextual()) {
                     try {
-                        double f = Double.parseDouble(val.stringValue());
+                        double f = Double.parseDouble(val.textValue());
                         if (!Double.isNaN(f) && !Double.isInfinite(f)) {
                             return F.numberNode(f);
                         }
@@ -162,14 +166,14 @@ public final class ParamCaster {
             case "string": {
                 // 非字符串 → 字符串（数字或 bool 被当成非字符串传来）
                 if (val.isBoolean()) {
-                    return F.stringNode(val.booleanValue() ? "true" : "false");
+                    return F.textNode(val.booleanValue() ? "true" : "false");
                 }
                 if (val.isFloatingPointNumber()) {
                     // 最短 'f' 定点形态（123.5 → "123.5"、42.0 → "42"）
-                    return F.stringNode(plainFloatText(val.doubleValue()));
+                    return F.textNode(plainFloatText(val.doubleValue()));
                 }
                 if (val.isIntegralNumber()) {
-                    return F.stringNode(String.valueOf(val.longValue()));
+                    return F.textNode(String.valueOf(val.longValue()));
                 }
                 break;
             }
@@ -190,7 +194,7 @@ public final class ParamCaster {
     }
 
     private static final class ObjectMapperHolder {
-        private static final tools.jackson.databind.ObjectMapper MAPPER =
+        private static final com.fasterxml.jackson.databind.ObjectMapper MAPPER =
                 JsonMappers.lenient();
     }
 }

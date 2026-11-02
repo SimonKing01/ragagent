@@ -1,5 +1,7 @@
 package com.ragagent.knowledge.repository;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.knowledge.domain.KnowledgeProcessingSpan;
 import com.ragagent.platform.persistence.DatabaseDialects;
 import com.ragagent.platform.text.CleanInvalidUtf8;
@@ -20,8 +22,6 @@ import java.util.Map;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.stereotype.Repository;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * * 每次尝试一棵 span 树的持久化。

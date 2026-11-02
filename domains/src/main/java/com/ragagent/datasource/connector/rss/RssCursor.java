@@ -1,12 +1,13 @@
 package com.ragagent.datasource.connector.rss;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.platform.web.ZeroTimeSerializer;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * RSS 连接器的增量同步状态。
@@ -39,7 +40,8 @@ import tools.jackson.databind.ObjectMapper;
 
 public class RssCursor {
 
-    private static final ObjectMapper MAPPER = JsonMappers.lenient();
+    private static final ObjectMapper MAPPER = JsonMappers.lenient()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     /** 本次同步的时间（UTC）。恒输出。 */
     private OffsetDateTime lastSyncTime = ZeroTimeSerializer.ZERO_DATE_TIME;

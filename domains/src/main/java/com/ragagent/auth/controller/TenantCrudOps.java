@@ -107,7 +107,7 @@ final class TenantCrudOps {
         if (rawBody == null || rawBody.isBlank()) {
             throw TenantBindSupport.invalidParams("Invalid request data", JsonBodyErrors.EMPTY_BODY);
         }
-        tools.jackson.databind.JsonNode root;
+        com.fasterxml.jackson.databind.JsonNode root;
         try {
             root = TenantBindSupport.MAPPER.readTree(rawBody);
         } catch (Exception e) {
@@ -129,9 +129,9 @@ final class TenantCrudOps {
             throw TenantBindSupport.invalidParams("Invalid request data", typeError);
         }
         UpdateTenantRequest req = new UpdateTenantRequest();
-        req.name = root.get("name") == null || root.get("name").isNull() ? null : root.get("name").asString();
+        req.name = root.get("name") == null || root.get("name").isNull() ? null : root.get("name").asText();
         req.description = root.get("description") == null || root.get("description").isNull()
-                ? null : root.get("description").asString();
+                ? null : root.get("description").asText();
         List<String> errors = new ArrayList<>();
         if (req.name != null) {
             int len = req.name.codePointCount(0, req.name.length());

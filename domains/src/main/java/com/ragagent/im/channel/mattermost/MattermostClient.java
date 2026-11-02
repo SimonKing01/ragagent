@@ -1,5 +1,7 @@
 package com.ragagent.im.channel.mattermost;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.platform.web.JsonMappers;
 import java.net.URI;
@@ -10,8 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Mattermost REST 客户端。
@@ -95,7 +95,7 @@ public class MattermostClient {
                     + response.statusCode() + " body=" + truncateForErr(respBody));
         }
         JsonNode created = MAPPER.readTree(respBody);
-        String id = created.path("id").asString("");
+        String id = created.path("id").asText("");
         if (id.isEmpty()) {
             throw new IllegalStateException("mattermost create post: empty id");
         }
@@ -110,7 +110,7 @@ public class MattermostClient {
             throw new IllegalStateException("mattermost get post: status=" + response.statusCode()
                     + " body=" + truncateForErr(respBody));
         }
-        return MAPPER.readTree(respBody).path("root_id").asString("");
+        return MAPPER.readTree(respBody).path("root_id").asText("");
     }
 
     /** PUT /posts/{id}/patch。 */
@@ -134,7 +134,7 @@ public class MattermostClient {
                     + " body=" + truncateForErr(respBody));
         }
         JsonNode info = MAPPER.readTree(respBody);
-        return new FileInfo(info.path("id").asString(""), info.path("name").asString(""),
+        return new FileInfo(info.path("id").asText(""), info.path("name").asText(""),
                 info.path("size").asLong(0));
     }
 

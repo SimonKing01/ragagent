@@ -1,5 +1,7 @@
 package com.ragagent.auth.apikey.domain;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -9,8 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@code tenant_api_keys} 的两个 jsonb 字符串数组列

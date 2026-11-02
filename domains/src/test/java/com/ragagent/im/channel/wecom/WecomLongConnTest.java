@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.domain.ImChannelEntity;
 import com.ragagent.im.runtime.ImTypes;
 import com.ragagent.im.runtime.IncomingMessage;
@@ -21,8 +23,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 企业微信长连接的
@@ -177,12 +177,12 @@ class WecomLongConnTest {
     void buildsStreamFramesAndBackoff() throws Exception {
         String frame = WecomLongConnClient.buildStreamFrame("stream_7", "全量内容", true, "r1");
         JsonNode node = MAPPER.readTree(frame);
-        assertEquals("aibot_respond_msg", node.path("cmd").asString());
-        assertEquals("r1", node.path("headers").path("req_id").asString());
-        assertEquals("stream", node.path("body").path("msgtype").asString());
-        assertEquals("stream_7", node.path("body").path("stream").path("id").asString());
+        assertEquals("aibot_respond_msg", node.path("cmd").asText());
+        assertEquals("r1", node.path("headers").path("req_id").asText());
+        assertEquals("stream", node.path("body").path("msgtype").asText());
+        assertEquals("stream_7", node.path("body").path("stream").path("id").asText());
         assertTrue(node.path("body").path("stream").path("finish").asBoolean());
-        assertEquals("全量内容", node.path("body").path("stream").path("content").asString());
+        assertEquals("全量内容", node.path("body").path("stream").path("content").asText());
 
         assertEquals(1000, WecomLongConnClient.reconnectDelayMs(0));
         assertEquals(1000, WecomLongConnClient.reconnectDelayMs(1));

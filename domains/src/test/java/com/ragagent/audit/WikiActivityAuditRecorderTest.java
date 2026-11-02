@@ -78,7 +78,7 @@ class WikiActivityAuditRecorderTest {
         assertThat(row.getDetails().get("count").asInt()).isEqualTo(1);
         assertThat(row.getDetails().get("actions").get("manual_edit").asInt()).isEqualTo(1);
         List<String> names = new ArrayList<>();
-        row.getDetails().propertyNames().forEach(names::add);
+        row.getDetails().fieldNames().forEachRemaining(names::add);
         assertThat(names).containsExactly("actions", "count");
     }
 

@@ -1,6 +1,6 @@
 package com.ragagent.mcp.protocol;
 
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * JSON-RPC 2.0 响应（对照 mcp-go {@code client/transport.JSONRPCResponse}）。
@@ -16,7 +16,7 @@ public record JsonRpcResponse(String jsonrpc, JsonNode id, JsonNode result, Json
         JsonNode idNode = node.get("id");
         JsonNode result = node.get("result");
         JsonRpcError err = node.hasNonNull("error") ? JsonRpcError.from(node.get("error")) : null;
-        return new JsonRpcResponse(node.path("jsonrpc").asString(null), idNode, result, err);
+        return new JsonRpcResponse(node.path("jsonrpc").asText(null), idNode, result, err);
     }
 
     /** 通知/流式消息的判定：没有 id 的报文不是响应。 */
@@ -37,6 +37,6 @@ public record JsonRpcResponse(String jsonrpc, JsonNode id, JsonNode result, Json
         if (isNotification()) {
             return "";
         }
-        return id.isString() ? id.asString() : id.asString(String.valueOf(id.asLong()));
+        return id.isTextual() ? id.asText() : id.asText(String.valueOf(id.asLong()));
     }
 }

@@ -1,5 +1,7 @@
 package com.ragagent.mcp.domain;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -8,8 +10,6 @@ import java.sql.SQLException;
 import java.util.List;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * mcp_metadata.tools（jsonb，NOT NULL）的 TypeHandler。

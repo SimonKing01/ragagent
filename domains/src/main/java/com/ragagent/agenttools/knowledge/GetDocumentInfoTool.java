@@ -1,5 +1,6 @@
 package com.ragagent.agenttools.knowledge;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agenttools.knowledge.FaqSnippet.SimilarQuestionsDisplay;
 import com.ragagent.contract.agent.SearchAuth;
 import com.ragagent.contract.knowledge.ChunkFacts;
@@ -23,7 +24,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
-import tools.jackson.databind.JsonNode;
 
 /**
  * get_document_info 工具。
@@ -406,8 +406,8 @@ public class GetDocumentInfoTool extends BaseTool {
             return out;
         }
         for (JsonNode item : node) {
-            if (item.isString()) {
-                out.add(item.asString());
+            if (item.isTextual()) {
+                out.add(item.asText());
             }
         }
         return out;

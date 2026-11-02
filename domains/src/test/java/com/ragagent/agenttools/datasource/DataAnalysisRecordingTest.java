@@ -2,6 +2,7 @@ package com.ragagent.agenttools.datasource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenB;
 import com.ragagent.agenttools.datasource.DataAnalysisTool.AnalysisDuckDb;
@@ -30,7 +31,6 @@ import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 4.5b 回放：data_analysis 的录制回放。
@@ -343,8 +343,8 @@ class DataAnalysisRecordingTest {
 
     private static ToolRequest req(JsonNode r) {
         try {
-            return ToolRequest.of(RecordingSupport.PLAIN.readTree(r.get("args").asString()));
-        } catch (tools.jackson.core.JacksonException e) {
+            return ToolRequest.of(RecordingSupport.PLAIN.readTree(r.get("args").asText()));
+        } catch (java.io.IOException e) {
             throw new IllegalStateException(e);
         }
     }
@@ -354,8 +354,8 @@ class DataAnalysisRecordingTest {
         // 录制里的 HTML 转义形态（\u003c>&，如 <nil> 写成 \u003cnil\u003e）
         // 不再构成断言目标——两侧归一后比较（其余逐字）。
         assertThat(RecordingSupport.normalizeEscapes(result.getOutput())).as("%s output", label)
-                .isEqualTo(RecordingSupport.normalizeEscapes(r.get("output").asString()));
-        String wantError = r.hasNonNull("error") ? r.get("error").asString() : "";
+                .isEqualTo(RecordingSupport.normalizeEscapes(r.get("output").asText()));
+        String wantError = r.hasNonNull("error") ? r.get("error").asText() : "";
         if (!wantError.isEmpty()) {
             assertThat(result.getError()).as("%s error", label).isEqualTo(wantError);
         }
@@ -374,7 +374,7 @@ class DataAnalysisRecordingTest {
             String column, String suggestionSuffix) {
         assertThat(result.isSuccess()).as("%s success", label).isFalse();
         assertThat(result.getOutput()).as("%s output", label).isEqualTo("");
-        String recorded = r.get("error").asString();
+        String recorded = r.get("error").asText();
         assertThat(recorded).startsWith("Query execution failed: query execution failed: Binder Error:");
         // Java 1.1.3 driver 的 SQLException 消息多一层 "java.sql.SQLException: " 包装
         // （已知差异），只锁稳定部分：前缀 + Binder Error + Referenced column 片段。
@@ -399,22 +399,22 @@ class DataAnalysisRecordingTest {
 
     @Test
     void schemaContract() {
-        JsonNode schema = RecordingSupport.readTree(rec("data_analysis_schema").get("schema").asString());
+        JsonNode schema = RecordingSupport.readTree(rec("data_analysis_schema").get("schema").asText());
         assertThat(JsonMappers.toJsonNode(tool().getParameters())).isEqualTo(schema);
     }
 
     @Test
     void buildExcelCreateTableSqlCorpus() {
         assertThat(DataAnalysisTool.buildExcelCreateTableSQL("tbl", "/tmp/data.xlsx", null))
-                .isEqualTo(rec("data_analysis_buildsql_empty").get("sql").asString());
+                .isEqualTo(rec("data_analysis_buildsql_empty").get("sql").asText());
         assertThat(DataAnalysisTool.buildExcelCreateTableSQL("tbl", "/tmp/data.xlsx", List.of("Sheet1")))
-                .isEqualTo(rec("data_analysis_buildsql_single").get("sql").asString());
+                .isEqualTo(rec("data_analysis_buildsql_single").get("sql").asText());
         assertThat(DataAnalysisTool.buildExcelCreateTableSQL("tbl", "/tmp/data.xlsx",
                 List.of("Sheet1", "Sheet2", "报表")))
-                .isEqualTo(rec("data_analysis_buildsql_multi").get("sql").asString());
+                .isEqualTo(rec("data_analysis_buildsql_multi").get("sql").asText());
         assertThat(DataAnalysisTool.buildExcelCreateTableSQL("tbl", "/tmp/O'Brien/data.xlsx",
                 List.of("it's", "a\"b")))
-                .isEqualTo(rec("data_analysis_buildsql_quote").get("sql").asString());
+                .isEqualTo(rec("data_analysis_buildsql_quote").get("sql").asText());
     }
 
     @Test

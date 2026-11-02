@@ -3,10 +3,10 @@ package com.ragagent.retrieval.engine.weaviate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * Weaviate GraphQL 串的字节契约——<b>golden 期望串</b>：下面四条录自
@@ -110,12 +110,12 @@ class WeaviateGqlTest {
     @DisplayName("where 的 JSON 形态（批量删除用）：Contains* 恒数组键，单值非 contains 用标量键")
     void whereJsonShape() {
         JsonNode contains = WeaviateGql.Where.containsAny("chunk_id").valueText("a").json();
-        assertThat(contains.path("operator").asString()).isEqualTo("ContainsAny");
-        assertThat(contains.path("valueTextArray").get(0).asString()).isEqualTo("a");
+        assertThat(contains.path("operator").asText()).isEqualTo("ContainsAny");
+        assertThat(contains.path("valueTextArray").get(0).asText()).isEqualTo("a");
         assertThat(contains.has("valueText")).isFalse();
 
         JsonNode scalar = WeaviateGql.Where.equal("knowledge_base_id").valueString("kb1").json();
-        assertThat(scalar.path("valueString").asString()).isEqualTo("kb1");
+        assertThat(scalar.path("valueString").asText()).isEqualTo("kb1");
         assertThat(scalar.has("valueStringArray")).isFalse();
 
         JsonNode bool = WeaviateGql.Where.equal("is_enabled").valueBoolean(true).json();

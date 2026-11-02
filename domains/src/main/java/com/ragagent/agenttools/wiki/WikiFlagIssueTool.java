@@ -1,5 +1,6 @@
 package com.ragagent.agenttools.wiki;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.agent.SearchAuth;
 import com.ragagent.contract.agent.SearchAuth.KnowledgeScopeReader;
 import com.ragagent.contract.retrieval.SearchTarget.SearchTargets;
@@ -11,7 +12,6 @@ import com.ragagent.platform.tool.ToolSchemas;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * wiki_flag_issue 工具。
@@ -76,7 +76,7 @@ public class WikiFlagIssueTool extends BaseTool {
     @Override
     public ToolResult execute(ToolRequest request) {
         JsonNode args = JsonMappers.toJsonNode(request.args());
-        String slug = args.path("slug").asString("").trim();
+        String slug = args.path("slug").asText("").trim();
         String normalizedSlug;
         try {
             normalizedSlug = WikiSlugs.normalizeAndValidateWikiSlug(slug);
@@ -115,8 +115,8 @@ public class WikiFlagIssueTool extends BaseTool {
         issue.setTenantId(resolved.page().tenantId());
         issue.setKnowledgeBaseId(kbId);
         issue.setSlug(slug);
-        issue.setIssueType(args.path("issueType").asString(""));
-        issue.setDescription(args.path("description").asString(""));
+        issue.setIssueType(args.path("issueType").asText(""));
+        issue.setDescription(args.path("description").asText(""));
         issue.setSuspectedKnowledgeIds(suspectedKnowledgeIds);
         issue.setReportedBy("wiki-researcher-agent");
         issue.setStatus("pending");
@@ -140,7 +140,7 @@ public class WikiFlagIssueTool extends BaseTool {
         }
         List<String> out = new ArrayList<>();
         for (JsonNode item : node) {
-            out.add(item.asString());
+            out.add(item.asText());
         }
         return out;
     }

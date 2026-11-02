@@ -60,7 +60,7 @@ final class EmbedChannelPublicOps {
     }
 
     /** 公开配置视图。 */
-    public ResponseEntity<tools.jackson.databind.node.ObjectNode> config(@PathVariable("channelId") String channelId) {
+    public ResponseEntity<com.fasterxml.jackson.databind.node.ObjectNode> config(@PathVariable("channelId") String channelId) {
         EmbedChannelEntity ch = EmbedChannelRows.channel(EmbedChannelController.request0());
         return ResponseEntity.ok(ctrl.service.publicConfig(ch));
     }

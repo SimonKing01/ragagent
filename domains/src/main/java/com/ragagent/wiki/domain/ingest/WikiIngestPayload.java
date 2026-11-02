@@ -1,6 +1,7 @@
 package com.ragagent.wiki.domain.ingest;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.ragagent.platform.access.TracingContext;
 
 /**
@@ -19,6 +20,8 @@ import com.ragagent.platform.access.TracingContext;
  * <p>载荷只在单 JVM 内的 {@code InProcessWikiIngestTaskQueue} 流动（死信留档除外），
  * 自有键名即 Java 字段名（camelCase），键序随声明序。</p>
  */
+// 键序显式钉住：分量上的 @JsonInclude 会让 Jackson 2 把该属性提前，不能依赖声明序。
+@JsonPropertyOrder({"tenantId", "knowledgeBaseId", "language", "tracing"})
 public record WikiIngestPayload(
         long tenantId,
         String knowledgeBaseId,
@@ -26,9 +29,10 @@ public record WikiIngestPayload(
         /**
          * 观测载体（嵌套键 {@code tracing}，五个 {@code lf_*} 组件收在里面）。
          * 空载体经 {@code EmptyOmitFilter} 整键省略：未启用追踪时负载字节与平铺期逐字一致。
+         * 过滤器挂在 {@link #tracing()} 访问器上——record 分量上的 {@code Include.CUSTOM}
+         * 在 Jackson 2 里不生效。
          */
-        @JsonInclude(value = JsonInclude.Include.CUSTOM,
-                valueFilter = TracingContext.EmptyOmitFilter.class) TracingContext tracing) {
+        TracingContext tracing) {
 
     public WikiIngestPayload {
     }
@@ -47,7 +51,9 @@ public record WikiIngestPayload(
         return new WikiIngestPayload(tenantId, knowledgeBaseId, language, tc.isEmpty() ? null : tc);
     }
 
-    /** 追踪载体的结构视图（worker 侧续接用）。 */
+    /** 追踪载体的结构视图（worker 侧续接用）。空载体在此归一，序列化侧由过滤器整键省略。 */
+    @JsonInclude(value = JsonInclude.Include.CUSTOM,
+            valueFilter = TracingContext.EmptyOmitFilter.class)
     public TracingContext tracing() {
         return tracing == null ? TracingContext.EMPTY : tracing;
     }

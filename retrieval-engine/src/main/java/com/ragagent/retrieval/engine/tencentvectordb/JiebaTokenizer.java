@@ -1,11 +1,13 @@
 package com.ragagent.retrieval.engine.tencentvectordb;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.platform.web.JsonMappers;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,7 +15,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 腾讯 VectorDB 稀疏向量的默认分词器——对齐腾讯 SDK（tcvdbtext）内置 jieba 分词的
@@ -322,7 +323,7 @@ final class JiebaTokenizer implements TencentVectorDbBm25.Tokenizer {
                 JsonNode list = prevNode.path(String.valueOf(STATES[s]));
                 int[] prev = new int[list.size()];
                 for (int i = 0; i < list.size(); i++) {
-                    prev[i] = stateIndex(list.get(i).asString().charAt(0));
+                    prev[i] = stateIndex(list.get(i).asText().charAt(0));
                 }
                 prevStatus[s] = prev;
             }
@@ -334,7 +335,9 @@ final class JiebaTokenizer implements TencentVectorDbBm25.Tokenizer {
             JsonNode transNode = root.path("probTrans");
             for (int from = 0; from < STATES.length; from++) {
                 JsonNode row = transNode.path(String.valueOf(STATES[from]));
-                for (var entry : row.properties()) {
+                Iterator<Map.Entry<String, JsonNode>> fields = row.fields();
+                while (fields.hasNext()) {
+                    Map.Entry<String, JsonNode> entry = fields.next();
                     probTrans[from][stateIndex(entry.getKey().charAt(0))] = entry.getValue().asDouble();
                 }
             }
@@ -342,8 +345,10 @@ final class JiebaTokenizer implements TencentVectorDbBm25.Tokenizer {
             Map<Integer, double[]> emit = new HashMap<>();
             JsonNode emitNode = root.path("probEmit");
             for (int s = 0; s < STATES.length; s++) {
-                for (Map.Entry<String, JsonNode> entry
-                        : emitNode.path(String.valueOf(STATES[s])).properties()) {
+                Iterator<Map.Entry<String, JsonNode>> fields =
+                        emitNode.path(String.valueOf(STATES[s])).fields();
+                while (fields.hasNext()) {
+                    Map.Entry<String, JsonNode> entry = fields.next();
                     int codePoint = Integer.parseInt(entry.getKey());
                     double[] byState = emit.get(codePoint);
                     if (byState == null) {
@@ -356,7 +361,7 @@ final class JiebaTokenizer implements TencentVectorDbBm25.Tokenizer {
             }
 
             log.info("[TencentVectorDB] jieba HMM model loaded: {} runes (source: {})",
-                    emit.size(), root.path("source").asString(""));
+                    emit.size(), root.path("source").asText(""));
             return new Model(minFloat, probStart, prevStatus, probTrans, emit);
         } catch (IOException e) {
             throw new IllegalStateException("jieba hmm model load failed: " + e.getMessage(), e);

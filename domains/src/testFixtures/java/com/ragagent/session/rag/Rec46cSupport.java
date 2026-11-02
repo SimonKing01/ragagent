@@ -344,9 +344,9 @@ final class Rec46cSupport {
 
         /** 事件序列 JSON（对照 zzEventsJSON 的 Go struct 键序 id/type/session_id/data）。 */
         String eventsJson() {
-            var arr = tools.jackson.databind.node.JsonNodeFactory.instance.arrayNode();
+            var arr = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.arrayNode();
             for (Event e : all()) {
-                var row = tools.jackson.databind.node.JsonNodeFactory.instance.objectNode();
+                var row = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
                 row.put("id", mask(e.getId()));
                 row.put("type", e.getType());
                 row.put("sessionId", e.getSessionId());

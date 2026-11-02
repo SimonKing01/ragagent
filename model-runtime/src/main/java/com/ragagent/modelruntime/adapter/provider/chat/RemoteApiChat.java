@@ -1,5 +1,8 @@
 package com.ragagent.modelruntime.adapter.provider.chat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.model.CacheRetention;
 import com.ragagent.contract.model.ChatConfig;
@@ -32,9 +35,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * OpenAI 兼容 API 的聊天客户端。
@@ -253,7 +253,7 @@ public class RemoteApiChat implements LlmChatClient {
                 // ③ 两路径同样做 HTML 转义（< > & 转小写十六进制反斜杠 u 形式）。
                 return RemoteApiBodyCodec.REQUEST_BODY_JSON.writeValueAsBytes(
                         cacheRewritten ? RemoteApiBodyCodec.byteOrderSorted(body) : RemoteApiBodyCodec.structSorted(body));
-            } catch (tools.jackson.core.JacksonException e) {
+            } catch (IOException e) {
                 throw BizException.internal("marshal request: " + e.getMessage());
             }
         }
@@ -322,7 +322,7 @@ public class RemoteApiChat implements LlmChatClient {
         JsonNode body;
         try {
             body = MAPPER.readTree(raw);
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             throw BizException.internal("decode response: " + e.getMessage());
         }
         ChatResponse result = parseCompletionResponse(body);
@@ -488,10 +488,10 @@ public class RemoteApiChat implements LlmChatClient {
     }
 
     static String textOrEmpty(JsonNode node) {
-        if (node == null || !node.isString()) {
+        if (node == null || !node.isTextual()) {
             return "";
         }
-        return node.stringValue();
+        return node.textValue();
     }
 
     private static boolean isBlank(String s) {

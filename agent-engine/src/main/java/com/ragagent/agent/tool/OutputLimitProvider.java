@@ -1,6 +1,6 @@
 package com.ragagent.agent.tool;
 
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * 工具自带调用方可配输出预算时的硬顶接口。

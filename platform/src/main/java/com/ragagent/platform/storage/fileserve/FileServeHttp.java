@@ -1,5 +1,6 @@
 package com.ragagent.platform.storage.fileserve;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -7,7 +8,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 文件服务路由共用的响应小件（L1）：参数校验、错误信封、空体状态、NoRoute 形态。

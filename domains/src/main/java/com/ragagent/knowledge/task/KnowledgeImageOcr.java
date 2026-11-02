@@ -9,6 +9,7 @@ import com.ragagent.knowledge.domain.span.SpanTracker;
 import com.ragagent.knowledge.storage.TenantFileStorage;
 import com.ragagent.platform.knowledge.ChunkSearchUtil;
 import com.ragagent.platform.text.ContentTypeByFilename;
+import com.ragagent.platform.web.JsonMappers;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -49,7 +50,7 @@ final class KnowledgeImageOcr {
     private final TenantFileStorage fileStorage;
     private final KnowledgeOcrProperties properties;
     private final SpanTracker spanTracker;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = JsonMappers.lenient();
     private final HttpClient http;
 
     KnowledgeImageOcr(TenantFileStorage fileStorage, KnowledgeOcrProperties properties,

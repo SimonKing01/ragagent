@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.event.payload.ToolApprovalRequiredData;
 import com.ragagent.contract.model.ResponseType;
 import java.time.Duration;
@@ -13,7 +14,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Redis Pub/Sub 跨实例语义（覆盖 {@code Gate} 的 runSubscriber / resolve / resolveCrossInstance）——

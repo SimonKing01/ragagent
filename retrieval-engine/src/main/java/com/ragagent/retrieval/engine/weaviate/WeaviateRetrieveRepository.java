@@ -1,5 +1,8 @@
 package com.ragagent.retrieval.engine.weaviate;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.vectorstore.IndexConfig;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.retrieval.config.RetrievalEnvLookup;
@@ -19,9 +22,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Weaviate 检索引擎仓储。
@@ -325,7 +325,7 @@ public class WeaviateRetrieveRepository
         JsonNode classes = schema == null ? null : schema.get("classes");
         if (classes != null) {
             for (JsonNode node : classes) {
-                names.add(node.path("class").asString(""));
+                names.add(node.path("class").asText(""));
             }
         }
         return names;
@@ -350,7 +350,7 @@ public class WeaviateRetrieveRepository
         JsonNode errors = response.get("errors");
         if (errors != null && errors.isArray() && !errors.isEmpty()) {
             throw new IllegalStateException("graphql search failed: "
-                    + errors.path(0).path("message").asString(""));
+                    + errors.path(0).path("message").asText(""));
         }
         JsonNode get = response.path("data").path("Get");
         if (get.isMissingNode() || get.isNull()) {
@@ -461,7 +461,7 @@ public class WeaviateRetrieveRepository
                 if (additional == null || !additional.isObject()) {
                     throw new IllegalStateException("missing move index ID");
                 }
-                String id = additional.path("id").asString("");
+                String id = additional.path("id").asText("");
                 if (id.isEmpty()) {
                     throw new IllegalStateException("invalid move index ID");
                 }

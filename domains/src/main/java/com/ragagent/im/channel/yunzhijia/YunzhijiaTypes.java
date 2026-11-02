@@ -1,8 +1,8 @@
 package com.ragagent.im.channel.yunzhijia;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 云之家（Yunzhijia）协议载荷类型。

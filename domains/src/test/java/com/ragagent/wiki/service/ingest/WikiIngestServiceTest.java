@@ -9,6 +9,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.knowledge.ChunkView;
 import com.ragagent.contract.knowledge.KnowledgeBaseLookup;
 import com.ragagent.contract.model.ChatMessage;
@@ -43,7 +44,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@link WikiIngestService} 核心行为的测试（prompt 脱敏 / 消息布局缓存 /

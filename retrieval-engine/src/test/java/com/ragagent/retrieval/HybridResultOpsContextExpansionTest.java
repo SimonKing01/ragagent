@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.knowledge.ChunkFacts;
 import com.ragagent.contract.knowledge.ChunkSearchGateway;
 import com.ragagent.contract.knowledge.KnowledgeBaseSearchGateway;
@@ -29,7 +30,6 @@ import java.util.Objects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * K9：**上下文扩展块必须输出**（或压根别读）。

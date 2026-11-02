@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.ragagent.contract.model.ModelParameters;
 import com.ragagent.contract.tenant.APIPrincipalConfig;
 import com.ragagent.contract.vectorstore.ConnectionConfig;
@@ -18,7 +19,6 @@ import java.lang.reflect.RecordComponent;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.annotation.JsonNaming;
 
 /**
  * 「我方载体面」的键名守卫。

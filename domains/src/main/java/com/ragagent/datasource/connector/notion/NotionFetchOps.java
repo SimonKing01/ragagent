@@ -1,5 +1,6 @@
 package com.ragagent.datasource.connector.notion;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.datasource.domain.FetchedItem;
 import com.ragagent.datasource.domain.connector.ConnectorException;
 import java.time.OffsetDateTime;
@@ -9,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * Notion 抓取：单页正文与附件、数据库的整库与增量抓取、记录查询与块内容展开。

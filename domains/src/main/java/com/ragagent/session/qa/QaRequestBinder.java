@@ -22,7 +22,7 @@ public final class QaRequestBinder {
 
     private QaRequestBinder() {}
 
-    static final tools.jackson.databind.ObjectMapper BIND_JSON =
+    static final com.fasterxml.jackson.databind.ObjectMapper BIND_JSON =
             JsonMappers.lenient();
     public static CreateKnowledgeQARequest bindQaRequest(String rawBody) {
         CreateKnowledgeQARequest r = parseOrBindError(rawBody, CreateKnowledgeQARequest.class);

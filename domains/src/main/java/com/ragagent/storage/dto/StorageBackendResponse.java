@@ -1,7 +1,7 @@
 package com.ragagent.storage.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.time.OffsetDateTime;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 存储后端的响应形态（config 掩码后输出）。键名即 Java 字段名（camelCase）；

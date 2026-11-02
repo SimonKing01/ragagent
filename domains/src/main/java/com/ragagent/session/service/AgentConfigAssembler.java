@@ -1,5 +1,7 @@
 package com.ragagent.session.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.agentmanagement.service.config.AgentConfigJson;
 import com.ragagent.contract.retrieval.SearchTarget.SearchTargets;
 import com.ragagent.contract.tool.ToolDefinitions;
@@ -10,8 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * {@code SessionAgentQaService} 的**配置装配簇**：从请求 + 知识库/文档信息构造
@@ -42,11 +42,11 @@ final class AgentConfigAssembler {
         ac.setTemperature(c.path("temperature").asDouble(0.0));
         ac.setWebSearchEnabled(c.path("webSearchEnabled").asBoolean(false) && req.webSearchEnabled);
         ac.setWebSearchMaxResults(c.path("webSearchMaxResults").asInt(0));
-        ac.setWebSearchProviderId(c.path("webSearchProviderId").asString(""));
+        ac.setWebSearchProviderId(c.path("webSearchProviderId").asText(""));
         ac.setMultiTurnEnabled(c.path("multiTurnEnabled").asBoolean(true));
         ac.setHistoryTurns(c.path("historyTurns").asInt(0));
         ac.setMemoryEnabled(c.path("memoryEnabled").asBoolean(false));
-        ac.setMcpSelectionMode(c.path("mcpSelectionMode").asString(""));
+        ac.setMcpSelectionMode(c.path("mcpSelectionMode").asText(""));
         // MCPServices 直取 agent config 的 mcp_services
         // （mode=selected 时按 ID 列表注册；mode=all 由注册处列全租户）
         ac.setMcpServices(stringListOf(c.get("mcpServices")));
@@ -61,7 +61,7 @@ final class AgentConfigAssembler {
 
         // skills 配置（configureSkillsFromAgent）；指令型数据源 =
         // 宿主技能目录（选项 B），不再有沙箱镜像技能集
-        String skillsMode = c.path("skillsSelectionMode").asString("");
+        String skillsMode = c.path("skillsSelectionMode").asText("");
         switch (skillsMode) {
             case "all" -> {
                 ac.setSkillsEnabled(true);
@@ -141,11 +141,11 @@ final class AgentConfigAssembler {
     private record Prompts(String system, String context) {}
     private Prompts resolveAgentPrompts(QaSupport.QaRequest req) {
         ObjectNode c = req.agentConfig;
-        String system = c.path("systemPrompt").asString("");
-        String context = c.path("contextTemplate").asString("");
+        String system = c.path("systemPrompt").asText("");
+        String context = c.path("contextTemplate").asText("");
         boolean agentMode = SessionKnowledgeQaService.isAgentMode(c);
         if (system.isEmpty()) {
-            String id = c.path("systemPromptId").asString("");
+            String id = c.path("systemPromptId").asText("");
             if (!id.isEmpty()) {
                 String resolved = templateContentByIdAndFile(id,
                         agentMode ? PromptSource.AGENT_SYSTEM_PROMPT : PromptSource.SYSTEM_PROMPT);
@@ -155,7 +155,7 @@ final class AgentConfigAssembler {
             }
         }
         if (context.isEmpty()) {
-            String id = c.path("contextTemplateId").asString("");
+            String id = c.path("contextTemplateId").asText("");
             if (!id.isEmpty()) {
                 String resolved = templateContentByIdAndFile(id, PromptSource.CONTEXT_TEMPLATE);
                 if (resolved != null) {
@@ -270,7 +270,7 @@ final class AgentConfigAssembler {
         List<String> allowed = new ArrayList<>();
         JsonNode arr = c.get("allowedTools");
         if (arr != null && arr.isArray()) {
-            arr.forEach(n -> allowed.add(n.asString()));
+            arr.forEach(n -> allowed.add(n.asText()));
         }
         if (allowed.isEmpty()) {
             return true; // DefaultAllowedTools 含 knowledge_search
@@ -281,14 +281,14 @@ final class AgentConfigAssembler {
         List<String> out = new ArrayList<>();
         if (arr != null && arr.isArray()) {
             for (JsonNode n : arr) {
-                if (n.isString()) {
-                    out.add(n.asString());
+                if (n.isTextual()) {
+                    out.add(n.asText());
                 }
             }
         }
         return out;
     }
-    private static final tools.jackson.databind.ObjectMapper YAML_JSON =
+    private static final com.fasterxml.jackson.databind.ObjectMapper YAML_JSON =
             JsonMappers.lenient();
     private static String templateContentByIdAndFile(String id, String file) {
         try (InputStream in = PromptSource.open(file)) {
@@ -296,14 +296,14 @@ final class AgentConfigAssembler {
                 return null;
             }
             Object raw = new org.yaml.snakeyaml.Yaml().load(in);
-            tools.jackson.databind.JsonNode root = YAML_JSON.valueToTree(raw);
-            tools.jackson.databind.JsonNode list = root.get("templates");
+            com.fasterxml.jackson.databind.JsonNode root = YAML_JSON.valueToTree(raw);
+            com.fasterxml.jackson.databind.JsonNode list = root.get("templates");
             if (list == null || !list.isArray()) {
                 return null;
             }
-            for (tools.jackson.databind.JsonNode t : list) {
-                if (id.equals(t.path("id").asString(""))) {
-                    return t.path("content").asString("");
+            for (com.fasterxml.jackson.databind.JsonNode t : list) {
+                if (id.equals(t.path("id").asText(""))) {
+                    return t.path("content").asText("");
                 }
             }
             return null;

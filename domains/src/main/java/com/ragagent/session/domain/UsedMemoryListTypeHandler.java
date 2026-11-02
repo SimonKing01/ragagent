@@ -1,8 +1,8 @@
 package com.ragagent.session.domain;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.ragagent.contract.session.UsedMemory;
 import java.util.List;
-import tools.jackson.core.type.TypeReference;
 
 /**
  * {@code messages} 表上 {@code List<UsedMemory>} 型 jsonb 列的处理器。

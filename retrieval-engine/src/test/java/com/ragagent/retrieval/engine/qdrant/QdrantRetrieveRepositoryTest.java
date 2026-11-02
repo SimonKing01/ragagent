@@ -5,6 +5,8 @@ package com.ragagent.retrieval.engine.qdrant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.retrieval.SearchTextUtil;
 import com.ragagent.contract.vectorstore.IndexConfig;
 import com.ragagent.retrieval.engine.EngineTypes;
@@ -26,8 +28,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Qdrant 驱动：惰性建集合
@@ -151,14 +151,14 @@ class QdrantRetrieveRepositoryTest {
                 .findFirst().orElseThrow();
         JsonNode body = create.json();
         assertThat(body.path("vectors").path("size").asInt()).isEqualTo(3);
-        assertThat(body.path("vectors").path("distance").asString()).isEqualTo("Cosine");
+        assertThat(body.path("vectors").path("distance").asText()).isEqualTo("Cosine");
         assertThat(body.has("shard_number")).isFalse();
         assertThat(body.has("replication_factor")).isFalse();
 
         // 捕获的 path 不含 query：索引请求的形态是 PUT /collections/<name>/index
         List<String> indexFields = captured.stream().filter(c -> c.method().equals("PUT")
                 && c.path().endsWith("/index"))
-                .map(c -> c.json().path("field_name").asString()).toList();
+                .map(c -> c.json().path("field_name").asText()).toList();
         assertThat(indexFields).containsExactly("chunk_id", "knowledge_id", "knowledge_base_id",
                 "source_id", "is_enabled", "content");
 
@@ -166,7 +166,7 @@ class QdrantRetrieveRepositoryTest {
         Captured textIndex = captured.stream().filter(c -> c.method().equals("PUT")
                 && c.path().endsWith("/index") && c.body().contains("multilingual"))
                 .findFirst().orElseThrow();
-        assertThat(textIndex.json().path("field_schema").path("type").asString()).isEqualTo("text");
+        assertThat(textIndex.json().path("field_schema").path("type").asText()).isEqualTo("text");
         assertThat(textIndex.json().path("field_schema").path("lowercase").asBoolean()).isTrue();
         // 集合缓存：第二次 save 不再 GET 探测
         int probesBefore = countGets("GET /collections/weknora_embeddings_3");
@@ -190,11 +190,11 @@ class QdrantRetrieveRepositoryTest {
 
         repo.save(info("s1", "c1"), embeddings("s1", new float[] {0.5f}));
         Captured upsert = capturedByPath("/points");
-        String pointId = upsert.json().path("points").get(0).path("id").asString();
+        String pointId = upsert.json().path("points").get(0).path("id").asText();
         assertThat(pointId).matches("[0-9a-f-]{36}");
         assertThat(upsert.json().path("points").get(0).path("vector").get(0).asDouble())
                 .isEqualTo(0.5);
-        assertThat(upsert.json().path("points").get(0).path("payload").path("chunk_id").asString())
+        assertThat(upsert.json().path("points").get(0).path("payload").path("chunk_id").asText())
                 .isEqualTo("c1");
     }
 
@@ -221,7 +221,7 @@ class QdrantRetrieveRepositoryTest {
         assertThat(upserts.get(1).json().path("points")).hasSize(1);
         // NUL 被丢弃（CleanInvalidUtf8）
         assertThat(upserts.get(0).json().path("points").get(0).path("payload")
-                .path("content").asString()).isEqualTo("badcontent");
+                .path("content").asText()).isEqualTo("badcontent");
     }
 
     // ── 删除 ────────────────────────────────────────────────────────────────
@@ -232,7 +232,7 @@ class QdrantRetrieveRepositoryTest {
         QdrantRetrieveRepository repo = repo("weknora_embeddings");
         repo.deleteByChunkIdList(List.of("c1", "c2"), 2, "document");
         JsonNode delete = capturedByPath("/points/delete").json();
-        assertThat(delete.path("filter").path("must").get(0).path("key").asString())
+        assertThat(delete.path("filter").path("must").get(0).path("key").asText())
                 .isEqualTo("chunk_id");
         assertThat(delete.path("filter").path("must").get(0).path("match").path("any"))
                 .hasSize(2);
@@ -271,10 +271,10 @@ class QdrantRetrieveRepositoryTest {
         assertThat(body.path("score_threshold").asDouble()).isEqualTo(0.7);
         assertThat(body.path("with_payload").asBoolean()).isTrue();
         JsonNode must = body.path("filter").path("must");
-        assertThat(must.get(0).path("key").asString()).isEqualTo("is_enabled");
+        assertThat(must.get(0).path("key").asText()).isEqualTo("is_enabled");
         assertThat(must.get(0).path("match").path("value").asBoolean()).isTrue();
-        assertThat(must.get(1).path("match").path("any").get(0).asString()).isEqualTo("kb1");
-        assertThat(body.path("filter").path("must_not").get(0).path("key").asString())
+        assertThat(must.get(1).path("match").path("any").get(0).asText()).isEqualTo("kb1");
+        assertThat(body.path("filter").path("must_not").get(0).path("key").asText())
                 .isEqualTo("chunk_id");
 
         assertThat(results.get(0).results()).hasSize(1);
@@ -319,7 +319,7 @@ class QdrantRetrieveRepositoryTest {
         JsonNode body = capturedByPath("/points/scroll").json();
         JsonNode should = body.path("filter").path("should");
         assertThat(should.size()).isGreaterThan(0);
-        assertThat(should.get(0).path("key").asString()).isEqualTo("content");
+        assertThat(should.get(0).path("key").asText()).isEqualTo("content");
         assertThat(should.get(0).path("match").has("text")).isTrue();
         assertThat(body.path("limit").asInt()).isEqualTo(2);
         // 跨集合合并后截 TopK=2；只查了前缀匹配的集合
@@ -382,7 +382,7 @@ class QdrantRetrieveRepositoryTest {
         assertThat(payloads.get(0).json().path("payload").path("is_enabled").asBoolean()).isTrue();
         assertThat(payloads.get(1).json().path("payload").path("is_enabled").asBoolean())
                 .isFalse();
-        assertThat(payloads.get(2).json().path("payload").path("tag_id").asString())
+        assertThat(payloads.get(2).json().path("payload").path("tag_id").asText())
                 .isEqualTo("t9");
         // 前缀规则是纯字符串前缀（不校验维度后缀）——非前缀集合必须跳过
         assertThat(captured.stream().noneMatch(c -> c.path().contains("other_base"))).isTrue();
@@ -394,12 +394,12 @@ class QdrantRetrieveRepositoryTest {
         QdrantRetrieveRepository repo = repo("weknora_embeddings");
         repo.moveKnowledgeIndices("srcKb", "targetKb", "k1", List.of(), 2, "document");
         JsonNode body = capturedByPath("/points/payload").json();
-        assertThat(body.path("payload").path("knowledge_base_id").asString()).isEqualTo("targetKb");
-        assertThat(body.path("payload").path("tag_id").asString()).isEmpty();
+        assertThat(body.path("payload").path("knowledge_base_id").asText()).isEqualTo("targetKb");
+        assertThat(body.path("payload").path("tag_id").asText()).isEmpty();
         JsonNode must = body.path("filter").path("must");
-        assertThat(must.get(0).path("key").asString()).isEqualTo("knowledge_base_id");
-        assertThat(must.get(0).path("match").path("value").asString()).isEqualTo("srcKb");
-        assertThat(must.get(1).path("key").asString()).isEqualTo("knowledge_id");
+        assertThat(must.get(0).path("key").asText()).isEqualTo("knowledge_base_id");
+        assertThat(must.get(0).path("match").path("value").asText()).isEqualTo("srcKb");
+        assertThat(must.get(1).path("key").asText()).isEqualTo("knowledge_id");
     }
 
     // ── CopyIndices ───────────────────────────────────────────────────────
@@ -425,14 +425,14 @@ class QdrantRetrieveRepositoryTest {
         JsonNode points = upsert.json().path("points");
         assertThat(points).hasSize(2); // p3 无向量 → 跳过
         JsonNode first = points.get(0);
-        assertThat(first.path("id").asString()).matches("[0-9a-f-]{36}");
-        assertThat(first.path("payload").path("source_id").asString()).isEqualTo("tc1");
-        assertThat(first.path("payload").path("chunk_id").asString()).isEqualTo("tc1");
-        assertThat(first.path("payload").path("knowledge_id").asString()).isEqualTo("tk1");
-        assertThat(first.path("payload").path("knowledge_base_id").asString()).isEqualTo("targetKb");
+        assertThat(first.path("id").asText()).matches("[0-9a-f-]{36}");
+        assertThat(first.path("payload").path("source_id").asText()).isEqualTo("tc1");
+        assertThat(first.path("payload").path("chunk_id").asText()).isEqualTo("tc1");
+        assertThat(first.path("payload").path("knowledge_id").asText()).isEqualTo("tk1");
+        assertThat(first.path("payload").path("knowledge_base_id").asText()).isEqualTo("targetKb");
         assertThat(first.path("vector").get(0).asDouble()).isEqualTo(0.5);
         JsonNode second = points.get(1);
-        assertThat(second.path("payload").path("source_id").asString()).isEqualTo("tc1-q7");
+        assertThat(second.path("payload").path("source_id").asText()).isEqualTo("tc1-q7");
         assertThat(second.path("payload").path("is_enabled").asBoolean()).isFalse();
     }
 

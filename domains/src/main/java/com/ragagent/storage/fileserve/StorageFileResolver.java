@@ -1,5 +1,6 @@
 package com.ragagent.storage.fileserve;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.storage.StorageEnvLookup;
 import com.ragagent.contract.storage.fileserve.FileContentService;
 import com.ragagent.contract.storage.fileserve.WritableFileContentService;
@@ -22,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 运行时存储解析门面：backend 解析、配置投影、provider 工厂与 failover 编排。
@@ -273,10 +273,10 @@ public class StorageFileResolver {
         }
     }
 
-    private static final tools.jackson.databind.ObjectMapper CONFIG_MAPPER =
+    private static final com.fasterxml.jackson.databind.ObjectMapper CONFIG_MAPPER =
             JsonMappers.lenient();
     private static String textOrNull(JsonNode n) {
-        return n == null || n.isNull() ? null : n.asString();
+        return n == null || n.isNull() ? null : n.asText();
     }
 
     /**

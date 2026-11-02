@@ -73,8 +73,8 @@ class QaRequestBindingTest {
         assertThat(req.attachmentUploads().get(0).fileSize).isEqualTo(3L);
         assertThat(req.attachmentIds()).containsExactly("att-1");
         assertThat(req.channel).isEqualTo("web");
-        assertThat(req.suggestionAttribution.path("suggestionSetId").asString()).isEqualTo("set-1");
-        assertThat(req.suggestionAttribution.path("questionId").asString()).isEqualTo("q-1");
+        assertThat(req.suggestionAttribution.path("suggestionSetId").asText()).isEqualTo("set-1");
+        assertThat(req.suggestionAttribution.path("questionId").asText()).isEqualTo("q-1");
     }
 
     @Test

@@ -1,11 +1,11 @@
 package com.ragagent.audit.api;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.audit.domain.AuditLog;
 import com.ragagent.audit.service.AuditLogService;
 import com.ragagent.contract.audit.AuditWritePort;
 import com.ragagent.platform.web.JsonMappers;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
 
 /**
  * {@link AuditWritePort} 的 audit 侧实现：记录 → {@code AuditLog} 实体 →

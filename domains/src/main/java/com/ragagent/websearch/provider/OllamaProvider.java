@@ -1,12 +1,12 @@
 package com.ragagent.websearch.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.websearch.WebSearchResult;
 import com.ragagent.platform.web.ProviderJson;
 import com.ragagent.websearch.config.WebSearchProviderParams;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * Ollama Cloud 搜索 provider。
@@ -73,10 +73,10 @@ public final class OllamaProvider implements WebSearchProvider {
         List<WebSearchResult> results = new ArrayList<>();
         for (JsonNode item : respData.path("results")) {
             WebSearchResult result = new WebSearchResult();
-            result.setTitle(item.path("title").asString(""));
-            result.setUrl(item.path("url").asString(""));
-            result.setSnippet(item.path("snippet").asString(""));
-            result.setContent(item.path("content").asString(""));
+            result.setTitle(item.path("title").asText(""));
+            result.setUrl(item.path("url").asText(""));
+            result.setSnippet(item.path("snippet").asText(""));
+            result.setContent(item.path("content").asText(""));
             result.setSource("ollama");
             results.add(result);
         }

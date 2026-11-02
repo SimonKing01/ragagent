@@ -1,5 +1,9 @@
 package com.ragagent.im.channel.dingtalk;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.im.runtime.IncomingMessage;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.platform.web.JsonMappers;
@@ -24,10 +28,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 钉钉 Stream 模式长连接（协议对齐官方 dingtalk-stream-sdk-go）。
@@ -240,13 +240,13 @@ public class DingtalkStreamClient {
     /** 处理一帧（纯逻辑，可单测）：SYSTEM 同步；CALLBACK 交池；其余回 404。 */
     void dispatch(String raw) throws Exception {
         JsonNode frame = MAPPER.readTree(raw);
-        String type = frame.path("type").asString("");
-        String topic = frame.path("headers").path("topic").asString("");
+        String type = frame.path("type").asText("");
+        String topic = frame.path("headers").path("topic").asText("");
 
         if (SYSTEM_TYPE.equals(type)) {
             if (TOPIC_PING.equals(topic)) {
                 // pong：200 + message "ok" + data 原样回显
-                ackSink.send(buildAck(frame, 200, "ok", frame.path("data").asString("")));
+                ackSink.send(buildAck(frame, 200, "ok", frame.path("data").asText("")));
                 return;
             }
             if (TOPIC_DISCONNECT.equals(topic)) {
@@ -297,7 +297,7 @@ public class DingtalkStreamClient {
         ack.put("code", code);
         ObjectNode headers = MAPPER.createObjectNode();
         headers.put("contentType", "application/json");
-        headers.put("messageId", frame.path("headers").path("messageId").asString(""));
+        headers.put("messageId", frame.path("headers").path("messageId").asText(""));
         ack.set("headers", headers);
         ack.put("message", message == null ? "" : message);
         ack.put("data", data == null ? "" : data);
@@ -310,7 +310,7 @@ public class DingtalkStreamClient {
      */
     static IncomingMessage streamToIncoming(JsonNode frame, String fallbackRobotCode)
             throws Exception {
-        String data = frame.path("data").asString("");
+        String data = frame.path("data").asText("");
         JsonNode payload = data.isEmpty() ? MAPPER.createObjectNode() : MAPPER.readTree(data);
         IncomingMessage msg = DingtalkCallbackParser.parseCallbackMessage(payload);
         if (!msg.fileKey.isEmpty()) {
@@ -375,8 +375,8 @@ public class DingtalkStreamClient {
     /** 解析接入点响应 + 校验（非空 + wss/SSRF 规则）。 */
     Endpoint parseEndpointResponse(byte[] body) throws Exception {
         JsonNode node = MAPPER.readTree(body == null ? new byte[0] : body);
-        String endpoint = node.path("endpoint").asString("");
-        String ticket = node.path("ticket").asString("");
+        String endpoint = node.path("endpoint").asText("");
+        String ticket = node.path("ticket").asText("");
         if (endpoint.isEmpty() || ticket.isEmpty()) {
             throw new IllegalStateException("gateway response missing endpoint or ticket");
         }

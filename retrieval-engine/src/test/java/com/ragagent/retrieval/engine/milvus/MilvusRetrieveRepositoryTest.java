@@ -3,6 +3,8 @@ package com.ragagent.retrieval.engine.milvus;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.retrieval.engine.EngineTypes;
 import com.ragagent.retrieval.engine.EngineTypes.IndexInfo;
 import com.ragagent.retrieval.engine.EngineTypes.RetrieveParams;
@@ -23,8 +25,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Milvus 驱动：惰性建集合
@@ -144,42 +144,42 @@ class MilvusRetrieveRepositoryTest {
 
         Captured create = last("/collections/create");
         JsonNode body = create.json();
-        assertThat(body.path("collectionName").asString()).isEqualTo("weknora_embeddings_2");
+        assertThat(body.path("collectionName").asText()).isEqualTo("weknora_embeddings_2");
         JsonNode schema = body.path("schema");
         assertThat(schema.path("autoID").asBoolean()).isFalse();
         JsonNode fields = schema.path("fields");
-        assertThat(fields.get(0).path("fieldName").asString()).isEqualTo("id");
+        assertThat(fields.get(0).path("fieldName").asText()).isEqualTo("id");
         assertThat(fields.get(0).path("isPrimary").asBoolean()).isTrue();
         assertThat(fields.get(0).path("elementTypeParams").path("max_length").asInt())
                 .isEqualTo(1024);
-        assertThat(fields.get(1).path("dataType").asString()).isEqualTo("FloatVector");
+        assertThat(fields.get(1).path("dataType").asText()).isEqualTo("FloatVector");
         assertThat(fields.get(1).path("elementTypeParams").path("dim").asInt()).isEqualTo(2);
         JsonNode content = fields.get(2);
         assertThat(content.path("elementTypeParams").path("enable_analyzer").asBoolean())
                 .isTrue();
         assertThat(content.path("elementTypeParams").path("enable_match").asBoolean()).isTrue();
-        assertThat(fields.get(3).path("dataType").asString()).isEqualTo("SparseFloatVector");
-        assertThat(fields.get(10).path("fieldName").asString()).isEqualTo("is_enabled");
-        assertThat(fields.get(10).path("dataType").asString()).isEqualTo("Bool");
+        assertThat(fields.get(3).path("dataType").asText()).isEqualTo("SparseFloatVector");
+        assertThat(fields.get(10).path("fieldName").asText()).isEqualTo("is_enabled");
+        assertThat(fields.get(10).path("dataType").asText()).isEqualTo("Bool");
 
         JsonNode function = schema.path("functions").get(0);
-        assertThat(function.path("name").asString()).isEqualTo("text_bm25_emb");
-        assertThat(function.path("type").asString()).isEqualTo("BM25");
-        assertThat(function.path("inputFieldNames").get(0).asString()).isEqualTo("content");
-        assertThat(function.path("outputFieldNames").get(0).asString()).isEqualTo("content_sparse");
+        assertThat(function.path("name").asText()).isEqualTo("text_bm25_emb");
+        assertThat(function.path("type").asText()).isEqualTo("BM25");
+        assertThat(function.path("inputFieldNames").get(0).asText()).isEqualTo("content");
+        assertThat(function.path("outputFieldNames").get(0).asText()).isEqualTo("content_sparse");
 
         JsonNode indexes = body.path("indexParams");
-        assertThat(indexes.get(0).path("fieldName").asString()).isEqualTo("embedding");
-        assertThat(indexes.get(0).path("metricType").asString()).isEqualTo("IP");
-        assertThat(indexes.get(0).path("indexType").asString()).isEqualTo("HNSW");
+        assertThat(indexes.get(0).path("fieldName").asText()).isEqualTo("embedding");
+        assertThat(indexes.get(0).path("metricType").asText()).isEqualTo("IP");
+        assertThat(indexes.get(0).path("indexType").asText()).isEqualTo("HNSW");
         assertThat(indexes.get(0).path("params").path("M").asInt()).isEqualTo(16);
         assertThat(indexes.get(0).path("params").path("efConstruction").asInt()).isEqualTo(128);
-        assertThat(indexes.get(1).path("metricType").asString()).isEqualTo("BM25");
-        assertThat(indexes.get(1).path("indexType").asString()).isEqualTo("AUTOINDEX");
-        assertThat(indexes.get(2).path("fieldName").asString()).isEqualTo("chunk_id");
+        assertThat(indexes.get(1).path("metricType").asText()).isEqualTo("BM25");
+        assertThat(indexes.get(1).path("indexType").asText()).isEqualTo("AUTOINDEX");
+        assertThat(indexes.get(2).path("fieldName").asText()).isEqualTo("chunk_id");
 
         // 建完即 load（每次 ensure 都 load）
-        assertThat(last("/collections/load").json().path("collectionName").asString())
+        assertThat(last("/collections/load").json().path("collectionName").asText())
                 .isEqualTo("weknora_embeddings_2");
     }
 
@@ -214,15 +214,15 @@ class MilvusRetrieveRepositoryTest {
         repo.save(info(CHUNK, CHUNK), embeddings(CHUNK, new float[] {0.5f, 0.25f}));
 
         JsonNode body = last("/entities/upsert").json();
-        assertThat(body.path("collectionName").asString()).isEqualTo("weknora_embeddings_2");
+        assertThat(body.path("collectionName").asText()).isEqualTo("weknora_embeddings_2");
         JsonNode row = body.path("data").get(0);
-        assertThat(row.path("id").asString()).matches("[0-9a-f-]{36}");
+        assertThat(row.path("id").asText()).matches("[0-9a-f-]{36}");
         assertThat(row.path("embedding").get(0).asDouble()).isEqualTo(0.5);
-        assertThat(row.path("content").asString()).isEqualTo("hello");
-        assertThat(row.path("source_id").asString()).isEqualTo(CHUNK);
-        assertThat(row.path("chunk_id").asString()).isEqualTo(CHUNK);
-        assertThat(row.path("knowledge_id").asString()).isEqualTo("k1");
-        assertThat(row.path("knowledge_base_id").asString()).isEqualTo("kb1");
+        assertThat(row.path("content").asText()).isEqualTo("hello");
+        assertThat(row.path("source_id").asText()).isEqualTo(CHUNK);
+        assertThat(row.path("chunk_id").asText()).isEqualTo(CHUNK);
+        assertThat(row.path("knowledge_id").asText()).isEqualTo("k1");
+        assertThat(row.path("knowledge_base_id").asText()).isEqualTo("kb1");
         assertThat(row.path("is_enabled").asBoolean()).isTrue();
         assertThat(row.path("source_type").asInt()).isEqualTo(0);
 
@@ -253,9 +253,9 @@ class MilvusRetrieveRepositoryTest {
         List<Captured> upserts = captured.stream()
                 .filter(c -> c.path().endsWith("/entities/upsert")).toList();
         assertThat(upserts).hasSize(2);
-        assertThat(upserts.get(0).json().path("collectionName").asString())
+        assertThat(upserts.get(0).json().path("collectionName").asText())
                 .isEqualTo("weknora_embeddings_1");
-        assertThat(upserts.get(1).json().path("collectionName").asString())
+        assertThat(upserts.get(1).json().path("collectionName").asText())
                 .isEqualTo("weknora_embeddings_2");
         assertThat(upserts.get(1).json().path("data")).hasSize(1);
     }
@@ -266,8 +266,8 @@ class MilvusRetrieveRepositoryTest {
         MilvusRetrieveRepository repo = repo("weknora_embeddings");
         repo.deleteByChunkIdList(List.of("a", "b"), 2, "document");
         JsonNode body = last("/entities/delete").json();
-        assertThat(body.path("collectionName").asString()).isEqualTo("weknora_embeddings_2");
-        assertThat(body.path("filter").asString()).isEqualTo("chunk_id in [\"a\",\"b\"]");
+        assertThat(body.path("collectionName").asText()).isEqualTo("weknora_embeddings_2");
+        assertThat(body.path("filter").asText()).isEqualTo("chunk_id in [\"a\",\"b\"]");
 
         int before = captured.size();
         repo.deleteByKnowledgeIdList(List.of(), 2, "document");
@@ -291,9 +291,9 @@ class MilvusRetrieveRepositoryTest {
         repo.batchUpdateChunkEnabledStatus(Map.of(CHUNK, false));
 
         Captured query = last("/entities/query");
-        assertThat(query.json().path("filter").asString())
+        assertThat(query.json().path("filter").asText())
                 .isEqualTo("chunk_id in [\"" + CHUNK + "\"]");
-        assertThat(query.json().path("outputFields").get(0).asString()).isEqualTo("*");
+        assertThat(query.json().path("outputFields").get(0).asText()).isEqualTo("*");
         JsonNode row = last("/entities/upsert").json().path("data").get(0);
         assertThat(row.path("is_enabled").asBoolean()).isFalse();
         assertThat(row.path("embedding").get(0).asDouble()).isEqualTo(0.5); // 向量原样回写
@@ -341,12 +341,12 @@ class MilvusRetrieveRepositoryTest {
 
         JsonNode body = last("/entities/search").json();
         assertThat(body.path("data").get(0).get(0).asDouble()).isEqualTo(1.0);
-        assertThat(body.path("annsField").asString()).isEqualTo("embedding");
+        assertThat(body.path("annsField").asText()).isEqualTo("embedding");
         assertThat(body.path("limit").asInt()).isEqualTo(5);
-        assertThat(body.path("outputFields").get(0).asString()).isEqualTo("*");
+        assertThat(body.path("outputFields").get(0).asText()).isEqualTo("*");
         assertThat(body.path("searchParams").path("radius").asDouble()).isEqualTo(0.7);
         // 逻辑连接是左结合全括号
-        assertThat(body.path("filter").asString()).isEqualTo(
+        assertThat(body.path("filter").asText()).isEqualTo(
                 "((knowledge_base_id in [\"kb1\"]) and (chunk_id not in [\"c9\"])) "
                         + "and (is_enabled == true)");
         assertThat(results.get(0).results()).hasSize(1);
@@ -389,8 +389,8 @@ class MilvusRetrieveRepositoryTest {
         List<RetrieveResult> results = repo.retrieve(params);
 
         JsonNode body = last("/entities/search").json();
-        assertThat(body.path("data").get(0).asString()).isEqualTo("中文 检索");
-        assertThat(body.path("annsField").asString()).isEqualTo("content_sparse");
+        assertThat(body.path("data").get(0).asText()).isEqualTo("中文 检索");
+        assertThat(body.path("annsField").asText()).isEqualTo("content_sparse");
         assertThat(results.get(0).results()).hasSize(2);
         assertThat(results.get(0).results().get(0).score).isEqualTo(1.0);
         assertThat(results.get(0).results().get(0).matchType)
@@ -441,15 +441,15 @@ class MilvusRetrieveRepositoryTest {
         repo.copyIndices("srcKb", Map.of("k1", "tk1"), Map.of(c1, c2), "targetKb", 2, "document");
 
         JsonNode query = last("/entities/query").json();
-        assertThat(query.path("filter").asString()).isEqualTo("knowledge_base_id == \"srcKb\"");
+        assertThat(query.path("filter").asText()).isEqualTo("knowledge_base_id == \"srcKb\"");
         assertThat(query.path("limit").asInt()).isEqualTo(64);
         JsonNode row = last("/entities/upsert").json().path("data").get(0);
-        assertThat(row.path("id").asString()).matches("[0-9a-f-]{36}");
-        assertThat(row.path("source_id").asString()).isEqualTo(c2);
-        assertThat(row.path("chunk_id").asString()).isEqualTo(c2);
-        assertThat(row.path("knowledge_id").asString()).isEqualTo("tk1");
-        assertThat(row.path("knowledge_base_id").asString()).isEqualTo("targetKb");
-        assertThat(row.path("tag_id").asString()).isEqualTo("t");
+        assertThat(row.path("id").asText()).matches("[0-9a-f-]{36}");
+        assertThat(row.path("source_id").asText()).isEqualTo(c2);
+        assertThat(row.path("chunk_id").asText()).isEqualTo(c2);
+        assertThat(row.path("knowledge_id").asText()).isEqualTo("tk1");
+        assertThat(row.path("knowledge_base_id").asText()).isEqualTo("targetKb");
+        assertThat(row.path("tag_id").asText()).isEqualTo("t");
         assertThat(row.path("is_enabled").asBoolean()).isFalse(); // 沿用源值
         assertThat(row.path("source_type").asInt()).isEqualTo(2);
         assertThat(row.path("embedding").get(0).asDouble()).isEqualTo(0.5);
@@ -470,8 +470,8 @@ class MilvusRetrieveRepositoryTest {
                 .hasMessageContaining("invalid or repeated move index");
 
         JsonNode row = last("/entities/upsert").json().path("data").get(0);
-        assertThat(row.path("knowledge_base_id").asString()).isEqualTo("targetKb");
-        assertThat(row.path("tag_id").asString()).isEmpty();
+        assertThat(row.path("knowledge_base_id").asText()).isEqualTo("targetKb");
+        assertThat(row.path("tag_id").asText()).isEmpty();
         assertThat(row.path("embedding").get(0).asDouble()).isEqualTo(1.0);
 
         // 空页 → 正常收束

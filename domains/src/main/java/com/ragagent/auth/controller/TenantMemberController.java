@@ -1,5 +1,7 @@
 package com.ragagent.auth.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.auth.dto.TenantMemberResponse;
 import com.ragagent.auth.service.TenantMemberReadService;
 import com.ragagent.auth.service.TenantMemberService;
@@ -24,8 +26,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 租户成员管理的 5 条路由：
@@ -79,12 +79,12 @@ public class TenantMemberController {
         long tenantId = parseTenantId(id);
         JsonNode body = bindJson(rawBody(request));
         requireFields(body, "email", "role");
-        String email = body.path("email").asString();
+        String email = body.path("email").asText();
         if (!isValidEmailFormat(email)) {
             throw new BizException(AppError.validation("invalid request body")
                     .withDetails(RequestFields.message("Email", "email")));
         }
-        TenantRole role = TenantRole.fromString(body.path("role").asString());
+        TenantRole role = TenantRole.fromString(body.path("role").asText());
         if (!role.isValid()) {
             // defence-in-depth：binding required 过了但角色值非法
             throw new BizException(AppError.validation("role must be one of owner/admin/contributor/viewer"));
@@ -108,7 +108,7 @@ public class TenantMemberController {
         }
         JsonNode body = bindJson(rawBody(request));
         requireFields(body, "role");
-        TenantRole role = TenantRole.fromString(body.path("role").asString());
+        TenantRole role = TenantRole.fromString(body.path("role").asText());
         if (!role.isValid()) {
             throw new BizException(AppError.validation("role must be one of owner/admin/contributor/viewer"));
         }
@@ -294,7 +294,7 @@ public class TenantMemberController {
         List<String> lines = new ArrayList<>();
         for (String field : jsonFields) {
             JsonNode n = body.get(field);
-            boolean missing = n == null || n.isNull() || (n.isString() && n.asString().isEmpty());
+            boolean missing = n == null || n.isNull() || (n.isTextual() && n.asText().isEmpty());
             if (missing) {
                 String cap = Character.toUpperCase(field.charAt(0)) + field.substring(1);
                 lines.add(RequestFields.message(cap, "required"));

@@ -1,5 +1,6 @@
 package com.ragagent.knowledge.service.enrichment;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.knowledge.SearchChunkMerge;
@@ -40,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 知识摘要生成管线：同步重生（含 fallback/重试状态机）与异步刷新入队；
@@ -335,7 +335,7 @@ public class KnowledgeSummaryService {
         }
         JsonNode node = knowledge.getCustomMetadata();
         List<String> keys = new ArrayList<>();
-        node.propertyNames().forEach(keys::add);
+        node.fieldNames().forEachRemaining(keys::add);
         Collections.sort(keys);
         List<String> lines = new ArrayList<>();
         for (String key : keys) {
@@ -343,7 +343,7 @@ public class KnowledgeSummaryService {
             if (value == null || value.isNull()) {
                 continue;
             }
-            String text = value.isValueNode() ? value.asString() : value.toString();
+            String text = value.isValueNode() ? value.asText() : value.toString();
             text = ChunkRepository.trimSpace(text);
             if (!ChunkRepository.trimSpace(key).isEmpty() && !text.isEmpty()) {
                 lines.add(ChunkRepository.trimSpace(key) + ": " + text);

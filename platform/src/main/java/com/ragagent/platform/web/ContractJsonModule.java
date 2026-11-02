@@ -1,16 +1,15 @@
 package com.ragagent.platform.web;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.ragagent.contract.model.PromptCacheStatus;
 import com.ragagent.contract.model.ResponseType;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.core.JsonParser;
-import tools.jackson.databind.DeserializationContext;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueDeserializer;
-import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.module.SimpleModule;
+import java.io.IOException;
 
 /**
  * 契约载荷的 Jackson 装配：把线格式（键名/省略策略/枚举字面量）从契约类里剥离到 mixin 与
@@ -30,43 +29,37 @@ public final class ContractJsonModule extends SimpleModule {
         super("ragagent-contract-json");
         ContractJsonMixins.mappings().forEach(this::setMixInAnnotation);
 
-        addSerializer(OffsetDateTime.class, new ValueSerializer<OffsetDateTime>() {
-            @Override
-            public void serialize(OffsetDateTime value, JsonGenerator gen, SerializationContext ctxt) {
-                gen.writeString(DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(value));
-            }
-        });
         addSerializer(ResponseType.class, new ResponseTypeSerializer());
         addDeserializer(ResponseType.class, new ResponseTypeDeserializer());
         addSerializer(PromptCacheStatus.class, new PromptCacheStatusSerializer());
         addDeserializer(PromptCacheStatus.class, new PromptCacheStatusDeserializer());
     }
 
-    private static final class ResponseTypeSerializer extends ValueSerializer<ResponseType> {
+    private static final class ResponseTypeSerializer extends JsonSerializer<ResponseType> {
         @Override
-        public void serialize(ResponseType v, JsonGenerator g, SerializationContext p) {
+        public void serialize(ResponseType v, JsonGenerator g, SerializerProvider p) throws IOException {
             g.writeString(v.value());
         }
     }
 
-    private static final class ResponseTypeDeserializer extends ValueDeserializer<ResponseType> {
+    private static final class ResponseTypeDeserializer extends JsonDeserializer<ResponseType> {
         @Override
-        public ResponseType deserialize(JsonParser p, DeserializationContext c) {
-            return ResponseType.fromValue(p.getString());
+        public ResponseType deserialize(JsonParser p, DeserializationContext c) throws IOException {
+            return ResponseType.fromValue(p.getText());
         }
     }
 
-    private static final class PromptCacheStatusSerializer extends ValueSerializer<PromptCacheStatus> {
+    private static final class PromptCacheStatusSerializer extends JsonSerializer<PromptCacheStatus> {
         @Override
-        public void serialize(PromptCacheStatus v, JsonGenerator g, SerializationContext p) {
+        public void serialize(PromptCacheStatus v, JsonGenerator g, SerializerProvider p) throws IOException {
             g.writeString(v.value());
         }
     }
 
-    private static final class PromptCacheStatusDeserializer extends ValueDeserializer<PromptCacheStatus> {
+    private static final class PromptCacheStatusDeserializer extends JsonDeserializer<PromptCacheStatus> {
         @Override
-        public PromptCacheStatus deserialize(JsonParser p, DeserializationContext c) {
-            return PromptCacheStatus.fromValue(p.getString());
+        public PromptCacheStatus deserialize(JsonParser p, DeserializationContext c) throws IOException {
+            return PromptCacheStatus.fromValue(p.getText());
         }
     }
 }

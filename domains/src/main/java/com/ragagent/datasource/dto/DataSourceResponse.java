@@ -1,12 +1,12 @@
 package com.ragagent.datasource.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.datasource.domain.DataSource;
 import com.ragagent.datasource.domain.DataSourceConfig;
 import com.ragagent.datasource.domain.SyncLog;
 import com.ragagent.platform.web.ZeroTimeSerializer;
 import java.time.OffsetDateTime;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 数据源管理端点的响应体。

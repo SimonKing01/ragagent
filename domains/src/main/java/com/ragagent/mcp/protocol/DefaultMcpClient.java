@@ -1,5 +1,7 @@
 package com.ragagent.mcp.protocol;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.mcp.domain.McpAdvancedConfig;
 import com.ragagent.mcp.domain.McpResource;
 import com.ragagent.mcp.domain.McpService;
@@ -19,8 +21,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 默认 MCP 客户端。
@@ -123,7 +123,7 @@ public final class DefaultMcpClient implements McpClient {
                 if (r.hasError()) {
                     throw r.errorAsException();
                 }
-                String negotiated = r.result() == null ? "" : r.result().path("protocolVersion").asString("");
+                String negotiated = r.result() == null ? "" : r.result().path("protocolVersion").asText("");
                 // 应答版本不在白名单 → 报错（固定文案，code 为 null），
                 // 且不设版本头、不发 initialized 通知
                 if (!McpProtocol.isSupportedProtocolVersion(negotiated)) {
@@ -153,10 +153,10 @@ public final class DefaultMcpClient implements McpClient {
 
         JsonNode result = response.result() == null ? MAPPER.createObjectNode() : response.result();
         InitializeResult parsed = new InitializeResult(
-                result.path("protocolVersion").asString(""),
+                result.path("protocolVersion").asText(""),
                 parseCapabilities(result.get("capabilities")),
                 parseServerInfo(result.get("serverInfo")),
-                result.path("instructions").asString(""));
+                result.path("instructions").asText(""));
 
         initialized.set(true);
         this.instructions = parsed.instructions();
@@ -242,19 +242,19 @@ public final class DefaultMcpClient implements McpClient {
                 long schemaBytes = schema == null ? 0 : schema.toString().getBytes(StandardCharsets.UTF_8).length;
                 if (schemaBytes > McpProtocol.MAX_TOOL_SCHEMA_BYTES) {
                     throw new McpException(McpErrorCode.INVALID_RESPONSE,
-                            "tool \"" + tool.path("name").asString("") + "\" input schema exceeds "
+                            "tool \"" + tool.path("name").asText("") + "\" input schema exceeds "
                                     + McpProtocol.MAX_TOOL_SCHEMA_BYTES + " bytes");
                 }
                 tools.add(new McpTool(
-                        tool.path("name").asString(""),
-                        tool.path("description").asString(""),
+                        tool.path("name").asText(""),
+                        tool.path("description").asText(""),
                         schema));
             }
             if (tools.size() > McpProtocol.MAX_TOOLS_PER_SERVICE) {
                 throw new McpException(McpErrorCode.INVALID_RESPONSE,
                         "tools/list exceeded " + McpProtocol.MAX_TOOLS_PER_SERVICE + " tools");
             }
-            String nextCursor = page.path("nextCursor").asString("");
+            String nextCursor = page.path("nextCursor").asText("");
             if (nextCursor.isEmpty()) {
                 return tools;
             }
@@ -278,10 +278,10 @@ public final class DefaultMcpClient implements McpClient {
             List<McpResource> resources = new ArrayList<>();
             for (JsonNode item : resultArray(response, "resources")) {
                 McpResource resource = new McpResource();
-                resource.setUri(item.path("uri").asString(""));
-                resource.setName(item.path("name").asString(""));
-                resource.setDescription(item.path("description").asString(""));
-                resource.setMimeType(item.path("mimeType").asString(""));
+                resource.setUri(item.path("uri").asText(""));
+                resource.setName(item.path("name").asText(""));
+                resource.setDescription(item.path("description").asText(""));
+                resource.setMimeType(item.path("mimeType").asText(""));
                 resources.add(resource);
             }
             return resources;
@@ -307,12 +307,12 @@ public final class DefaultMcpClient implements McpClient {
             List<ContentItem> content = new ArrayList<>();
             for (JsonNode item : result.path("content")) {
                 // 只认 text 与 image，其余类型静默丢弃
-                String type = item.path("type").asString("");
+                String type = item.path("type").asText("");
                 if ("text".equals(type)) {
-                    content.add(ContentItem.text(item.path("text").asString("")));
+                    content.add(ContentItem.text(item.path("text").asText("")));
                 } else if ("image".equals(type)) {
                     content.add(ContentItem.image(
-                            item.path("data").asString(""), item.path("mimeType").asString("")));
+                            item.path("data").asText(""), item.path("mimeType").asText("")));
                 }
             }
             return new CallToolResult(result.path("isError").asBoolean(false), content);
@@ -335,16 +335,16 @@ public final class DefaultMcpClient implements McpClient {
             for (JsonNode item : resultArray(response, "contents")) {
                 if (item.has("text")) {
                     contents.add(new ResourceContent(
-                            item.path("uri").asString(""),
-                            item.path("mimeType").asString(null),
-                            item.path("text").asString(""),
+                            item.path("uri").asText(""),
+                            item.path("mimeType").asText(null),
+                            item.path("text").asText(""),
                             null));
                 } else if (item.has("blob")) {
                     contents.add(new ResourceContent(
-                            item.path("uri").asString(""),
-                            item.path("mimeType").asString(null),
+                            item.path("uri").asText(""),
+                            item.path("mimeType").asText(null),
                             null,
-                            item.path("blob").asString("")));
+                            item.path("blob").asText("")));
                 }
             }
             return new ReadResourceResult(contents);
@@ -452,8 +452,8 @@ public final class DefaultMcpClient implements McpClient {
             return ServerInfo.empty();
         }
         return new ServerInfo(
-                node.path("name").asString(""),
-                node.path("version").asString(""),
+                node.path("name").asText(""),
+                node.path("version").asText(""),
                 textOrNull(node, "title"),
                 textOrNull(node, "description"));
     }
@@ -477,6 +477,6 @@ public final class DefaultMcpClient implements McpClient {
     }
 
     private static String textOrNull(JsonNode node, String field) {
-        return node.hasNonNull(field) ? node.get(field).asString() : null;
+        return node.hasNonNull(field) ? node.get(field).asText() : null;
     }
 }

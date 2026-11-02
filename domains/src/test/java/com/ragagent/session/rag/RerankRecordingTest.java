@@ -134,8 +134,8 @@ class RerankRecordingTest {
     }
 
     private static final class ObjectMapperHolder {
-        private static final tools.jackson.databind.ObjectMapper JSON =
-                new tools.jackson.databind.ObjectMapper();
+        private static final com.fasterxml.jackson.databind.ObjectMapper JSON =
+                new com.fasterxml.jackson.databind.ObjectMapper();
     }
 
     private static SearchResult cand(String id, String content, String knowledgeId, double score) {

@@ -1,5 +1,8 @@
 package com.ragagent.retrieval.engine.elasticsearch;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.retrieval.engine.EngineTypes;
 import com.ragagent.retrieval.engine.EngineTypes.IndexWithScore;
 import com.ragagent.retrieval.engine.EngineTypes.RetrieveParams;
@@ -9,9 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Elasticsearch v7 引擎的检索簇：基础条件（JSON 字符串拼接口，v7 形状）、
@@ -159,7 +159,7 @@ final class ElasticsearchV7SearchOps {
                 log.warn("[ElasticsearchV7] Error processing hit: hit missing document ID");
                 continue;
             }
-            String docId = hit.path("_id").asString();
+            String docId = hit.path("_id").asText();
             if (!hit.has("_source")) {
                 log.warn("[ElasticsearchV7] Error processing hit: hit {} missing _source", docId);
                 continue;

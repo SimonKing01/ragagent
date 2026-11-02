@@ -1,5 +1,9 @@
 package com.ragagent.modelcontext;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.ragagent.contract.model.ChatMessage;
 import com.ragagent.contract.model.MessageContentPart;
 import com.ragagent.contract.model.ToolCall;
@@ -10,10 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
-import tools.jackson.databind.node.StringNode;
 
 /**
  * source 句柄的<b>工具参数编解码</b>（自 {@code SourceRegistry} 的同名段外提）。
@@ -66,11 +66,11 @@ final class SourceToolCodec {
     }
 
     private void collectUnresolvedToolHandles(String key, JsonNode value, Set<String> seen, java.util.function.Predicate<String> allowed) {
-        if (value.isString()) {
+        if (value.isTextual()) {
             if (!ToolPolicy.hasSourceKeySpace(key) || !allowed.test(key)) {
                 return;
             }
-            String handle = value.asString().strip();
+            String handle = value.asText().strip();
             if (SourceRegistry.SHORT_SOURCE_HANDLE.matcher(handle).matches() && durableForHandle(handle).isEmpty()) {
                 seen.add(handle);
             }
@@ -248,9 +248,9 @@ final class SourceToolCodec {
     }
 
     private void registerToolArgumentValue(String key, JsonNode value, java.util.function.Predicate<String> allowed) {
-        if (value.isString()) {
+        if (value.isTextual()) {
             if (allowed.test(key)) {
-                registerSourceIDByKey(key, value.asString(), false);
+                registerSourceIDByKey(key, value.asText(), false);
             }
         } else if (value.isArray()) {
             for (JsonNode item : value) {
@@ -325,15 +325,15 @@ final class SourceToolCodec {
     }
 
     private JsonNode walkJSON(String key, JsonNode value, boolean encode, java.util.function.Predicate<String> allowed) {
-        if (value.isString()) {
-            String typed = value.asString();
+        if (value.isTextual()) {
+            String typed = value.asText();
             if (!allowed.test(key)) {
                 return value;
             }
             if (encode) {
                 // 编码按精确真实标识（UUID/URL）匹配，不与 prose 冲突，保持 key 无关
                 String handle = handleForDurable(typed);
-                return handle.isEmpty() ? value : StringNode.valueOf(handle);
+                return handle.isEmpty() ? value : TextNode.valueOf(handle);
             }
             // 解码只针对 ID 键，且值是 handle 形状时才替换
             if (!ToolPolicy.hasSourceKeySpace(key)) {
@@ -343,7 +343,7 @@ final class SourceToolCodec {
                 return value;
             }
             String real = durableForHandle(typed);
-            return real.isEmpty() ? value : StringNode.valueOf(real);
+            return real.isEmpty() ? value : TextNode.valueOf(real);
         }
         if (value.isArray()) {
             ArrayNode array = (ArrayNode) value;

@@ -2,10 +2,12 @@ package com.ragagent.memory.domain;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.memory.domain.scope.MemoryScope;
 import com.ragagent.platform.access.TracingContext;
 import com.ragagent.platform.web.JsonMappers;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 一次蒸馏任务的全部输入。
@@ -26,6 +28,9 @@ import tools.jackson.databind.ObjectMapper;
  * {@code lf_*} 键；载具只在进程内队列流动、无外部消费者，故改形）。
  * 空载体整键省略，worker 侧取 {@link #tracing()} 续接同一棵树。</p>
  */
+// 键序显式钉住：分量上的 @JsonInclude 会让 Jackson 2 把该属性提前，不能依赖声明序。
+@JsonPropertyOrder({"tenant_id", "subject_id", "session_id", "message_id", "chat_model_id",
+        "language", "tracing"})
 public record MemoryExtractPayload(
         @JsonProperty("tenant_id") long tenantId,
         @JsonProperty("subject_id") String subjectId,
@@ -46,12 +51,13 @@ public record MemoryExtractPayload(
         @JsonInclude(JsonInclude.Include.NON_DEFAULT) String language,
         /**
          * 观测载体（嵌套键 {@code tracing}，五个 {@code lf_*} 组件收在里面）。
-         * 空载体经 {@code EmptyOmitFilter} 整键省略。
+         * 空载体经 {@code EmptyOmitFilter} 整键省略（过滤器挂在 {@link #tracing()} 访问器上：
+         * record 分量上的 {@code Include.CUSTOM} 在 Jackson 2 里不生效）。
          */
-        @JsonInclude(value = JsonInclude.Include.CUSTOM,
-                valueFilter = TracingContext.EmptyOmitFilter.class) TracingContext tracing) {
+        TracingContext tracing) {
 
-    private static final ObjectMapper MAPPER = JsonMappers.lenient();
+    private static final ObjectMapper MAPPER = JsonMappers.lenient()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     public MemoryExtractPayload {
         subjectId = subjectId == null ? "" : subjectId;
@@ -77,7 +83,9 @@ public record MemoryExtractPayload(
                 language, tc.isEmpty() ? null : tc);
     }
 
-    /** 追踪载体的结构视图（worker 侧续接用）。 */
+    /** 追踪载体的结构视图（worker 侧续接用）。空载体在此归一，序列化侧由过滤器整键省略。 */
+    @JsonInclude(value = JsonInclude.Include.CUSTOM,
+            valueFilter = TracingContext.EmptyOmitFilter.class)
     public TracingContext tracing() {
         return tracing == null ? TracingContext.EMPTY : tracing;
     }

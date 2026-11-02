@@ -1,5 +1,6 @@
 package com.ragagent.websearch.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.websearch.WebSearchResult;
 import com.ragagent.platform.web.ProviderJson;
 import com.ragagent.websearch.config.WebSearchProviderParams;
@@ -11,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import tools.jackson.databind.JsonNode;
 
 /**
  * Bocha AI 搜索 provider。
@@ -122,24 +122,24 @@ public final class BochaProvider implements WebSearchProvider {
         }
         List<WebSearchResult> results = new ArrayList<>();
         for (JsonNode item : response.path("data").path("webPages").path("value")) {
-            if (item.path("name").asString("").trim().isEmpty()
-                    && item.path("url").asString("").trim().isEmpty()) {
+            if (item.path("name").asText("").trim().isEmpty()
+                    && item.path("url").asText("").trim().isEmpty()) {
                 continue;
             }
-            String snippet = item.path("summary").asString("").trim();
+            String snippet = item.path("summary").asText("").trim();
             if (snippet.isEmpty()) {
-                snippet = item.path("snippet").asString("").trim();
+                snippet = item.path("snippet").asText("").trim();
             }
             WebSearchResult result = new WebSearchResult();
-            result.setTitle(item.path("name").asString(""));
-            result.setUrl(item.path("url").asString(""));
+            result.setTitle(item.path("name").asText(""));
+            result.setUrl(item.path("url").asText(""));
             result.setSnippet(snippet);
             result.setSource("bocha");
             if (includeDate) {
                 OffsetDateTime publishedAt = parseFlexibleDate(
-                        item.path("datePublished").asString(""), false);
+                        item.path("datePublished").asText(""), false);
                 if (publishedAt == null) {
-                    publishedAt = parseFlexibleDate(item.path("dateLastCrawled").asString(""), true);
+                    publishedAt = parseFlexibleDate(item.path("dateLastCrawled").asText(""), true);
                 }
                 if (publishedAt != null) {
                     result.setPublishedAt(publishedAt);
@@ -165,9 +165,9 @@ public final class BochaProvider implements WebSearchProvider {
     static SearchHttp.SearchHttpException httpError(int statusCode, byte[] body) {
         JsonNode apiError = ProviderJson.parse(body);
         if (apiError != null && apiError.isObject()) {
-            String detail = apiError.path("message").asString("").trim();
+            String detail = apiError.path("message").asText("").trim();
             if (detail.isEmpty()) {
-                detail = apiError.path("msg").asString("").trim();
+                detail = apiError.path("msg").asText("").trim();
             }
             if (!detail.isEmpty()) {
                 return new SearchHttp.SearchHttpException(
@@ -224,7 +224,7 @@ public final class BochaProvider implements WebSearchProvider {
         if (node.isNumber()) {
             return node.asInt();
         }
-        String s = node.asString("").trim();
+        String s = node.asText("").trim();
         if (s.startsWith("\"") && s.endsWith("\"") && s.length() >= 2) {
             s = s.substring(1, s.length() - 1);
         }

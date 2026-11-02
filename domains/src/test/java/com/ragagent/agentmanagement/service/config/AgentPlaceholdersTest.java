@@ -2,6 +2,7 @@ package com.ragagent.agentmanagement.service.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.platform.prompt.AgentPromptPlaceholders;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -9,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 占位符「两面一致」守卫。
@@ -56,7 +56,7 @@ class AgentPlaceholdersTest {
     /** 取某组里的令牌名（name 字段）。 */
     private static List<String> names(JsonNode array) {
         List<String> out = new ArrayList<>();
-        array.forEach(n -> out.add(n.path("name").asString()));
+        array.forEach(n -> out.add(n.path("name").asText()));
         return out;
     }
 }

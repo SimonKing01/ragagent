@@ -1,5 +1,6 @@
 package com.ragagent.agent.tool;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.skills.Manager;
 import com.ragagent.agent.skills.Skill;
 import com.ragagent.contract.agent.SkillCatalogPort;
@@ -14,7 +15,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * {@code read_file}：技能资源读取（无沙箱部署下技能是唯一可读的"文件源"）。
@@ -72,7 +72,7 @@ public class SkillReadFileTool extends BaseTool {
     @Override
     public ToolResult execute(ToolRequest request) {
         JsonNode args = JsonMappers.toJsonNode(request.args());
-        String path = args == null ? "" : args.path("path").asString("");
+        String path = args == null ? "" : args.path("path").asText("");
         if (args != null && args.path("lineOffset").asInt(0) != 0) {
             // 录像：line_offset 只对保存的 web:// 页面有意义
             return fail(ERR_LINE_OFFSET);

@@ -1,5 +1,6 @@
 package com.ragagent.session.attachment;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.doc.DocReaderParsePort;
 import com.ragagent.contract.knowledge.DocumentChunkingPort;
 import com.ragagent.contract.model.AsrTranscriber;
@@ -21,7 +22,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 会话附件服务。

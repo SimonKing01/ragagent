@@ -2,6 +2,8 @@ package com.ragagent.agenttools;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.contract.tool.ToolRequest;
 import com.ragagent.contract.tool.ToolResult;
@@ -26,8 +28,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * MCP stub A/B：双端同打同一形态的 stub MCP server（JSON-RPC over streamable HTTP），
@@ -128,7 +128,7 @@ class McpStubABTest {
                     ex.sendResponseHeaders(202, -1);
                     return;
                 }
-                String resp = resultFor(req.path("method").asString(""), req);
+                String resp = resultFor(req.path("method").asText(""), req);
                 ex.getResponseHeaders().set("Content-Type", "application/json");
                 ex.getResponseHeaders().set("Mcp-Session-Id", "stub-session-abc123");
                 byte[] out = resp.getBytes(StandardCharsets.UTF_8);
@@ -179,7 +179,7 @@ class McpStubABTest {
 
         // ---- 请求体逐字节比对（方法序列 + 掩码 id 后的 body）----
         JsonNode drive = Tools45cFakes.rec45c("mcp_stub", "drive");
-        assertThat(result.getOutput()).isEqualTo(drive.get("output").asString());
+        assertThat(result.getOutput()).isEqualTo(drive.get("output").asText());
         assertThat(result.isSuccess()).isEqualTo(drive.get("success").asBoolean());
 
         // Java 侧实际发出的请求（去掉 tools/call 之前可能的重复握手；两端各录各的）
@@ -196,28 +196,28 @@ class McpStubABTest {
 
         // tools/list：method/params 一致（掩码 id——两端各自生成 uuid）
         JsonNode javaList = M.readTree(javaBodies.get(javaBodies.size() - 2));
-        JsonNode recordedListBody = M.readTree(recordedList.get("body").asString());
-        assertThat(javaList.path("method").asString()).isEqualTo(recordedListBody.path("method").asString());
+        JsonNode recordedListBody = M.readTree(recordedList.get("body").asText());
+        assertThat(javaList.path("method").asText()).isEqualTo(recordedListBody.path("method").asText());
         assertThat(javaList.path("params").toString()).isEqualTo(recordedListBody.path("params").toString());
 
         // tools/call：body 逐字节一致（数值 id 两端都从 1 起步 → 可直接比）
         JsonNode javaCall = M.readTree(javaBodies.get(javaBodies.size() - 1));
-        JsonNode recordedCallBody = M.readTree(recordedCall.get("body").asString());
-        assertThat(javaCall.path("method").asString()).isEqualTo(recordedCallBody.path("method").asString());
-        assertThat(javaCall.path("params").get("name").asString())
-                .isEqualTo(recordedCallBody.path("params").get("name").asString());
+        JsonNode recordedCallBody = M.readTree(recordedCall.get("body").asText());
+        assertThat(javaCall.path("method").asText()).isEqualTo(recordedCallBody.path("method").asText());
+        assertThat(javaCall.path("params").get("name").asText())
+                .isEqualTo(recordedCallBody.path("params").get("name").asText());
         assertThat(javaCall.path("params").get("arguments").toString())
                 .isEqualTo(recordedCallBody.path("params").get("arguments").toString());
         // arguments 顺序：{"message":"hi from recorder"} 单键一致；键序=原始 JSON
 
         // notifications/initialized：逐字节一致（无 id）
         JsonNode javaNotify = M.readTree(javaBodies.get(1));
-        JsonNode recordedNotifyBody = M.readTree(recordedNotify.get("body").asString());
-        assertThat(javaNotify.path("method").asString()).isEqualTo(recordedNotifyBody.path("method").asString());
+        JsonNode recordedNotifyBody = M.readTree(recordedNotify.get("body").asText());
+        assertThat(javaNotify.path("method").asText()).isEqualTo(recordedNotifyBody.path("method").asText());
 
         // initialize：整串逐字节一致（含协议版本与 params 键序；两端数值 id 都从 1 起步）
         JsonNode javaInit = M.readTree(javaBodies.get(0));
-        JsonNode recordedInitBody = M.readTree(recordedInit.get("body").asString());
+        JsonNode recordedInitBody = M.readTree(recordedInit.get("body").asText());
         assertThat(javaInit.toString()).isEqualTo(recordedInitBody.toString());
     }
 }

@@ -1,5 +1,6 @@
 package com.ragagent.vectorstore.domain;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.vectorstore.ConnectionConfig;
 import com.ragagent.platform.security.CryptoService;
 import com.ragagent.platform.web.JsonMappers;
@@ -9,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * vector_stores.connection_config jsonb 列的 TypeHandler。

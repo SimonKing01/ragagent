@@ -1,5 +1,7 @@
 package com.ragagent.im.channel.dingtalk;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.im.runtime.ImTypes;
 import com.ragagent.im.runtime.IncomingMessage;
 import com.ragagent.platform.web.JsonMappers;
@@ -8,8 +10,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 钉钉 AI 卡片流：建卡、节流更新、定稿、结束。

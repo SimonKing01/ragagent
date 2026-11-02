@@ -1,11 +1,11 @@
 package com.ragagent.agentmanagement.service.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.List;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * /agents/placeholders 的静态定义。

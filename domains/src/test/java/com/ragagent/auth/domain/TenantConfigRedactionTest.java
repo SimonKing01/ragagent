@@ -243,7 +243,7 @@ class TenantConfigRedactionTest {
         existing.setMineruApiKey("old-mineru");
         existing.setPaddleOcrVlCloudToken("old-paddle");
         List<Object> inheritedRules =
-                List.of((Object) new tools.jackson.databind.ObjectMapper().createObjectNode());
+                List.of((Object) new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode());
         existing.setChatParserEngineRules(inheritedRules);
 
         ParserEngineConfig incoming = new ParserEngineConfig();

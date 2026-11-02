@@ -1,6 +1,8 @@
 package com.ragagent.retrieval.engine.doris;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.platform.web.JsonMappers;
 import java.io.IOException;
@@ -16,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Doris Stream Load 客户端——partial update 行写入与 Stream Load 的 SSRF/重定向纪律。
@@ -99,7 +99,7 @@ public final class DorisStreamLoadClient {
             byte[] raw;
             try {
                 raw = JSON.writeValueAsBytes(row);
-            } catch (JacksonException e) {
+            } catch (JsonProcessingException e) {
                 // marshal 失败时把这一行单独成段，由 streamLoadOnce 再次 marshal 报错。
                 if (!curr.isEmpty()) {
                     out.add(curr);
@@ -141,7 +141,7 @@ public final class DorisStreamLoadClient {
         byte[] body;
         try {
             body = mapper.writeValueAsBytes(rows);
-        } catch (JacksonException e) {
+        } catch (JsonProcessingException e) {
             throw new IllegalStateException("marshal stream load body: " + e.getMessage(), e);
         }
         String url = streamLoadUrl(table);

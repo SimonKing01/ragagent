@@ -1,8 +1,8 @@
 package com.ragagent.modelcontext;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * {@code knowledge_chunks_list} 的分页尾注：总块数、本页覆盖的块号范围、下一段起点。

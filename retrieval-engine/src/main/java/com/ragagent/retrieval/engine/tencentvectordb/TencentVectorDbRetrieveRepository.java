@@ -1,5 +1,8 @@
 package com.ragagent.retrieval.engine.tencentvectordb;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.vectorstore.IndexConfig;
 import com.ragagent.platform.security.Hashes;
 import com.ragagent.platform.security.SsrfGuard;
@@ -21,9 +24,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 腾讯 VectorDB 检索引擎仓储。
@@ -377,7 +377,7 @@ public class TencentVectorDbRetrieveRepository
         JsonNode res = client.listCollections(databaseName);
         List<String> names = new ArrayList<>();
         for (JsonNode node : res.path("collections")) {
-            String name = node.path("collectionName").asString(node.asString(""));
+            String name = node.path("collectionName").asText(node.asText(""));
             if (!name.isEmpty()) {
                 names.add(name);
             }
@@ -545,14 +545,14 @@ public class TencentVectorDbRetrieveRepository
 
     static Document fromDocument(JsonNode node) {
         Document doc = new Document();
-        doc.id = node.path(FIELD_ID).asString("");
-        doc.content = node.path(FIELD_CONTENT).asString("");
-        doc.sourceId = node.path(FIELD_SOURCE_ID).asString("");
+        doc.id = node.path(FIELD_ID).asText("");
+        doc.content = node.path(FIELD_CONTENT).asText("");
+        doc.sourceId = node.path(FIELD_SOURCE_ID).asText("");
         doc.sourceType = node.path(FIELD_SOURCE_TYPE).asInt(0);
-        doc.chunkId = node.path(FIELD_CHUNK_ID).asString("");
-        doc.knowledgeId = node.path(FIELD_KNOWLEDGE_ID).asString("");
-        doc.knowledgeBaseId = node.path(FIELD_KNOWLEDGE_BASE_ID).asString("");
-        doc.tagId = node.path(FIELD_TAG_ID).asString("");
+        doc.chunkId = node.path(FIELD_CHUNK_ID).asText("");
+        doc.knowledgeId = node.path(FIELD_KNOWLEDGE_ID).asText("");
+        doc.knowledgeBaseId = node.path(FIELD_KNOWLEDGE_BASE_ID).asText("");
+        doc.tagId = node.path(FIELD_TAG_ID).asText("");
         doc.isEnabled = node.path(FIELD_IS_ENABLED).asLong(0) == 1;
         doc.score = node.path("score").asDouble(0);
         JsonNode vector = node.get(FIELD_VECTOR);

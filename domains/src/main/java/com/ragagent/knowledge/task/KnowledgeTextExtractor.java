@@ -52,7 +52,7 @@ final class KnowledgeTextExtractor {
     String extract(Knowledge k, int attempt, String knowledgeId) throws Exception {
         if ("manual".equals(k.getType())) {
             String content = k.getMetadata() != null && k.getMetadata().hasNonNull("content")
-                    ? k.getMetadata().get("content").asString() : "";
+                    ? k.getMetadata().get("content").asText() : "";
             return imageOcr.enrich(k, content, attempt, knowledgeId);
         }
         SpanTracker.SpanHandle docSpan = beginStageSpan(attempt, knowledgeId,

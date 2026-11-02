@@ -1,6 +1,8 @@
 package com.ragagent.datasource.service;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.error.ErrorCode;
@@ -24,8 +26,6 @@ import java.util.Map;
 import java.util.UUID;
 import javax.sql.DataSource;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * {@link KnowledgeBridge} 的生产实现：直接用 knowledge 模块的
@@ -264,20 +264,20 @@ public class MapperKnowledgeBridge implements KnowledgeBridge {
     /** 从 {@code metadata} 列读出字符串 map。 */
     private static Map<String, String> readMetadata(KnowledgeRowView k) {
         Map<String, String> out = new LinkedHashMap<>();
-        tools.jackson.databind.JsonNode md = JsonMappers.toJsonNode(k.getMetadata());
+        com.fasterxml.jackson.databind.JsonNode md = JsonMappers.toJsonNode(k.getMetadata());
         if (md == null || !md.isObject()) {
             return out;
         }
-        md.properties().forEach(e -> {
-            if (e.getValue() != null && e.getValue().isString()) {
-                out.put(e.getKey(), e.getValue().asString());
+        md.fields().forEachRemaining(e -> {
+            if (e.getValue() != null && e.getValue().isTextual()) {
+                out.put(e.getKey(), e.getValue().asText());
             }
         });
         return out;
     }
 
     /** 把字符串 map 序列化成 {@code metadata} 列的 JSON（键按给定序写出、不排序）。 */
-    private static tools.jackson.databind.JsonNode metadataNode(Map<String, String> metadata) {
+    private static com.fasterxml.jackson.databind.JsonNode metadataNode(Map<String, String> metadata) {
         ObjectNode node = MAPPER.createObjectNode();
         if (metadata != null) {
             for (Map.Entry<String, String> e : metadata.entrySet()) {

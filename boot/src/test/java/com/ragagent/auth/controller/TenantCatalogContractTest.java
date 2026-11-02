@@ -22,8 +22,8 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -425,8 +425,8 @@ class TenantCatalogContractTest {
         return builder;
     }
 
-    private static final tools.jackson.databind.ObjectMapper RAW_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper RAW_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String raw(MvcResult r) throws Exception {
         // PR4 语义比较：与 golden 同侧归一（非 JSON 文本原样）
@@ -434,8 +434,8 @@ class TenantCatalogContractTest {
                 r.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
     }
 
-    private static final tools.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String golden(String name) throws Exception {
         // PR4 语义比较：键序/HTML 转义归一后返回（非 JSON 文本原样），断言侧不变
@@ -471,7 +471,7 @@ class TenantCatalogContractTest {
                         .header("Authorization", superTok))
                 .andReturn();
         org.junit.jupiter.api.Assertions.assertEquals(200, hit.getResponse().getStatus());
-        var node = new tools.jackson.databind.ObjectMapper()
+        var node = new com.fasterxml.jackson.databind.ObjectMapper()
                 .readTree(hit.getResponse().getContentAsString());
         // 统一外壳下先下钻 data（旧形态无壳也通）
         if (node.isObject() && node.has("code") && node.has("data")) { node = node.get("data"); }
@@ -491,7 +491,7 @@ class TenantCatalogContractTest {
                         .param("keyword", "no-such-tenant-keyword")
                         .header("Authorization", superTok))
                 .andReturn();
-        var missNode = new tools.jackson.databind.ObjectMapper()
+        var missNode = new com.fasterxml.jackson.databind.ObjectMapper()
                 .readTree(miss.getResponse().getContentAsString());
         // 统一外壳下先下钻 data（旧形态无壳也通）
         if (missNode.isObject() && missNode.has("code") && missNode.has("data")) { missNode = missNode.get("data"); }
@@ -506,7 +506,7 @@ class TenantCatalogContractTest {
                         .header("Authorization", superTok))
                 .andReturn();
         org.junit.jupiter.api.Assertions.assertEquals(200, res.getResponse().getStatus());
-        var node = new tools.jackson.databind.ObjectMapper()
+        var node = new com.fasterxml.jackson.databind.ObjectMapper()
                 .readTree(res.getResponse().getContentAsString());
         // 统一外壳下先下钻 data（旧形态无壳也通）
         if (node.isObject() && node.has("code") && node.has("data")) { node = node.get("data"); }

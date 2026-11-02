@@ -7,6 +7,8 @@ import static com.ragagent.wiki.controller.WikiRequestSupport.requiredFieldError
 import static com.ragagent.wiki.controller.WikiRequestSupport.sanitize;
 import static com.ragagent.wiki.controller.WikiRequestSupport.trimSpace;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.platform.web.ApiResponse;
 import com.ragagent.wiki.domain.WikiPage;
@@ -22,8 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 文件夹资源端点的执行体：目录列表/新建/改名移动/删除，以及 move-page

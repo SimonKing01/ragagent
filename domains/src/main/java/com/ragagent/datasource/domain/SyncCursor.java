@@ -1,12 +1,13 @@
 package com.ragagent.datasource.domain;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.platform.web.ZeroTimeSerializer;
 import java.time.OffsetDateTime;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * 增量同步的位置/状态。
@@ -35,7 +36,8 @@ import tools.jackson.databind.annotation.JsonSerialize;
  */
 public class SyncCursor {
 
-    private static final ObjectMapper MAPPER = JsonMappers.lenient();
+    private static final ObjectMapper MAPPER = JsonMappers.lenient()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     /** 上次同步的时间（值类型零值也输出字面量）。 */
     private OffsetDateTime lastSyncTime = ZeroTimeSerializer.ZERO_DATE_TIME;

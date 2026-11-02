@@ -1,5 +1,8 @@
 package com.ragagent.im.domain;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.security.CryptoService;
 import com.ragagent.platform.web.JsonMappers;
 import java.sql.CallableStatement;
@@ -11,9 +14,6 @@ import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * {@code im_channels.credentials} 的加密 TypeHandler（密文包在 jsonb 里）。
@@ -110,7 +110,7 @@ public class ImCredentialsTypeHandler extends BaseTypeHandler<String> {
         try {
             JsonNode node = MAPPER.readTree(s);
             return node.size() == 1 && node.has(ENC);
-        } catch (RuntimeException e) {
+        } catch (java.io.IOException | RuntimeException e) {
             return false;
         }
     }
@@ -118,8 +118,8 @@ public class ImCredentialsTypeHandler extends BaseTypeHandler<String> {
     private static String readEnc(String wrapped) {
         try {
             JsonNode node = MAPPER.readTree(wrapped).get(ENC);
-            return node == null ? "" : node.asString();
-        } catch (RuntimeException e) {
+            return node == null ? "" : node.asText();
+        } catch (java.io.IOException | RuntimeException e) {
             return "";
         }
     }

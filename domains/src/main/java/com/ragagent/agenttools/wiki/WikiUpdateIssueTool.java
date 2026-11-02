@@ -1,5 +1,6 @@
 package com.ragagent.agenttools.wiki;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.tool.BaseTool;
 import com.ragagent.contract.tool.ToolDefinitions;
 import com.ragagent.contract.tool.ToolRequest;
@@ -7,7 +8,6 @@ import com.ragagent.contract.tool.ToolResult;
 import com.ragagent.platform.tool.ToolSchemas;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * wiki_update_issue 工具。
@@ -47,8 +47,8 @@ public class WikiUpdateIssueTool extends BaseTool {
     @Override
     public ToolResult execute(ToolRequest request) {
         JsonNode args = JsonMappers.toJsonNode(request.args());
-        String issueId = args.path("issueId").asString("");
-        String status = args.path("status").asString("");
+        String issueId = args.path("issueId").asText("");
+        String status = args.path("status").asText("");
 
         if (issueId.isEmpty()) {
             return failure("issue_id is required");

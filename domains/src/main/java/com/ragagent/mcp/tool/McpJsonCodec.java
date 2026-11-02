@@ -1,5 +1,7 @@
 package com.ragagent.mcp.tool;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.tool.ToolDefinitions;
 import com.ragagent.contract.tool.ToolResult;
 import com.ragagent.platform.web.JsonMappers;
@@ -8,8 +10,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * MCP 目录的 JSON 编解码：插入序 struct 输出、schema enum 注入、调用参数解码与 cursor。
@@ -64,7 +64,7 @@ final class McpJsonCodec {
         try {
             ObjectMapper plain = JsonMappers.lenient();
             JsonNode schema = plain.readTree(raw);
-            ((tools.jackson.databind.node.ObjectNode) schema.path("properties").path(key))
+            ((com.fasterxml.jackson.databind.node.ObjectNode) schema.path("properties").path(key))
                     .set("enum", plain.valueToTree(values));
             return ToolJson.write(schema);
         } catch (Exception e) {
@@ -74,7 +74,7 @@ final class McpJsonCodec {
 
     /** ref 解码；失败 message 以 mcpCallArgumentsHint 结尾。 */
     static DecodeResult decodeMcpCall(JsonNode raw) {
-        String toolRef = raw.path("toolRef").asString("");
+        String toolRef = raw.path("toolRef").asText("");
         JsonNode arguments = raw.get("arguments");
         boolean bad = toolRef.isEmpty()
                 || arguments == null

@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.auth.service.TenantService;
 import com.ragagent.contract.storage.fileserve.FileContentService;
 import com.ragagent.contract.storage.fileserve.OpenedFile;
@@ -33,7 +34,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@link ChatLocalImageResolverWiring} 的装配单测（mock 依赖）+ 两条集成式断言

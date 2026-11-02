@@ -2,8 +2,8 @@ package com.ragagent.contract.knowledge.rule;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 解析引擎规则解析的验收（{@code ParserEngineRules} 的 resolve / defaultEngine /

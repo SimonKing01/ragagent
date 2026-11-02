@@ -21,10 +21,9 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.json.JsonCompareMode;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -116,7 +115,7 @@ class AuthContractTest {
                         .contentType("application/json")
                         .content("{\"email\":\"x\",\"password\":\"y\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().json(golden, JsonCompareMode.STRICT));
+                .andExpect(content().json(golden, true));
     }
 
     @Test
@@ -126,7 +125,7 @@ class AuthContractTest {
                         .contentType("application/json")
                         .content("{\"email\":\"java-phase1@weknora.test\",\"password\":\"WrongPass1\"}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().json(golden, JsonCompareMode.STRICT));
+                .andExpect(content().json(golden, true));
     }
 
     @Test
@@ -136,7 +135,7 @@ class AuthContractTest {
                         .contentType("application/json")
                         .content("{\"email\":\"nobody@nowhere.test\",\"password\":\"whatever\"}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().json(golden, JsonCompareMode.STRICT));
+                .andExpect(content().json(golden, true));
     }
 
     @Test
@@ -146,7 +145,7 @@ class AuthContractTest {
                         .contentType("application/json")
                         .content("{\"email\":\"java-phase1-inactive@weknora.test\",\"password\":\"Passw0rd!\"}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().json(golden, JsonCompareMode.STRICT));
+                .andExpect(content().json(golden, true));
     }
 
     @Test
@@ -155,7 +154,7 @@ class AuthContractTest {
         mockMvc.perform(post("/api/v1/auth/login")
                         .contentType("application/json"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().json(golden, JsonCompareMode.STRICT));
+                .andExpect(content().json(golden, true));
     }
 
     @Test
@@ -165,7 +164,7 @@ class AuthContractTest {
         mockMvc.perform(get("/api/v1/knowledgebases")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isConflict())
-                .andExpect(content().json(golden, JsonCompareMode.STRICT));
+                .andExpect(content().json(golden, true));
     }
 
     @Test
@@ -176,7 +175,7 @@ class AuthContractTest {
                         .header("Authorization", "Bearer " + token)
                         .header("X-Tenant-ID", "abc"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().json(golden, JsonCompareMode.STRICT));
+                .andExpect(content().json(golden, true));
     }
 
     @Test
@@ -187,7 +186,7 @@ class AuthContractTest {
                         .header("Authorization", "Bearer " + token)
                         .header("X-Tenant-ID", "99999999"))
                 .andExpect(status().isForbidden())
-                .andExpect(content().json(golden, JsonCompareMode.STRICT));
+                .andExpect(content().json(golden, true));
     }
 
     // ── 动态 golden（掩码后逐字节） ───────────────────────────────────────
@@ -240,8 +239,8 @@ class AuthContractTest {
         return m.group(1);
     }
 
-    private static final tools.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String golden(String name) throws Exception {
         // PR4 语义比较：键序/HTML 转义归一后返回（非 JSON 文本原样），断言侧不变

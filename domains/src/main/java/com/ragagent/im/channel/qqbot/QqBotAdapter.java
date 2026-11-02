@@ -1,5 +1,7 @@
 package com.ragagent.im.channel.qqbot;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.CallbackExchange;
 import com.ragagent.im.runtime.ImTypes;
@@ -9,8 +11,6 @@ import com.ragagent.im.runtime.ThinkDisplay;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * QQ 机器人适配器。
@@ -88,7 +88,7 @@ public class QqBotAdapter implements AdapterInterfaces.Adapter {
             return null;
         }
         JsonNode event = payload.path("d");
-        String type = payload.path("t").asString("");
+        String type = payload.path("t").asText("");
         if (EVENT_C2C_MESSAGE_CREATE.equals(type)) {
             return parseC2CMessage(event);
         }
@@ -101,17 +101,17 @@ public class QqBotAdapter implements AdapterInterfaces.Adapter {
     /** user_id 取 user_openid 优先。 */
     static IncomingMessage parseC2CMessage(JsonNode event) {
         JsonNode author = event.path("author");
-        String userId = firstNonEmpty(author.path("user_openid").asString(""),
-                author.path("id").asString(""));
+        String userId = firstNonEmpty(author.path("user_openid").asText(""),
+                author.path("id").asText(""));
         IncomingMessage msg = new IncomingMessage();
         msg.platform = ImTypes.PLATFORM_QQBOT;
         msg.messageType = ImTypes.MESSAGE_TYPE_TEXT;
         msg.userId = userId;
-        msg.userName = author.path("username").asString("");
+        msg.userName = author.path("username").asText("");
         msg.chatId = "";
         msg.chatType = ImTypes.CHAT_TYPE_DIRECT;
-        msg.content = event.path("content").asString("").trim();
-        msg.messageId = event.path("id").asString("");
+        msg.content = event.path("content").asText("").trim();
+        msg.messageId = event.path("id").asText("");
         Map<String, String> extra = new LinkedHashMap<>();
         extra.put(EXTRA_KEY_MESSAGE_ID, msg.messageId);
         extra.put(EXTRA_KEY_CHAT_KIND, "c2c");
@@ -125,13 +125,13 @@ public class QqBotAdapter implements AdapterInterfaces.Adapter {
         IncomingMessage msg = new IncomingMessage();
         msg.platform = ImTypes.PLATFORM_QQBOT;
         msg.messageType = ImTypes.MESSAGE_TYPE_TEXT;
-        msg.userId = firstNonEmpty(author.path("member_openid").asString(""),
-                author.path("user_openid").asString(""), author.path("id").asString(""));
-        msg.userName = author.path("username").asString("");
-        msg.chatId = event.path("group_openid").asString("");
+        msg.userId = firstNonEmpty(author.path("member_openid").asText(""),
+                author.path("user_openid").asText(""), author.path("id").asText(""));
+        msg.userName = author.path("username").asText("");
+        msg.chatId = event.path("group_openid").asText("");
         msg.chatType = ImTypes.CHAT_TYPE_GROUP;
-        msg.content = event.path("content").asString("").trim();
-        msg.messageId = event.path("id").asString("");
+        msg.content = event.path("content").asText("").trim();
+        msg.messageId = event.path("id").asText("");
         Map<String, String> extra = new LinkedHashMap<>();
         extra.put(EXTRA_KEY_MESSAGE_ID, msg.messageId);
         extra.put(EXTRA_KEY_CHAT_KIND, "group");

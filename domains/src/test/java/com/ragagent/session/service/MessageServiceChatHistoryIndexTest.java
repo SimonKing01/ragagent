@@ -11,6 +11,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.auth.service.TenantService;
 import com.ragagent.contract.knowledge.KnowledgeCatalogPort;
 import com.ragagent.contract.knowledge.KnowledgeRowView;
@@ -25,8 +27,6 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 聊天历史 KB 索引的验收：

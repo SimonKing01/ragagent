@@ -1,5 +1,6 @@
 package com.ragagent.favorite.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.favorite.dto.FavoriteResponse;
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 用户收藏的 HTTP 层：3 条路由——GET/POST {@code /api/v1/user/favorites} +

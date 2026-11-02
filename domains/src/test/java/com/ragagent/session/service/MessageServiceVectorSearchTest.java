@@ -14,6 +14,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.auth.service.TenantService;
 import com.ragagent.contract.knowledge.KnowledgeCatalogPort;
 import com.ragagent.contract.model.ModelRuntime;
@@ -39,8 +41,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 消息搜索的**向量路径**。
@@ -93,8 +93,8 @@ class MessageServiceVectorSearchTest {
         return n;
     }
 
-    private void tenantWith(tools.jackson.databind.JsonNode chatHistory,
-            tools.jackson.databind.JsonNode retrieval) {
+    private void tenantWith(com.fasterxml.jackson.databind.JsonNode chatHistory,
+            com.fasterxml.jackson.databind.JsonNode retrieval) {
         // 自 A③ 起租户配置经 L1 端口读（TenantConfigLookup），不再取实体
         when(tenantService.chatHistoryConfig(TENANT)).thenReturn(chatHistory);
         when(tenantService.retrievalConfig(TENANT)).thenReturn(retrieval);

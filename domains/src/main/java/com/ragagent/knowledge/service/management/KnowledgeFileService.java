@@ -1,5 +1,8 @@
 package com.ragagent.knowledge.service.management;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.knowledge.KnowledgeIngest;
@@ -33,9 +36,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 知识文件/行写面：manual 知识更新（全列写语义）、文件下载流、图片信息更新与
@@ -195,7 +195,7 @@ public class KnowledgeFileService {
         if ("manual".equals(knowledge.getType())) {
             String content = knowledge.getMetadata() != null
                     && knowledge.getMetadata().hasNonNull("content")
-                    ? knowledge.getMetadata().get("content").asString() : "";
+                    ? knowledge.getMetadata().get("content").asText() : "";
             byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
             return new KnowledgeFileStream(sanitizeManualDownloadFilename(knowledge.getTitle()),
                     OpenedFile.ofStream(
@@ -251,9 +251,9 @@ public class KnowledgeFileService {
         List<Chunk> addChunks = new ArrayList<>();
         boolean hasOcr = false;
         boolean hasCaption = false;
-        String originalUrl = image.path("originalUrl").asString("");
-        String caption = image.path("caption").asString("");
-        String ocrText = image.path("ocrText").asString("");
+        String originalUrl = image.path("originalUrl").asText("");
+        String caption = image.path("caption").asText("");
+        String ocrText = image.path("ocrText").asText("");
         for (Chunk child : chunkChildren) {
             JsonNode childImages;
             try {
@@ -264,13 +264,13 @@ public class KnowledgeFileService {
             if (!childImages.isArray() || childImages.isEmpty()) {
                 continue;
             }
-            if (!originalUrl.equals(childImages.get(0).path("originalUrl").asString(""))) {
+            if (!originalUrl.equals(childImages.get(0).path("originalUrl").asText(""))) {
                 continue;
             }
             switch (child.getChunkType() == null ? "" : child.getChunkType()) {
                 case "image_caption" -> {
                     hasCaption = true;
-                    if (!caption.equals(childImages.get(0).path("caption").asString(""))) {
+                    if (!caption.equals(childImages.get(0).path("caption").asText(""))) {
                         child.setContent(caption);
                         child.setImageInfo(imageInfo);
                         updateChunks.add(child);
@@ -278,7 +278,7 @@ public class KnowledgeFileService {
                 }
                 case "image_ocr" -> {
                     hasOcr = true;
-                    if (!ocrText.equals(childImages.get(0).path("ocrText").asString(""))) {
+                    if (!ocrText.equals(childImages.get(0).path("ocrText").asText(""))) {
                         child.setContent(ocrText);
                         child.setImageInfo(imageInfo);
                         updateChunks.add(child);

@@ -1,13 +1,13 @@
 package com.ragagent.platform.security;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * JSON 树内**按字段名**加解密敏感值（用于 jsonb 配置列）。
@@ -67,11 +67,11 @@ public final class JsonSecrets {
         }
         if (node instanceof ObjectNode obj) {
             ObjectNode out = MAPPER.createObjectNode();
-            obj.propertyNames().forEach(name -> {
+            obj.fieldNames().forEachRemaining(name -> {
                 JsonNode value = obj.get(name);
-                if (value != null && value.isString() && isSensitiveKey(name) && !value.asString().isEmpty()) {
-                    out.set(name, MAPPER.getNodeFactory().stringNode(
-                            encrypting ? encryptValue(value.asString()) : decryptValue(value.asString())));
+                if (value != null && value.isTextual() && isSensitiveKey(name) && !value.asText().isEmpty()) {
+                    out.set(name, MAPPER.getNodeFactory().textNode(
+                            encrypting ? encryptValue(value.asText()) : decryptValue(value.asText())));
                 } else {
                     out.set(name, walk(value, encrypting));
                 }

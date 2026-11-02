@@ -1,5 +1,6 @@
 package com.ragagent.im.channel.yunzhijia;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.CallbackExchange;
 import com.ragagent.im.runtime.ImTypes;
@@ -20,7 +21,6 @@ import java.util.Locale;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 云之家（Yunzhijia）适配器。

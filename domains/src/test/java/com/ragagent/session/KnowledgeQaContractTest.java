@@ -42,8 +42,8 @@ class KnowledgeQaContractTest {
         return s;
     }
 
-    private static final tools.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String golden(String name) throws Exception {
         // PR4 语义比较：键序/HTML 转义归一后返回（非 JSON 文本原样），断言侧不变
@@ -54,10 +54,10 @@ class KnowledgeQaContractTest {
 
     /** 错误体契约：code/message/details 语义断言（键序已归一，PR4；success 键已退役）。 */
     private void assertEnvelope(String goldenName, int expectedCode, String expectedMessage) throws Exception {
-        var root = new tools.jackson.databind.ObjectMapper().readTree(golden(goldenName));
+        var root = new com.fasterxml.jackson.databind.ObjectMapper().readTree(golden(goldenName));
         assertTrue(root.path("error").path("code").asInt() == expectedCode, goldenName + " code");
-        assertTrue(expectedMessage.equals(root.path("error").path("message").asString()),
-                goldenName + " message: " + root.path("error").path("message").asString());
+        assertTrue(expectedMessage.equals(root.path("error").path("message").asText()),
+                goldenName + " message: " + root.path("error").path("message").asText());
         assertTrue(root.path("error").path("details").isNull(), goldenName + " details");
         assertTrue(!root.has("success"), goldenName + " 不得有 success 键");
     }

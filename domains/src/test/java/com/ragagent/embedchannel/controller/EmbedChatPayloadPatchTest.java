@@ -5,11 +5,11 @@ package com.ragagent.embedchannel.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.embedchannel.domain.EmbedChannelEntity;
 import com.ragagent.session.dto.QaRequests.CreateKnowledgeQARequest;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * embed 访客请求改写器的键对齐契约（§14.9l S4）。
@@ -87,7 +87,7 @@ class EmbedChatPayloadPatchTest {
         String kept = EmbedChannelDelegateOps.patchEmbedChatPayload("""
                 {"query":"q","attachmentIds":["att-1"]}
                 """, channel(true, true), false);
-        assertThat(MAPPER.readTree(kept).path("attachmentIds").get(0).asString()).isEqualTo("att-1");
+        assertThat(MAPPER.readTree(kept).path("attachmentIds").get(0).asText()).isEqualTo("att-1");
     }
 
     @Test

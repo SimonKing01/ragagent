@@ -145,13 +145,13 @@ public final class TokenEstimator {
 
     /** JsonNode → 紧凑 JSON 文本（null 安全）。 */
     private static final class ParametersJson {
-        private static String write(tools.jackson.databind.JsonNode node) {
+        private static String write(com.fasterxml.jackson.databind.JsonNode node) {
             if (node == null || node.isNull() || node.isMissingNode()) {
                 return "";
             }
             try {
                 return JsonMappers.lenient().writeValueAsString(node);
-            } catch (tools.jackson.core.JacksonException e) {
+            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
                 return "";
             }
         }

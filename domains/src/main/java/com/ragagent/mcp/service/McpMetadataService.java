@@ -1,5 +1,6 @@
 package com.ragagent.mcp.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.mcp.domain.McpConfigFingerprint;
 import com.ragagent.mcp.domain.McpMetadataSummary;
@@ -34,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * MCP 目录快照应用层（依赖方向单向：{@link McpServiceManagement} → 本类）。

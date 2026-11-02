@@ -62,7 +62,7 @@
     </dependency>
     <dependency>
       <groupId>com.baomidou</groupId>
-      <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
+      <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
     </dependency>
 
     <!-- EmbeddedRedis 等平台测试基座（Gradle: testFixtures(project(":platform"))） -->

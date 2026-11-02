@@ -2,11 +2,11 @@ package com.ragagent.agent.tool;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenA;
 import com.ragagent.contract.tool.ToolOutput;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * ToolOutput.truncateToolOutput 的录制边界（15 条）。覆盖：上限内原样/恰等上限/零与负上限/
@@ -39,14 +39,14 @@ class TruncateRecordingTest {
             JsonNode r = RecordingSupport.rec(field(name));
             String input = RecordingSupport.buildTruncInput(r);
             int maxChars = r.get("maxChars").asInt();
-            String want = r.get("out").asString();
+            String want = r.get("out").asText();
 
             String got = ToolOutput.truncateToolOutput(input, maxChars);
             assertThat(got)
-                    .as("truncate %s", r.get("id").asString())
+                    .as("truncate %s", r.get("id").asText())
                     .isEqualTo(want);
             assertThat(got.codePointCount(0, got.length()))
-                    .as("truncate %s rune count", r.get("id").asString())
+                    .as("truncate %s rune count", r.get("id").asText())
                     .isEqualTo(r.get("outRunes").asInt());
         }
     }

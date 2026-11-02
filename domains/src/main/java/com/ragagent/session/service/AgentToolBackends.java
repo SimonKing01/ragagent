@@ -1,5 +1,7 @@
 package com.ragagent.session.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.agenttools.datasource.AnalysisDuckDbJdbc;
 import com.ragagent.agenttools.datasource.DataAnalysisTool;
 import com.ragagent.agenttools.datasource.DataSchemaTool;
@@ -58,8 +60,6 @@ import java.util.function.LongSupplier;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * agent 引擎检索工具族的接缝适配（接线批）。
@@ -372,7 +372,7 @@ public class AgentToolBackends {
             WebSearchConfig cfg = JSON.treeToValue(webSearch, WebSearchConfig.class);
             cfg.applyEffective();
             return cfg;
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (RuntimeException | com.fasterxml.jackson.core.JacksonException e) {
             // 租户/配置不可得即走缺省
             return null;
         }

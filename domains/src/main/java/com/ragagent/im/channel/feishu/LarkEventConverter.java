@@ -1,12 +1,12 @@
 package com.ragagent.im.channel.feishu;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.runtime.ImTypes;
 import com.ragagent.im.runtime.IncomingMessage;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 长连接事件帧 → 统一消息。
@@ -32,24 +32,24 @@ public final class LarkEventConverter {
     /** 无法识别时返回 null。 */
     public static IncomingMessage convert(FeishuRegion region, byte[] eventJson) throws Exception {
         JsonNode root = MAPPER.readTree(eventJson == null ? new byte[0] : eventJson);
-        if (!EVENT_TYPE_MESSAGE_RECEIVE.equals(root.path("header").path("event_type").asString(""))) {
+        if (!EVENT_TYPE_MESSAGE_RECEIVE.equals(root.path("header").path("event_type").asText(""))) {
             return null;
         }
         JsonNode message = root.path("event").path("message");
         if (message.isMissingNode() || message.isNull()) {
             return null;
         }
-        String msgType = message.path("message_type").asString("");
+        String msgType = message.path("message_type").asText("");
         if (msgType.isEmpty()) {
             return null;
         }
 
         String openId = root.path("event").path("sender").path("sender_id")
-                .path("open_id").asString("");
-        boolean isGroup = "group".equals(message.path("chat_type").asString(""));
-        String chatId = isGroup ? message.path("chat_id").asString("") : "";
-        String messageId = message.path("message_id").asString("");
-        String content = message.path("content").asString("");
+                .path("open_id").asText("");
+        boolean isGroup = "group".equals(message.path("chat_type").asText(""));
+        String chatId = isGroup ? message.path("chat_id").asText("") : "";
+        String messageId = message.path("message_id").asText("");
+        String content = message.path("content").asText("");
 
         IncomingMessage incoming = new IncomingMessage();
         incoming.platform = region.platform();
@@ -61,7 +61,7 @@ public final class LarkEventConverter {
         switch (msgType) {
             case "text" -> {
                 JsonNode text = MAPPER.readTree(content.isEmpty() ? "{}" : content);
-                String body = text.path("text").asString("");
+                String body = text.path("text").asText("");
                 if (isGroup) {
                     body = FeishuAdapter.stripBotMention(body);
                 }
@@ -71,18 +71,18 @@ public final class LarkEventConverter {
             }
             case "file" -> {
                 JsonNode file = MAPPER.readTree(content.isEmpty() ? "{}" : content);
-                String fileKey = file.path("file_key").asString("");
+                String fileKey = file.path("file_key").asText("");
                 if (fileKey.isEmpty()) {
                     return null;
                 }
                 incoming.messageType = ImTypes.MESSAGE_TYPE_FILE;
                 incoming.fileKey = fileKey;
-                incoming.fileName = file.path("file_name").asString("");
+                incoming.fileName = file.path("file_name").asText("");
                 return incoming;
             }
             case "image" -> {
                 JsonNode image = MAPPER.readTree(content.isEmpty() ? "{}" : content);
-                String imageKey = image.path("image_key").asString("");
+                String imageKey = image.path("image_key").asText("");
                 if (imageKey.isEmpty()) {
                     return null;
                 }
@@ -95,19 +95,19 @@ public final class LarkEventConverter {
                 JsonNode post = MAPPER.readTree(content.isEmpty() ? "{}" : content);
                 List<String> parts = new ArrayList<>();
                 String imageKey = "";
-                String title = post.path("title").asString("");
+                String title = post.path("title").asText("");
                 if (!title.isEmpty()) {
                     parts.add(title);
                 }
                 for (JsonNode line : post.path("content")) {
                     StringBuilder lineText = new StringBuilder();
                     for (JsonNode element : line) {
-                        String tag = element.path("tag").asString("");
+                        String tag = element.path("tag").asText("");
                         switch (tag) {
-                            case "text", "a" -> lineText.append(element.path("text").asString(""));
+                            case "text", "a" -> lineText.append(element.path("text").asText(""));
                             case "img" -> {
                                 if (imageKey.isEmpty()) {
-                                    imageKey = element.path("image_key").asString("");
+                                    imageKey = element.path("image_key").asText("");
                                 }
                             }
                             default -> {

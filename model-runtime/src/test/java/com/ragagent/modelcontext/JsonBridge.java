@@ -1,6 +1,6 @@
 package com.ragagent.modelcontext;
 
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /** 测试辅助：把测试里的 JSON 文本解析成树 + Go 风格字符串转义（encoding/json 语义）。 */
 final class JsonBridge {

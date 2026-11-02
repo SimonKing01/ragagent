@@ -1,5 +1,6 @@
 package com.ragagent.session.attachment;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.doc.DocReaderParsePort;
 import com.ragagent.contract.knowledge.DocumentChunkingPort;
 import com.ragagent.contract.knowledge.rule.ParserEngineRules;
@@ -27,7 +28,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * {@code TemporaryDocumentService} 的**解析 / 落盘管线子模块**（步骤 2）：异步投递与重试、
@@ -180,12 +180,12 @@ final class TemporaryDocumentProcessor {
     /** 读回 processing_options（键名＝Java 字段名，与 {@code CreateOptions.toJson} 同源）。 */
     static CreateOptions optionsOf(TemporaryDocument document) {
         try {
-            tools.jackson.databind.JsonNode node = TemporaryDocumentService.MAPPER.readTree(
+            com.fasterxml.jackson.databind.JsonNode node = TemporaryDocumentService.MAPPER.readTree(
                     document.getProcessingOptions() == null ? "{}" : document.getProcessingOptions());
-            return new CreateOptions(node.path("parserEngine").asString(""),
+            return new CreateOptions(node.path("parserEngine").asText(""),
                     node.path("resourceTenantId").asLong(0),
-                    node.path("asrModelId").asString(""),
-                    node.path("vlmModelId").asString(""),
+                    node.path("asrModelId").asText(""),
+                    node.path("vlmModelId").asText(""),
                     node.path("imageUnderstanding").asBoolean(false),
                     node.path("ocrMaxPages").asInt(0));
         } catch (Exception e) {

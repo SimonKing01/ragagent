@@ -1,5 +1,6 @@
 package com.ragagent.retrieval.engine.opensearch;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.retrieval.engine.opensearch.OpenSearchRetrieveRepository.DimInit;
 import com.ragagent.retrieval.engine.opensearch.OpenSearchRetrieveRepository.InternalCfg;
 import java.io.IOException;
@@ -14,7 +15,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * OpenSearch 引擎的惰性初始化/建索引/探针/别名簇：逐维 once（transient 可重置）、
@@ -276,8 +276,8 @@ final class OpenSearchAdminOps {
                 + ", M=" + emb.path("method").path("parameters").path("m").asInt()
                 + ", EFConstruction="
                 + emb.path("method").path("parameters").path("ef_construction").asInt()
-                + ", Engine=" + emb.path("method").path("engine").asString()
-                + ", SpaceType=" + emb.path("method").path("space_type").asString();
+                + ", Engine=" + emb.path("method").path("engine").asText()
+                + ", SpaceType=" + emb.path("method").path("space_type").asText();
     }
 
 
@@ -315,8 +315,8 @@ final class OpenSearchAdminOps {
                     OpenSearchDriverException.Kind.TRANSPORT,
                     "opensearch: cluster info: transport error: opensearch: transport error");
         }
-        String distribution = version.path("distribution").asString("");
-        String number = version.path("number").asString("");
+        String distribution = version.path("distribution").asText("");
+        String number = version.path("number").asText("");
         if (!"opensearch".equals(distribution)) {
             throw new OpenSearchDriverException(
                     OpenSearchDriverException.Kind.VERSION_UNSUPPORTED,
@@ -363,12 +363,12 @@ final class OpenSearchAdminOps {
         }
         Map<String, Boolean> nodes = new LinkedHashMap<>();
         for (JsonNode row : rows) {
-            String name = row.path("name").asString("");
+            String name = row.path("name").asText("");
             if (name.isEmpty()) {
                 continue;
             }
             nodes.putIfAbsent(name, false);
-            if ("opensearch-knn".equals(row.path("component").asString(""))) {
+            if ("opensearch-knn".equals(row.path("component").asText(""))) {
                 nodes.put(name, true);
             }
         }

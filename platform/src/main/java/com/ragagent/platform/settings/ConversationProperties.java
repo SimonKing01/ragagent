@@ -1,12 +1,12 @@
 package com.ragagent.platform.settings;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.prompt.PromptSource;
 import com.ragagent.platform.web.JsonMappers;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * config.yaml 的 conversation 段 + prompt_templates 回填（缺省值取自 dev 配置）。
@@ -118,11 +118,11 @@ public class ConversationProperties {
                     continue;
                 }
                 for (JsonNode t : list) {
-                    String id = t.path("id").asString("");
+                    String id = t.path("id").asText("");
                     if (id.isEmpty() || byId.containsKey(id)) {
                         continue;
                     }
-                    byId.put(id, new String[] {t.path("content").asString(""), t.path("user").asString("")});
+                    byId.put(id, new String[] {t.path("content").asText(""), t.path("user").asText("")});
                 }
             } catch (Exception ignored) {
                 // 目录/文件缺失 → 跳过

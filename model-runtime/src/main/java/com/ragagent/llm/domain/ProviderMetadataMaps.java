@@ -1,9 +1,9 @@
 package com.ragagent.llm.domain;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * providerMetadata 的形状转换：llm 协议面树形（{@code Map<String, JsonNode>}）⇄ 契约面不透明

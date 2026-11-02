@@ -1,5 +1,6 @@
 package com.ragagent.knowledge.task;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.knowledge.dto.doc.KnowledgeMoveProgress;
 import com.ragagent.knowledge.dto.kb.KBCloneProgress;
 import com.ragagent.knowledge.support.KnowledgeTaskProgressStore;
@@ -8,7 +9,6 @@ import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@link KnowledgeTaskProgressStore} 的 <b>Redis</b> 实现（跨实例进度可见）。

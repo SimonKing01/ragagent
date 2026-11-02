@@ -1,14 +1,14 @@
 package com.ragagent.embedding.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.embedding.EmbedderPooler;
 import com.ragagent.embedding.EmbeddingHttp;
 import com.ragagent.platform.web.ProviderJson;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 阿里云 DashScope 多模态 embedding 客户端。
@@ -80,10 +80,10 @@ public final class AliyunEmbedder extends BaseEmbedder {
 
         if (resp.status() != 200) {
             JsonNode errResp = ProviderJson.parse(resp.bodyText());
-            if (errResp != null && !errResp.path("message").asString("").isEmpty()) {
+            if (errResp != null && !errResp.path("message").asText("").isEmpty()) {
                 throw new EmbeddingHttp.EmbeddingException("API error: "
-                        + errResp.path("code").asString("") + " - "
-                        + errResp.path("message").asString(""));
+                        + errResp.path("code").asText("") + " - "
+                        + errResp.path("message").asText(""));
             }
             throw new EmbeddingHttp.EmbeddingException("BatchEmbed API error: Http Status "
                     + resp.statusLine());

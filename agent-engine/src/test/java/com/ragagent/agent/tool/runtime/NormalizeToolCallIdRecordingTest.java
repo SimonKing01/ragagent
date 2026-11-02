@@ -2,10 +2,10 @@ package com.ragagent.agent.tool.runtime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenA;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * NormalizeToolCallId 的录制判定（9 条）。确定性生成（空 id → 同一 tool+index 同值）、
@@ -30,10 +30,10 @@ class NormalizeToolCallIdRecordingTest {
         for (String name : CASES) {
             JsonNode r = RecordingSupport.rec(field(name));
             String got = NormalizeToolCallId.normalize(
-                    r.get("in").asString(), r.get("tool").asString(), r.get("index").asInt());
+                    r.get("in").asText(), r.get("tool").asText(), r.get("index").asInt());
             assertThat(got)
-                    .as("normalize %s", r.get("id").asString())
-                    .isEqualTo(r.get("out").asString());
+                    .as("normalize %s", r.get("id").asText())
+                    .isEqualTo(r.get("out").asText());
         }
     }
 

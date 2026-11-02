@@ -1,5 +1,7 @@
 package com.ragagent.session.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.agent.AgentLookup;
 import com.ragagent.contract.agent.AgentLookup.AgentView;
 import com.ragagent.platform.access.TenantContext;
@@ -7,8 +9,6 @@ import com.ragagent.platform.web.JsonMappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * agent 解析。
@@ -69,7 +69,7 @@ public class AgentResolver {
         String config = agent.configJson();
         try {
             return (ObjectNode) MAPPER.readTree(config == null ? "{}" : config);
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
             throw new RuntimeException("failed to parse agent config: " + e.getMessage(), e);
         }
     }

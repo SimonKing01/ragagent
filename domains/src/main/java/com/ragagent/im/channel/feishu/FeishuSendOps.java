@@ -1,6 +1,7 @@
 package com.ragagent.im.channel.feishu;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.im.runtime.ImTypes;
 import com.ragagent.im.runtime.IncomingMessage;
 import com.ragagent.im.runtime.ReplyMessage;
@@ -13,7 +14,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 飞书发送协作者：reply API 优先、可回落错误码时改走
@@ -118,7 +118,7 @@ final class FeishuSendOps {
             HttpResponse<byte[]> response = service.http.send(request,
                     HttpResponse.BodyHandlers.ofByteArray());
             JsonNode node = FeishuAdapter.readTree(response.body());
-            return new ApiResult(node.path("code").asInt(0), node.path("msg").asString(""), null);
+            return new ApiResult(node.path("code").asInt(0), node.path("msg").asText(""), null);
         } catch (java.io.IOException e) {
             return new ApiResult(0, "", e);
         }

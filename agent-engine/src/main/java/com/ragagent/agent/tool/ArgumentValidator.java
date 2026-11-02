@@ -1,6 +1,6 @@
 package com.ragagent.agent.tool;
 
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * 可选的自定义参数校验接口。

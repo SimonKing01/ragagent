@@ -1,5 +1,6 @@
 package com.ragagent.websearch.domain;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.security.CryptoService;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.websearch.config.WebSearchProviderParams;
@@ -11,7 +12,6 @@ import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * web_search_providers.parameters jsonb 列的 TypeHandler。

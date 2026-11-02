@@ -22,8 +22,8 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -153,12 +153,12 @@ class SystemContractTest {
         String java = raw(r);
         // PR4：外壳与键集改树断言（键序已归一）
         {
-            var root = new tools.jackson.databind.ObjectMapper().readTree(java);
+            var root = new com.fasterxml.jackson.databind.ObjectMapper().readTree(java);
             // 统一外壳下先下钻 data（旧形态无壳时保持原样）
             if (root.isObject() && root.has("code") && root.has("data")) {
                 root = root.get("data");
             }
-            assertThat(root.path("edition").asString()).isEqualTo("standard");
+            assertThat(root.path("edition").asText()).isEqualTo("standard");
         }
         String goldenCaps = golden("sys-capabilities.json");
         for (String key : subsetKeys(goldenCaps).split("\\|")) {
@@ -233,23 +233,23 @@ class SystemContractTest {
         // 未连接 → builtin 不可用；simple 恒可用；unavailableReason 恒输出（录制探针无 json tag）
         // PR4：相邻键子串在键序归一后不可靠 → 树断言
         {
-            var root = new tools.jackson.databind.ObjectMapper().readTree(java);
+            var root = new com.fasterxml.jackson.databind.ObjectMapper().readTree(java);
             // 统一外壳下先下钻 data
             if (root.isObject() && root.has("code") && root.has("data")) {
                 root = root.get("data");
             }
             var engines = root.path("engines");
             assertThat(engines.isArray()).isTrue();
-            tools.jackson.databind.JsonNode hit = null;
+            com.fasterxml.jackson.databind.JsonNode hit = null;
             for (var e : engines) {
-                if ("builtin".equals(e.path("name").asString())) {
+                if ("builtin".equals(e.path("name").asText())) {
                     hit = e;
                     break;
                 }
             }
             assertThat(hit).as("builtin engine row").isNotNull();
             assertThat(hit.path("available").asBoolean()).isFalse();
-            assertThat(hit.path("unavailableReason").asString())
+            assertThat(hit.path("unavailableReason").asText())
                     .isEqualTo("DocReader service not connected");
         }
     }
@@ -546,8 +546,8 @@ class SystemContractTest {
 
         // 平台 key 打 settings（无 platform 能力 → 403 门禁文案）
         // PR4：键序归一后邻接正则不可靠 → Jackson 直取
-        String key = new tools.jackson.databind.ObjectMapper()
-                .readTree(raw(created)).path("data").path("token").asString();   // 外壳下钻
+        String key = new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(raw(created)).path("data").path("token").asText();   // 外壳下钻
         assertThat(key).startsWith("sk-");
         MvcResult guard = mockMvc.perform(get("/api/v1/system/admin/settings")
                 .header("X-API-Key", key)).andReturn();
@@ -566,7 +566,7 @@ class SystemContractTest {
         assertEquals(golden("adm-key-delete-badid.json"), raw(dbad));
 
         // PR4：键序归一后邻接正则不可靠 → Jackson 直取
-        long delId = new tools.jackson.databind.ObjectMapper()
+        long delId = new com.fasterxml.jackson.databind.ObjectMapper()
                 .readTree(raw(created)).path("data").path("id").asLong();   // 外壳下钻
         MvcResult del = mockMvc.perform(delete("/api/v1/system/admin/api-keys/" + delId)
                 .header("Authorization", sysAdmin)).andReturn();
@@ -763,8 +763,8 @@ class SystemContractTest {
         return builder.contentType("application/json").content(body);
     }
 
-    private static final tools.jackson.databind.ObjectMapper RAW_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper RAW_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String raw(MvcResult r) throws Exception {
         // PR4 语义比较：与 golden 同侧归一（非 JSON 文本原样）
@@ -777,8 +777,8 @@ class SystemContractTest {
         return s.replaceAll("\"tenantId\":\\d+", "\"tenantId\":<tid>");
     }
 
-    private static final tools.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String golden(String name) throws Exception {
         // PR4 语义比较：键序/HTML 转义归一后返回（非 JSON 文本原样），断言侧不变

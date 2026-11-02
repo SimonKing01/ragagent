@@ -9,6 +9,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.mcp.approval.Decision;
 import com.ragagent.mcp.approval.ToolApprovalException;
@@ -19,7 +20,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@code ResolveToolApproval} 的行为契约。

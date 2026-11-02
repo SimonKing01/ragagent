@@ -1,5 +1,6 @@
 package com.ragagent.datasource.connector.feishu.core;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.datasource.domain.DataSourceConfig;
 import com.ragagent.datasource.domain.connector.ConnectorException;
 import com.ragagent.datasource.domain.connector.ConnectorHttp;
@@ -13,7 +14,6 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 飞书连接器的共享纯函数（附件白名单、图片嗅探、配置解析、

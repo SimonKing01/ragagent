@@ -1,5 +1,8 @@
 package com.ragagent.session.assembly;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.agenttools.datasource.DataAnalysisSessionFactoryAdapter;
 import com.ragagent.contract.knowledge.KnowledgeBaseRowView;
 import com.ragagent.contract.knowledge.KnowledgeBaseView;
@@ -58,9 +61,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * chat 管线 + QA 面装配（docs/known-issues/05-wave-4.md 的 11 seam 清单）。
@@ -147,7 +147,7 @@ public class QaWiring {
                         return null;
                     }
                     return JsonMappers.lenient().treeToValue(webSearch, WebSearchConfig.class);
-                } catch (JacksonException e) {
+                } catch (RuntimeException | JsonProcessingException e) {
                     return null;
                 }
             }
@@ -324,9 +324,9 @@ public class QaWiring {
             JsonNode list = root.get("templates");
             if (list != null && list.isArray()) {
                 for (JsonNode t : list) {
-                    String id = t.path("id").asString("");
+                    String id = t.path("id").asText("");
                     if (!id.isEmpty()) {
-                        out.put(id, t.path("content").asString(""));
+                        out.put(id, t.path("content").asText(""));
                     }
                 }
             }

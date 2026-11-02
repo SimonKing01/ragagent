@@ -16,7 +16,7 @@ public final class Tools45cFakes {
     }
 
     /** 按 group+id 取录制常量（R_<GROUP>_<ID>，id 大写化）。 */
-    public static tools.jackson.databind.JsonNode rec45c(String group, String id) {
+    public static com.fasterxml.jackson.databind.JsonNode rec45c(String group, String id) {
         String name = "R_" + group.toUpperCase().replace('-', '_')
                 + "_" + id.toUpperCase().replace('-', '_');
         try {

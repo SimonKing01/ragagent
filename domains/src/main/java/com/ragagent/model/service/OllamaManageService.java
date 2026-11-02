@@ -1,5 +1,9 @@
 package com.ragagent.model.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.model.OllamaAdminPort;
@@ -16,10 +20,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * ollama 管理端点用例：status/models/check/download/progress 与拉取任务机制。
@@ -127,7 +127,7 @@ public final class OllamaManageService {
         if (available) {
             ObjectNode data = MAPPER.createObjectNode();
             data.put("modelName", modelName);
-            data.putRawValue("progress", new tools.jackson.databind.util.RawValue(Double.toString(100.0)));
+            data.putRawValue("progress", new com.fasterxml.jackson.databind.util.RawValue(Double.toString(100.0)));
             data.put("status", "completed");
             data.put("message", "模型已存在");
             return data;
@@ -137,7 +137,7 @@ public final class OllamaManageService {
             // 幂等：已有进行中的任务 → 裸任务对象原样返回
             ObjectNode data = MAPPER.createObjectNode();
             data.put("modelName", existing.modelName);
-            data.putRawValue("progress", new tools.jackson.databind.util.RawValue(Double.toString(existing.progress)));
+            data.putRawValue("progress", new com.fasterxml.jackson.databind.util.RawValue(Double.toString(existing.progress)));
             data.put("status", existing.status);
             data.put("taskId", existing.id);
             return data;
@@ -147,7 +147,7 @@ public final class OllamaManageService {
         Thread.ofVirtual().start(() -> downloadModelAsync(taskId, modelName));
         ObjectNode data = MAPPER.createObjectNode();
         data.put("modelName", modelName);
-        data.putRawValue("progress", new tools.jackson.databind.util.RawValue(Double.toString(0.0)));
+        data.putRawValue("progress", new com.fasterxml.jackson.databind.util.RawValue(Double.toString(0.0)));
         data.put("status", "pending");
         data.put("taskId", taskId);
         data.put("message", "模型下载任务已创建");
@@ -191,7 +191,7 @@ public final class OllamaManageService {
         n.put("id", task.id);
         n.put("modelName", task.modelName);
         n.put("status", task.status);
-        n.putRawValue("progress", new tools.jackson.databind.util.RawValue(Double.toString(task.progress)));
+        n.putRawValue("progress", new com.fasterxml.jackson.databind.util.RawValue(Double.toString(task.progress)));
         n.put("message", task.message);
         n.put("startTime", JsonBodies.isoTime(task.startTime));
         if (task.endTime != null) {
@@ -246,7 +246,7 @@ public final class OllamaManageService {
         JsonNode models = n.get("models");
         List<String> out = new ArrayList<>();
         if (models != null && models.isArray()) {
-            models.forEach(m -> out.add(m.asString("")));
+            models.forEach(m -> out.add(m.asText("")));
         }
         if (models == null || !models.isArray() || out.isEmpty()) {
             throw new BizException(AppError.badRequest(

@@ -1,15 +1,16 @@
 package com.ragagent.platform.web;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.ragagent.contract.json.ByteKeyOrder;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueSerializer;
 
 /**
  * 让 {@code Map} 的输出键序确定且稳定：<b>按键排序，且递归到嵌套的 map 与数组</b>。
@@ -39,7 +40,7 @@ import tools.jackson.databind.ValueSerializer;
  *       键序约定（PG 的 jsonb 规范化序），<b>不要</b>套到这里来——那会打破既定的 golden 用例。</li>
  * </ul>
  */
-public class SortedMapSerializer extends ValueSerializer<Map<String, Object>> {
+public class SortedMapSerializer extends JsonSerializer<Map<String, Object>> {
 
     /**
      * 字符串序：逐 UTF-8 字节比较，短者在前（实现上提至 {@link ByteKeyOrder}，此处保留别名）。
@@ -49,23 +50,24 @@ public class SortedMapSerializer extends ValueSerializer<Map<String, Object>> {
     /**
      * 让「空 map 被 {@code @JsonInclude(NON_EMPTY)} 省略」继续生效。
      *
-     * <p>踩坑：{@code ValueSerializer.isEmpty} 的默认实现<b>只看 {@code value == null}</b>——
+     * <p>踩坑：{@code JsonSerializer.isEmpty} 的默认实现<b>只看 {@code value == null}</b>——
      * 一旦字段挂上自定义序列化器，Jackson 就不再调用 {@code MapSerializer.isEmpty} 去判"空容器"，
      * 于是「空则省略」语义会退化成"空 map 也输出 {@code {}}"。
      * 由 {@code StreamResponseBuilderTest.omitsEmptyDataMap} 钉住。</p>
      */
     @Override
-    public boolean isEmpty(SerializationContext provider, Map<String, Object> value) {
+    public boolean isEmpty(SerializerProvider provider, Map<String, Object> value) {
         return value == null || value.isEmpty();
     }
 
     @Override
-    public void serialize(Map<String, Object> value, JsonGenerator gen, SerializationContext serializers) {
+    public void serialize(Map<String, Object> value, JsonGenerator gen, SerializerProvider serializers)
+            throws IOException {
         if (value == null) {
             gen.writeNull();
             return;
         }
-        gen.writePOJO(sortDeep(value));
+        gen.writeObject(sortDeep(value));
     }
 
     /**

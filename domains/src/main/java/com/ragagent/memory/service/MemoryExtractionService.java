@@ -1,5 +1,7 @@
 package com.ragagent.memory.service;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.memory.MemoryConfig;
 import com.ragagent.contract.memory.MemoryKeys;
 import com.ragagent.contract.memory.MemoryKinds;
@@ -35,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 后台蒸馏：把一段对话变成记忆。
@@ -61,7 +62,8 @@ public class MemoryExtractionService implements MemoryExtractHandler {
 
     private static final Logger log = LoggerFactory.getLogger(MemoryExtractionService.class);
 
-    static final ObjectMapper MAPPER = JsonMappers.lenient();
+    static final ObjectMapper MAPPER = JsonMappers.lenient()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     /** 一次运行读多少对话。 */
     static final int EXTRACT_MAX_MESSAGES_PER_RUN = 40;

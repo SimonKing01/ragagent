@@ -1,8 +1,10 @@
 package com.ragagent.datasource.connector.notion;
 
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
  * Notion 连接器内部的 JSON 编解码器。
@@ -34,7 +36,10 @@ final class NotionJson {
     private NotionJson() {
     }
 
-    static final ObjectMapper MAPPER = JsonMapper.builder().disable(tools.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    static final ObjectMapper MAPPER = JsonMapper.builder()
+            .addModule(new JavaTimeModule())
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .configure(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE, false)
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .build();
 }

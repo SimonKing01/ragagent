@@ -1,9 +1,9 @@
 package com.ragagent.storage.fileserve;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.tenant.TenantConfigLookup.TenantStorageView;
 import com.ragagent.storage.domain.StorageBackend;
 import com.ragagent.storage.repository.StorageBackendRepository;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 存储 backend 解析：显式 id → legacy alias → 租户默认后端；并补全 stub 租户视图
@@ -68,9 +68,9 @@ final class StorageBackendLocator {
             return "";
         }
         JsonNode dp = sec.get("defaultProvider");
-        if (dp == null || !dp.isString()) {
+        if (dp == null || !dp.isTextual()) {
             return "";
         }
-        return dp.asString().trim().toLowerCase(java.util.Locale.ROOT);
+        return dp.asText().trim().toLowerCase(java.util.Locale.ROOT);
     }
 }

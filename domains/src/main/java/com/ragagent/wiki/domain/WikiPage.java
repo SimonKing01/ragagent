@@ -6,12 +6,12 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.ragagent.platform.persistence.PgJsonTypeHandler;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * wiki_pages 表实体。JSON 键为 snake（前端按此解析）。

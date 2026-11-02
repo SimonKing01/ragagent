@@ -2,11 +2,11 @@ package com.ragagent.agent.tool.runtime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenA;
 import com.ragagent.contract.agent.ThinkBlocks;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * ThinkBlocks.stripThinkBlocks 的录制语料（11 条）。多行块/多个块/仅块/周围空白/未闭合/
@@ -32,10 +32,10 @@ class StripThinkRecordingTest {
     void corpusMatchesAgentPromptGolden() {
         for (String name : CASES) {
             JsonNode r = RecordingSupport.rec(field(name));
-            String got = ThinkBlocks.stripThinkBlocks(r.get("in").asString());
+            String got = ThinkBlocks.stripThinkBlocks(r.get("in").asText());
             assertThat(got)
-                    .as("strip %s", r.get("id").asString())
-                    .isEqualTo(r.get("out").asString());
+                    .as("strip %s", r.get("id").asText())
+                    .isEqualTo(r.get("out").asText());
         }
     }
 

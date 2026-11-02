@@ -1,11 +1,11 @@
 package com.ragagent.session.qa;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.agent.AgentStep;
 import com.ragagent.session.domain.message.Message;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /** QA 编排的共享小工具（阶段 5 从 {@code KnowledgeQaController} 的静态助手迁出）。 */
 public final class QaTurnSupport {
@@ -18,8 +18,8 @@ public final class QaTurnSupport {
         List<String> out = new ArrayList<>();
         if (arr != null && arr.isArray()) {
             for (JsonNode n : arr) {
-                if (n.isString()) {
-                    out.add(n.asString());
+                if (n.isTextual()) {
+                    out.add(n.asText());
                 }
             }
         }

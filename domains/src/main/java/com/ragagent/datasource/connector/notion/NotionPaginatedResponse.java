@@ -1,7 +1,7 @@
 package com.ragagent.datasource.connector.notion;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Notion 分页响应的公共外壳。

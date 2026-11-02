@@ -1,10 +1,10 @@
 package com.ragagent.im.dto;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.domain.ImChannelEntity;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import tools.jackson.databind.ObjectMapper;
 
 /** IM 渠道响应行：键序与旧控制器逐字一致。 */
 public final class ImChannelRows {

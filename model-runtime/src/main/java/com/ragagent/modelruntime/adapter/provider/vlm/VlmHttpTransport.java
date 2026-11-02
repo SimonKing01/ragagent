@@ -1,5 +1,6 @@
 package com.ragagent.modelruntime.adapter.provider.vlm;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.modelruntime.adapter.provider.asr.OpenAiAsrTranscriber;
 import com.ragagent.platform.config.AppEnvLookup;
 import com.ragagent.platform.http.LlmTransport;
@@ -11,7 +12,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@link VlmClient.Transport} 的生产实现。

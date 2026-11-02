@@ -1,9 +1,9 @@
 package com.ragagent.datasource.connector.notion;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.datasource.domain.connector.ConnectorException;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 块树 → Markdown。
@@ -491,10 +491,10 @@ final class NotionMarkdown {
             return "";
         }
         JsonNode val = raw.get(key);
-        if (val == null || !val.isString()) {
+        if (val == null || !val.isTextual()) {
             return "";
         }
-        return val.stringValue();
+        return val.textValue();
     }
 
     /** 取布尔字段；取不到回 {@code false}。 */
@@ -523,12 +523,12 @@ final class NotionMarkdown {
             return "";
         }
         JsonNode typeNode = icon.get("type");
-        if (typeNode == null || !typeNode.isString()
-                || !"emoji".equals(typeNode.stringValue())) {
+        if (typeNode == null || !typeNode.isTextual()
+                || !"emoji".equals(typeNode.textValue())) {
             return "";
         }
         JsonNode emoji = icon.get("emoji");
-        return emoji != null && emoji.isString() ? emoji.stringValue() : "";
+        return emoji != null && emoji.isTextual() ? emoji.textValue() : "";
     }
 
     /** 文件对象 + 渲染后的 caption。 */
@@ -606,7 +606,7 @@ final class NotionMarkdown {
             return "";
         }
         JsonNode pageId = raw.get("page_id");
-        return pageId != null && pageId.isString() ? pageId.stringValue() : "";
+        return pageId != null && pageId.isTextual() ? pageId.textValue() : "";
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.ragagent.modelcontext;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.ragagent.contract.tool.ToolResult;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -7,8 +9,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.StringNode;
 
 /**
  * 给 LLM 的紧凑、以 source 为中心的工具结果渲染。规范的 ToolResult.Output 保持不动，供 UI/日志/存储。
@@ -85,14 +85,16 @@ final class ModelOutput {
     }
 
     private static void walkStructured(SourceRegistry r, String key, JsonNode value) {
-        if (value.isString()) {
-            r.registerSourceIDByKey(key, value.asString(), true);
+        if (value.isTextual()) {
+            r.registerSourceIDByKey(key, value.asText(), true);
         } else if (value.isArray()) {
             for (JsonNode item : value) {
                 walkStructured(r, key, item);
             }
         } else if (value.isObject()) {
-            for (var e : value.properties()) {
+            var fields = value.fields();
+            while (fields.hasNext()) {
+                var e = fields.next();
                 walkStructured(r, e.getKey(), e.getValue());
             }
         }
@@ -104,8 +106,8 @@ final class ModelOutput {
         }
         for (Map<String, JsonNode> row : rows) {
             for (Map.Entry<String, JsonNode> e : row.entrySet()) {
-                if (e.getValue().isString()) {
-                    r.registerSourceIDByKey(e.getKey(), e.getValue().asString(), true);
+                if (e.getValue().isTextual()) {
+                    r.registerSourceIDByKey(e.getKey(), e.getValue().asText(), true);
                 }
             }
         }
@@ -279,13 +281,13 @@ final class ModelOutput {
         int docTotal = intValue(data, "totalChunks");
         for (Map<String, JsonNode> row : rows) {
             if (stringValue(row, "knowledgeId").isEmpty()) {
-                row.put("knowledgeId", StringNode.valueOf(knowledgeId));
+                row.put("knowledgeId", TextNode.valueOf(knowledgeId));
             }
             if (stringValue(row, "knowledgeTitle").isEmpty()) {
-                row.put("knowledgeTitle", StringNode.valueOf(title));
+                row.put("knowledgeTitle", TextNode.valueOf(title));
             }
             if (docTotal > 0 && intValue(row, "totalChunks") == 0 && intValue(row, "totalChunkCount") == 0) {
-                row.put("totalChunks", tools.jackson.databind.node.IntNode.valueOf(docTotal));
+                row.put("totalChunks", com.fasterxml.jackson.databind.node.IntNode.valueOf(docTotal));
             }
         }
         String output = modelKnowledgeOutput(r, "deep_read", rows, fallback);
@@ -663,7 +665,9 @@ final class ModelOutput {
                 return null;
             }
             Map<String, JsonNode> row = new LinkedHashMap<>();
-            for (var e : item.properties()) {
+            var fields = item.fields();
+            while (fields.hasNext()) {
+                var e = fields.next();
                 row.put(e.getKey(), e.getValue());
             }
             rows.add(row);
@@ -679,8 +683,8 @@ final class ModelOutput {
         if (value instanceof String s) {
             return s;
         }
-        if (value instanceof JsonNode n && n.isString()) {
-            return n.asString();
+        if (value instanceof JsonNode n && n.isTextual()) {
+            return n.asText();
         }
         return "";
     }
@@ -720,10 +724,10 @@ final class ModelOutput {
         }
         List<String> values = new ArrayList<>(value.size());
         for (JsonNode item : value) {
-            if (!item.isString()) {
+            if (!item.isTextual()) {
                 return List.of();
             }
-            values.add(item.asString());
+            values.add(item.asText());
         }
         return values;
     }

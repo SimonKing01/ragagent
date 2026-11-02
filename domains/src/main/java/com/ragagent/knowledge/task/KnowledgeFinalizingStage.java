@@ -1,5 +1,6 @@
 package com.ragagent.knowledge.task;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.knowledge.domain.Chunk;
 import com.ragagent.knowledge.domain.ExtractChunkPayload;
 import com.ragagent.knowledge.domain.Knowledge;
@@ -27,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.ApplicationEventPublisher;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 入库收尾阶段：富化计划、finalizing 晋升、摘要/问题/图谱/wiki fan-out、槽位释放与终态收口。
@@ -166,7 +166,7 @@ final class KnowledgeFinalizingStage {
         }
         JsonNode wikiConfig = kb.getWikiConfig();
         if (wikiConfig != null && wikiConfig.isObject()
-                && !wikiConfig.path("synthesisModelId").asString("").isEmpty()) {
+                && !wikiConfig.path("synthesisModelId").asText("").isEmpty()) {
             return true;
         }
         return hasSummaryModel(kb);

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.domain.ImChannelEntity;
 import com.ragagent.im.runtime.CallbackExchange;
 import com.ragagent.im.runtime.ImTypes;
@@ -23,7 +24,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * QQ 机器人出站客户端行为测试：
@@ -58,7 +58,7 @@ class QqBotAdapterTest {
             Map<String, Object> parsed = raw.length == 0
                     ? Map.of()
                     : MAPPER.readValue(raw,
-                            new tools.jackson.core.type.TypeReference<Map<String, Object>>() {
+                            new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {
                             });
             Captured req = new Captured(exchange.getRequestURI().getPath(),
                     exchange.getRequestMethod(), parsed, exchange.getRequestHeaders());

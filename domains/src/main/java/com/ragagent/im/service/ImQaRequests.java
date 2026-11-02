@@ -1,5 +1,6 @@
 package com.ragagent.im.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.agent.AgentLookup;
 import com.ragagent.contract.json.JsonValues;
 import com.ragagent.contract.session.MessageAttachment;
@@ -10,7 +11,6 @@ import com.ragagent.im.runtime.ImFormat;
 import com.ragagent.im.runtime.IncomingMessage;
 import com.ragagent.im.service.ImTurnOrchestrator.InflightEntry;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * QA 管线的共享底座：agent 模式判定、IM 请求构造（含 agent config 缺省补全）、
@@ -32,7 +32,7 @@ final class ImQaRequests {
         }
         try {
             JsonNode cfg = ImTurnOrchestrator.JSON.readTree(configJson);
-            return "smart-reasoning".equals(cfg.path("agentMode").asString(""));
+            return "smart-reasoning".equals(cfg.path("agentMode").asText(""));
         } catch (Exception e) {
             return false;
         }

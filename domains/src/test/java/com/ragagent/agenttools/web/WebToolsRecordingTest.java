@@ -2,6 +2,8 @@ package com.ragagent.agenttools.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.tool.ToolCancellation;
 import com.ragagent.contract.tool.ToolRequest;
 import com.ragagent.contract.tool.ToolResult;
@@ -13,8 +15,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * web_search / web_fetch 工具钉。

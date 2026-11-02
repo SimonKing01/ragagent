@@ -13,6 +13,7 @@ import com.ragagent.contract.apikey.TenantAPIKeyScope;
 import com.ragagent.contract.tenant.APIPrincipalConfig;
 import com.ragagent.platform.access.TenantContext;
 import com.ragagent.platform.web.JsonMappers;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +46,7 @@ public class APIKeyAuthChannel {
     private static final int MAX_EXTERNAL_USER_ID_LEN = 128;
     private static final long MAX_EXTERNAL_USER_TOKEN_TTL_SECONDS = 24 * 3600L;
 
-    private static final tools.jackson.databind.ObjectMapper JSON_MAPPER =
+    private static final com.fasterxml.jackson.databind.ObjectMapper JSON_MAPPER =
             JsonMappers.lenient();
     private final TenantAPIKeyService apiKeyService;
     private final TenantService tenantService;
@@ -264,9 +265,9 @@ public class APIKeyAuthChannel {
             return null;
         }
         try {
-            tools.jackson.databind.JsonNode header = JSON_MAPPER.readTree(
+            com.fasterxml.jackson.databind.JsonNode header = JSON_MAPPER.readTree(
                     java.util.Base64.getUrlDecoder().decode(parts[0]));
-            if (!"HS256".equals(header.path("alg").asString(""))) {
+            if (!"HS256".equals(header.path("alg").asText(""))) {
                 return null;
             }
             javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
@@ -279,16 +280,16 @@ public class APIKeyAuthChannel {
             if (!java.security.MessageDigest.isEqual(expected, provided)) {
                 return null;
             }
-            tools.jackson.databind.JsonNode claims = JSON_MAPPER.readTree(
+            com.fasterxml.jackson.databind.JsonNode claims = JSON_MAPPER.readTree(
                     java.util.Base64.getUrlDecoder().decode(parts[1]));
             // aud 含 "weknora"（字符串或数组）
-            tools.jackson.databind.JsonNode aud = claims.get("aud");
+            com.fasterxml.jackson.databind.JsonNode aud = claims.get("aud");
             boolean audOk = false;
-            if (aud != null && aud.isString()) {
-                audOk = "weknora".equals(aud.asString());
+            if (aud != null && aud.isTextual()) {
+                audOk = "weknora".equals(aud.asText());
             } else if (aud != null && aud.isArray()) {
-                for (tools.jackson.databind.JsonNode a : aud) {
-                    if ("weknora".equals(a.asString())) {
+                for (com.fasterxml.jackson.databind.JsonNode a : aud) {
+                    if ("weknora".equals(a.asText())) {
                         audOk = true;
                         break;
                     }
@@ -297,7 +298,7 @@ public class APIKeyAuthChannel {
             if (!audOk) {
                 return null;
             }
-            tools.jackson.databind.JsonNode exp = claims.get("exp");
+            com.fasterxml.jackson.databind.JsonNode exp = claims.get("exp");
             if (exp == null || !exp.canConvertToLong()) {
                 return null; // WithExpirationRequired
             }
@@ -309,19 +310,19 @@ public class APIKeyAuthChannel {
             if (expAt - now > MAX_EXTERNAL_USER_TOKEN_TTL_SECONDS) {
                 return null; // token lifetime exceeds 24h
             }
-            tools.jackson.databind.JsonNode nbf = claims.get("nbf");
+            com.fasterxml.jackson.databind.JsonNode nbf = claims.get("nbf");
             if (nbf != null && nbf.canConvertToLong() && now < nbf.asLong()) {
                 return null;
             }
-            tools.jackson.databind.JsonNode tenantClaim = claims.get("tenant_id");
+            com.fasterxml.jackson.databind.JsonNode tenantClaim = claims.get("tenant_id");
             long gotTenant = tenantClaim != null && tenantClaim.canConvertToLong()
                     && tenantClaim.asLong() > 0 ? tenantClaim.asLong() : 0;
             if (gotTenant != tenantId) {
                 return null;
             }
-            String sub = claims.path("sub").asString("").trim();
+            String sub = claims.path("sub").asText("").trim();
             return sub.isEmpty() ? null : sub;
-        } catch (RuntimeException | java.security.GeneralSecurityException e) {
+        } catch (RuntimeException | java.security.GeneralSecurityException | IOException e) {
             return null;
         }
     }

@@ -2,6 +2,9 @@ package com.ragagent.datasource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.agent.fixtures.ContractJson;
 import com.ragagent.datasource.domain.DataSource;
 import com.ragagent.datasource.domain.DataSourceConfig;
@@ -26,8 +29,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * datasource 领域类型的**逐字节 JSON 契约**测试。
@@ -64,7 +65,8 @@ class DataSourceJsonTest {
     private static final ObjectMapper MAPPER = JsonMappers.lenient();
 
     /** jsonb 读路径用的**裸**映射器——必须容忍未知属性（约定 §9）。 */
-    private static final ObjectMapper JSONB = JsonMappers.lenient();
+    private static final ObjectMapper JSONB = JsonMappers.lenient()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private static String write(Object value) throws Exception {
         return MAPPER.writeValueAsString(value);

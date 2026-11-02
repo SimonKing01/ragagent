@@ -1,5 +1,6 @@
 package com.ragagent.datasource.connector.notion;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.datasource.domain.connector.Connector;
 import com.ragagent.datasource.domain.connector.ConnectorException;
 import com.ragagent.datasource.domain.connector.ConnectorHttp;
@@ -10,7 +11,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * Notion API 客户端：限流 + 重试 + 分页。
@@ -253,8 +253,8 @@ public final class NotionClient {
         if (dataSources != null && dataSources.isArray() && !dataSources.isEmpty()) {
             JsonNode first = dataSources.get(0);
             JsonNode idNode = first == null ? null : first.get("id");
-            if (idNode != null && idNode.isString()) {
-                dataSourceId = idNode.stringValue();
+            if (idNode != null && idNode.isTextual()) {
+                dataSourceId = idNode.textValue();
             }
         }
         return new NotionDatabaseInfo(db, dataSourceId);

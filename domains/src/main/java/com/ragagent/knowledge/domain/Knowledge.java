@@ -5,11 +5,11 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.knowledge.KnowledgeParseStatus;
 import com.ragagent.platform.persistence.PgJsonTypeHandler;
 import java.time.OffsetDateTime;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * knowledges 表实体。

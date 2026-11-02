@@ -1,7 +1,7 @@
 package com.ragagent.agentmanagement.dto;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.agentmanagement.domain.CustomAgentEntity;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 自定义 Agent 的「行 + 解析后配置」对（{@code CustomAgentService} 各方法的结果形状）。

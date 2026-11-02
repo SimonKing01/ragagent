@@ -1,5 +1,6 @@
 package com.ragagent.websearch.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.websearch.WebSearchResult;
 import com.ragagent.platform.web.ProviderJson;
 import com.ragagent.websearch.config.WebSearchProviderParams;
@@ -8,7 +9,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * Exa 搜索 provider。
@@ -87,7 +87,7 @@ public final class ExaProvider implements WebSearchProvider {
         if (data == null) {
             throw new SearchHttp.SearchHttpException("failed to unmarshal Exa response");
         }
-        String error = data.path("error").asString("");
+        String error = data.path("error").asText("");
         if (!error.isEmpty()) {
             throw new SearchHttp.SearchHttpException("exa API error: " + error);
         }
@@ -102,20 +102,20 @@ public final class ExaProvider implements WebSearchProvider {
                 if (i > 0) {
                     highlights.append('\n');
                 }
-                highlights.append(hl.get(i).asString(""));
+                highlights.append(hl.get(i).asText(""));
             }
             String snippet = highlights.toString().trim();
-            String content = truncateExaText(item.path("text").asString("").trim(), MAX_CONTENT_RUNES);
+            String content = truncateExaText(item.path("text").asText("").trim(), MAX_CONTENT_RUNES);
             if (snippet.isEmpty()) {
                 snippet = truncateExaText(content, 500);
             }
             WebSearchResult result = new WebSearchResult();
-            result.setTitle(item.path("title").asString(""));
-            result.setUrl(item.path("url").asString(""));
+            result.setTitle(item.path("title").asText(""));
+            result.setUrl(item.path("url").asText(""));
             result.setSnippet(snippet);
             result.setContent(content);
             result.setSource("exa");
-            String publishedDate = item.path("publishedDate").asString("");
+            String publishedDate = item.path("publishedDate").asText("");
             if (includeDate && !publishedDate.isEmpty()) {
                 OffsetDateTime t = BingProvider.parseRfc3339(publishedDate);
                 if (t != null) {

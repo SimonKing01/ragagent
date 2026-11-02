@@ -13,6 +13,8 @@ import static com.ragagent.wiki.controller.WikiRequestSupport.query;
 import static com.ragagent.wiki.controller.WikiRequestSupport.requiredFieldErrors;
 import static com.ragagent.wiki.controller.WikiRequestSupport.trimSpace;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.wiki.WikiPageNotFoundException;
 import com.ragagent.platform.web.ApiResponse;
@@ -35,8 +37,6 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 页面资源端点的执行体：CRUD、修订历史、回滚。KB 访问守卫与活动记账由

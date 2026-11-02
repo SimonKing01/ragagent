@@ -1,5 +1,6 @@
 package com.ragagent.platform.task;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
@@ -13,7 +14,6 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Redis 重试队列：把 {@link RedisTaskQueueCore} 的租约/续期/重投与

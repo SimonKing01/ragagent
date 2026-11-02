@@ -1,6 +1,7 @@
 package com.ragagent.agentmanagement.dto;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agentmanagement.domain.CustomAgentEntity;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.platform.web.ZeroTimeSerializer;
@@ -9,7 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import tools.jackson.databind.JsonNode;
 
 /**
  * agents CRUD 家族的响应构造（JSON 是契约）。
@@ -61,11 +61,11 @@ public final class AgentResponses {
     // 施加为 {code:0,message:"ok",data:…}；DELETE 的自定义文案由控制器直接返回
     // ApiResponse.ok(null, "Agent deleted successfully")。
 
-    private static final tools.jackson.databind.ObjectMapper MAPPER =
+    private static final com.fasterxml.jackson.databind.ObjectMapper MAPPER =
             JsonMappers.lenient();
 
-    private static tools.jackson.databind.JsonNode asTree(Object config) {
-        if (config instanceof tools.jackson.databind.JsonNode n) {
+    private static com.fasterxml.jackson.databind.JsonNode asTree(Object config) {
+        if (config instanceof com.fasterxml.jackson.databind.JsonNode n) {
             return n;
         }
         return MAPPER.valueToTree(config);
@@ -146,7 +146,7 @@ public final class AgentResponses {
 
     private static String text(JsonNode c, String field) {
         JsonNode n = c.get(field);
-        return n == null || n.isNull() ? "" : n.asString();
+        return n == null || n.isNull() ? "" : n.asText();
     }
 
     private static void ifStr(JsonNode c, String field, Map<String, Object> m) {
@@ -235,7 +235,7 @@ public final class AgentResponses {
             return;
         }
         Map<String, Object> sm = new TreeMap<>();
-        n.properties().forEach(e -> sm.put(e.getKey(), e.getValue().isNull() ? "" : e.getValue().asString()));
+        n.fields().forEachRemaining(e -> sm.put(e.getKey(), e.getValue().isNull() ? "" : e.getValue().asText()));
         m.put(field, sm);
     }
 
@@ -248,7 +248,7 @@ public final class AgentResponses {
         List<String> out = new ArrayList<>();
         if (n.isArray()) {
             for (JsonNode e : n) {
-                out.add(e.isNull() ? null : e.asString());
+                out.add(e.isNull() ? null : e.asText());
             }
             return out;
         }

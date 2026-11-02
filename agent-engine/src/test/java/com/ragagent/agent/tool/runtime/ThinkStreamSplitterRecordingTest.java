@@ -2,10 +2,10 @@ package com.ragagent.agent.tool.runtime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenA;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * ThinkStreamSplitter 的录制语料（13 组逐 chunk 语料）。标签跨 chunk 切分/未闭合
@@ -40,24 +40,24 @@ class ThinkStreamSplitterRecordingTest {
             for (int i = 0; i < feeds.size(); i++) {
                 JsonNode f = feeds.get(i);
                 ThinkStreamSplitter.FeedResult got;
-                if ("<flush>".equals(f.get("In").asString())) {
+                if ("<flush>".equals(f.get("In").asText())) {
                     got = sp.flush();
                 } else {
-                    got = sp.feed(f.get("In").asString());
+                    got = sp.feed(f.get("In").asText());
                 }
                 assertThat(got.think())
-                        .as("%s feed[%d].think", r.get("id").asString(), i)
-                        .isEqualTo(f.get("Think").asString());
+                        .as("%s feed[%d].think", r.get("id").asText(), i)
+                        .isEqualTo(f.get("Think").asText());
                 assertThat(got.answer())
-                        .as("%s feed[%d].answer", r.get("id").asString(), i)
-                        .isEqualTo(f.get("Answer").asString());
+                        .as("%s feed[%d].answer", r.get("id").asText(), i)
+                        .isEqualTo(f.get("Answer").asText());
                 thinkAll.append(got.think());
                 answerAll.append(got.answer());
             }
-            assertThat(thinkAll.toString()).as("%s thinkAll", r.get("id").asString())
-                    .isEqualTo(r.get("think").asString());
-            assertThat(answerAll.toString()).as("%s answerAll", r.get("id").asString())
-                    .isEqualTo(r.get("answer").asString());
+            assertThat(thinkAll.toString()).as("%s thinkAll", r.get("id").asText())
+                    .isEqualTo(r.get("think").asText());
+            assertThat(answerAll.toString()).as("%s answerAll", r.get("id").asText())
+                    .isEqualTo(r.get("answer").asText());
         }
     }
 

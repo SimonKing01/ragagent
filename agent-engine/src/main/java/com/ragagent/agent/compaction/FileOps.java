@@ -1,13 +1,13 @@
 package com.ragagent.agent.compaction;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.model.ChatMessage;
 import com.ragagent.contract.model.ToolCall;
 import com.ragagent.contract.tool.ToolDefinitions;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 沙箱文件操作在压缩中的存续。
@@ -152,7 +152,7 @@ final class FileOps {
             if (node == null || !node.isObject() || !node.hasNonNull("path")) {
                 return "";
             }
-            String p = node.get("path").asString("");
+            String p = node.get("path").asText("");
             return p == null ? "" : ConversationSerializer.trimUnicodeWhitespace(p);
         } catch (Exception e) {
             return "";

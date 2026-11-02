@@ -1,5 +1,8 @@
 package com.ragagent.memory.service;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.memory.MemoryKeys;
 import com.ragagent.contract.model.ChatMessage;
 import com.ragagent.contract.model.ChatOptions;
@@ -17,8 +20,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 把一次抽取产出的标签映射到这个人**已经有**的主体上。
@@ -43,7 +44,8 @@ public class MemoryTopicResolver {
 
     private static final Logger log = LoggerFactory.getLogger(MemoryTopicResolver.class);
 
-    private static final ObjectMapper MAPPER = JsonMappers.lenient();
+    private static final ObjectMapper MAPPER = JsonMappers.lenient()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     /**
      * 光靠二元组重合就判定两个标签是同一个主体的门槛。
@@ -387,7 +389,7 @@ public class MemoryTopicResolver {
                     one.index = row.path("index").asInt();
                     one.hasSameAs = row.hasNonNull("same_as");
                     one.sameAs = one.hasSameAs ? row.get("same_as").asInt() : 0;
-                    one.label = row.path("label").isNull() ? "" : row.path("label").asString("");
+                    one.label = row.path("label").isNull() ? "" : row.path("label").asText("");
                     parsed.add(one);
                 }
             }

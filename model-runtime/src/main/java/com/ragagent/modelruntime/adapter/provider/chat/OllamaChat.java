@@ -1,5 +1,8 @@
 package com.ragagent.modelruntime.adapter.provider.chat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.model.ChatConfig;
 import com.ragagent.contract.model.ChatMessage;
 import com.ragagent.contract.model.ChatOptions;
@@ -28,9 +31,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 本地 Ollama 聊天客户端。
@@ -193,9 +193,9 @@ public class OllamaChat implements LlmChatClient {
                             }
                             ObjectNode argsMap = tc.getFunction().getArguments();
                             JsonNode thought = argsMap == null ? null : argsMap.get("thought");
-                            if (thought != null && thought.isString() && !thought.asString().isEmpty()) {
+                            if (thought != null && thought.isTextual() && !thought.asText().isEmpty()) {
                                 StreamResponse thoughtChunk =
-                                        StreamResponse.of(ResponseType.THINKING, thought.asString(), false);
+                                        StreamResponse.of(ResponseType.THINKING, thought.asText(), false);
                                 // data 键按字母序序列化
                                 Map<String, Object> data = new LinkedHashMap<>();
                                 data.put("source", "thinking_tool");

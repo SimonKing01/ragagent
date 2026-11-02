@@ -2,6 +2,7 @@ package com.ragagent.embedding;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.model.Embedder;
 import com.ragagent.contract.model.ModelParameters;
 import com.ragagent.embedding.provider.AliyunEmbedder;
@@ -31,7 +32,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * embedding 客户端的 stub server A/B：请求体/路径/头部与录制
@@ -119,14 +119,14 @@ class EmbeddingWireTest {
         try (InputStream in = EmbeddingWireTest.class
                 .getResourceAsStream("/wire/" + name + ".json")) {
             assertNotNull(in, "wire recording missing: " + name);
-            return new tools.jackson.databind.ObjectMapper().readTree(in);
+            return new com.fasterxml.jackson.databind.ObjectMapper().readTree(in);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     static String wireBody(String name) {
-        return wire(name).path("body").asString();
+        return wire(name).path("body").asText();
     }
 
     private static List<float[]> embed(Embedder e, String... texts) {

@@ -1,6 +1,6 @@
 package com.ragagent.auth.dto;
 
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * api-principal 三端点的请求/响应类型（字段序 = JSON 键序）。
@@ -28,7 +28,7 @@ public final class APIPrincipalDtos {
 
     /**
      * PUT 请求体。用 {@code JsonNode} 区分"没发"与"显式空串/清空"：
-     * {@code null}=没发、NullNode=显式 null → 保留存量密钥；StringNode("…")=显式提供 → 覆盖。
+     * {@code null}=没发、NullNode=显式 null → 保留存量密钥；TextNode("…")=显式提供 → 覆盖。
      */
     public record APIPrincipalConfigRequest(
             String mode,
@@ -44,7 +44,7 @@ public final class APIPrincipalDtos {
 
         /** 显式提供的值（asText 宽容处理非文本节点） */
         public String hmacSecretValue() {
-            return hmacSecret == null || hmacSecret.isNull() ? null : hmacSecret.asString();
+            return hmacSecret == null || hmacSecret.isNull() ? null : hmacSecret.asText();
         }
     }
 

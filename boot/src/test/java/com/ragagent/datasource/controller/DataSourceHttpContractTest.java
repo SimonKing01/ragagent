@@ -38,11 +38,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -142,7 +142,7 @@ class DataSourceHttpContractTest {
     private TenantMapper tenantMapper;
     @Autowired
     private TenantMemberMapper memberMapper;
-    @MockitoBean
+    @MockBean
     private DataSourceSyncTaskQueue taskQueue;
 
     private String bearer;
@@ -285,15 +285,15 @@ class DataSourceHttpContractTest {
      * 顺序确实不同）。能稳定断言的是"条数 + 每个 type 的字段 + priority 非递减"。</p>
      */
     private void assertConnectorTypesMatchGo(String actualJson, String goldenFile) throws Exception {
-        tools.jackson.databind.ObjectMapper mapper = new tools.jackson.databind.ObjectMapper();
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         if (REFRESH_FIXTURES) {
             java.nio.file.Files.writeString(
                     com.ragagent.fixtures.ContractPaths.resolveForWrite(goldenFile), mask(actualJson));
             System.out.println("REFRESH " + goldenFile + "（顺序不稳定的目录：按掩码后的实际重录）");
             return;   // 必返回：ClassPathResource 读的是 build 产物里的旧副本
         }
-        tools.jackson.databind.JsonNode actual = mapper.readTree(actualJson);
-        tools.jackson.databind.JsonNode golden = mapper.readTree(golden(goldenFile));
+        com.fasterxml.jackson.databind.JsonNode actual = mapper.readTree(actualJson);
+        com.fasterxml.jackson.databind.JsonNode golden = mapper.readTree(golden(goldenFile));
         // 两侧都走统一外壳 ⇒ 比较载荷前先下钻 data
         if (actual.isObject() && actual.has("code") && actual.has("data")) {
             actual = actual.get("data");
@@ -303,18 +303,18 @@ class DataSourceHttpContractTest {
         }
 
         assertEquals(golden.size(), actual.size(), "连接器条数");
-        java.util.Map<String, tools.jackson.databind.JsonNode> byType = new java.util.HashMap<>();
+        java.util.Map<String, com.fasterxml.jackson.databind.JsonNode> byType = new java.util.HashMap<>();
         int lastPriority = Integer.MIN_VALUE;
-        for (tools.jackson.databind.JsonNode node : actual) {
-            byType.put(node.get("type").asString(), node);
+        for (com.fasterxml.jackson.databind.JsonNode node : actual) {
+            byType.put(node.get("type").asText(), node);
             int priority = node.get("priority").asInt();
             assertThat(priority).as("priority 必须非递减").isGreaterThanOrEqualTo(lastPriority);
             lastPriority = priority;
         }
-        for (tools.jackson.databind.JsonNode g : golden) {
-            tools.jackson.databind.JsonNode a = byType.get(g.get("type").asString());
-            assertThat(a).as("连接器 " + g.get("type").asString()).isNotNull();
-            assertEquals(g.toString(), a.toString(), "连接器 " + g.get("type").asString() + " 的字段");
+        for (com.fasterxml.jackson.databind.JsonNode g : golden) {
+            com.fasterxml.jackson.databind.JsonNode a = byType.get(g.get("type").asText());
+            assertThat(a).as("连接器 " + g.get("type").asText()).isNotNull();
+            assertEquals(g.toString(), a.toString(), "连接器 " + g.get("type").asText() + " 的字段");
         }
         // 内置连接器 icon 都是空串 → 空串照写（键不消失）
         assertThat(actualJson).contains("\"icon\":\"\"");
@@ -410,12 +410,12 @@ class DataSourceHttpContractTest {
         // config 里只有 settings（resource_ids 为 null → 键省略）
         // PR4：键序归一后邻接子串不可靠 → 树断言
         {
-            var root = new tools.jackson.databind.ObjectMapper().readTree(raw(r));
+            var root = new com.fasterxml.jackson.databind.ObjectMapper().readTree(raw(r));
             root = root.path("data");   // 统一外壳下钻
             var cfg = root.path("config");
-            org.assertj.core.api.Assertions.assertThat(cfg.path("type").asString()).isEqualTo("rss");
+            org.assertj.core.api.Assertions.assertThat(cfg.path("type").asText()).isEqualTo("rss");
             org.assertj.core.api.Assertions.assertThat(
-                    cfg.path("settings").path("feedUrls").asString()).isEqualTo(FEED_URL);
+                    cfg.path("settings").path("feedUrls").asText()).isEqualTo(FEED_URL);
             var creds = root.path("credentials").path("credentials");
             org.assertj.core.api.Assertions.assertThat(creds.path("configured").asBoolean()).isFalse();
         }
@@ -470,12 +470,12 @@ class DataSourceHttpContractTest {
         assertThat(body).doesNotContain("should-be-ignored");
         // config 里只剩 settings：credentials 被库里那份（null）整块替换掉了
         {
-            var root = new tools.jackson.databind.ObjectMapper().readTree(body);
+            var root = new com.fasterxml.jackson.databind.ObjectMapper().readTree(body);
             root = root.path("data");   // 统一外壳下钻
             var cfg = root.path("config");
-            org.assertj.core.api.Assertions.assertThat(cfg.path("type").asString()).isEqualTo("rss");
+            org.assertj.core.api.Assertions.assertThat(cfg.path("type").asText()).isEqualTo("rss");
             org.assertj.core.api.Assertions.assertThat(
-                    cfg.path("settings").path("feedUrls").asString()).isEqualTo(FEED_URL);
+                    cfg.path("settings").path("feedUrls").asText()).isEqualTo(FEED_URL);
         }
 
         // 库里真实的行没有被这些零值覆盖：type/status/schedule 都还在
@@ -662,7 +662,7 @@ class DataSourceHttpContractTest {
                 .header("Authorization", bearer));
         assertEquals(200, first.getResponse().getStatus(), raw(first));   // 204 退役 ⇒ 200 + 外壳
         assertEquals(com.ragagent.agent.fixtures.ContractJson.semantic(
-                new tools.jackson.databind.ObjectMapper(),
+                new com.fasterxml.jackson.databind.ObjectMapper(),
                 "{\"code\":0,\"message\":\"ok\",\"data\":null}"), raw(first));
 
         MvcResult second = perform(delete("/api/v1/datasource/" + id + "/credentials/credentials")
@@ -775,7 +775,7 @@ class DataSourceHttpContractTest {
         MvcResult r = perform(delete("/api/v1/datasource/" + id).header("Authorization", bearer));
         assertEquals(200, r.getResponse().getStatus(), raw(r));   // 204 退役 ⇒ 200 + 外壳
             assertEquals(com.ragagent.agent.fixtures.ContractJson.semantic(
-                    new tools.jackson.databind.ObjectMapper(),
+                    new com.fasterxml.jackson.databind.ObjectMapper(),
                     "{\"code\":0,\"message\":\"ok\",\"data\":null}"), raw(r));
 
         MvcResult after = perform(get("/api/v1/datasource/" + id).header("Authorization", bearer));
@@ -942,8 +942,8 @@ class DataSourceHttpContractTest {
     }
 
     /** 按**原始字节**取响应体（MockMvc 默认 ISO-8859-1 会让中文变成 mojibake，§9）。 */
-    private static final tools.jackson.databind.ObjectMapper RAW_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper RAW_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String raw(MvcResult r) throws Exception {
         // PR4 语义比较：与 golden 同侧归一（非 JSON 文本原样）
@@ -951,8 +951,8 @@ class DataSourceHttpContractTest {
                 r.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
     }
 
-    private static final tools.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String golden(String name) throws Exception {
         // PR4 语义比较：键序/HTML 转义归一后返回（非 JSON 文本原样），断言侧不变

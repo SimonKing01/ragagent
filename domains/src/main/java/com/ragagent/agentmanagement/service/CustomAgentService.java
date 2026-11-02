@@ -1,5 +1,8 @@
 package com.ragagent.agentmanagement.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.agentmanagement.domain.CustomAgentEntity;
 import com.ragagent.agentmanagement.dto.CustomAgentResult;
 import com.ragagent.agentmanagement.repository.AgentQuestionRepository;
@@ -22,9 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * agents CRUD 家族 service。
@@ -125,9 +125,9 @@ public class CustomAgentService {
     private CustomAgentResult virtualAgent(ObjectNode built, String id, long tenant, boolean builtin) {
         CustomAgentEntity virtual = new CustomAgentEntity();
         virtual.setId(id);
-        virtual.setName(built.path("name").asString(""));
-        virtual.setDescription(built.path("description").asString(""));
-        virtual.setAvatar(built.path("avatar").asString(""));
+        virtual.setName(built.path("name").asText(""));
+        virtual.setDescription(built.path("description").asText(""));
+        virtual.setAvatar(built.path("avatar").asText(""));
         virtual.setBuiltin(builtin);
         virtual.setTenantId(tenant);
         // ⚠️ 修复：合成行必须带上 config 字符串——运行时消费面
@@ -211,13 +211,13 @@ public class CustomAgentService {
         if (built == null) {
             return;
         }
-        if (!built.path("name").asString("").isEmpty()) {
-            row.setName(built.path("name").asString());
+        if (!built.path("name").asText("").isEmpty()) {
+            row.setName(built.path("name").asText());
         }
-        if (!built.path("description").asString("").isEmpty()) {
-            row.setDescription(built.path("description").asString());
+        if (!built.path("description").asText("").isEmpty()) {
+            row.setDescription(built.path("description").asText());
         }
-        row.setAvatar(built.path("avatar").asString());
+        row.setAvatar(built.path("avatar").asText());
     }
 
     /** 批量回填 creator_name：内建/空 created_by 跳过，命中用户则 username（回落 email）。 */
@@ -276,7 +276,7 @@ public class CustomAgentService {
         agent.setCreatedAt(now);
         agent.setUpdatedAt(now);
         agent.setBuiltin(false);
-        if (config.path("agentMode").asString("").isEmpty()) {
+        if (config.path("agentMode").asText("").isEmpty()) {
             config.put("agentMode", "quick-answer");
         }
         AgentConfigJson.ensureDefaults(config);

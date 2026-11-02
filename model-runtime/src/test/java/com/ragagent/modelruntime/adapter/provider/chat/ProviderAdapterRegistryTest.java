@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.model.ChatConfig;
 import com.ragagent.contract.model.ChatMessage;
 import com.ragagent.contract.model.ChatOptions;
@@ -18,9 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 
 /**
@@ -132,7 +132,7 @@ class ProviderAdapterRegistryTest {
                 Map.of("thinking_control", "thinking_type"));
         JsonNode body = outbound(generic, thinking(false), true);
         assertTrue(body.has("thinking"));
-        assertEquals("disabled", body.path("thinking").path("type").asString());
+        assertEquals("disabled", body.path("thinking").path("type").asText());
         assertFalse(body.has("chat_template_kwargs"));
 
         // 未指定 thinking_control → 沿用 adapter 的 chat_template_kwargs
@@ -165,7 +165,7 @@ class ProviderAdapterRegistryTest {
         // 火山引擎
         RemoteApiChat volc = newOutboundChat("volcengine", "doubao", null);
         JsonNode volcBody = outbound(volc, thinking(true), true);
-        assertEquals("enabled", volcBody.path("thinking").path("type").asString());
+        assertEquals("enabled", volcBody.path("thinking").path("type").asText());
 
         // LKEAP DeepSeek V3
         RemoteApiChat lkeap = newOutboundChat("lkeap", "deepseek-v3.1", null);
@@ -226,7 +226,7 @@ class ProviderAdapterRegistryTest {
         JsonNode body = gemini.buildOutbound(messages, new ChatOptions(), false, null).body();
         JsonNode toolCall = body.path("messages").get(1).path("tool_calls").get(0);
         assertEquals("gemini-signature",
-                toolCall.path("extra_content").path("google").path("thought_signature").asString());
+                toolCall.path("extra_content").path("google").path("thought_signature").asText());
     }
 
     /** 补测：非 gemini 适配器不得往 tool_call 里写 extra_content。 */
@@ -256,7 +256,7 @@ class ProviderAdapterRegistryTest {
         assertNull(gemini.extractToolCallMetadata(MAPPER.readTree("{\"extra_content\":{\"other\":1}}")));
         assertEquals("sig", gemini.extractToolCallMetadata(
                         MAPPER.readTree("{\"extra_content\":{\"google\":{\"thought_signature\":\"sig\"}}}"))
-                .get("google").path("thought_signature").asString());
+                .get("google").path("thought_signature").asText());
         // 显式 null 的 google 键视为存在 → 仍然往返
         Map<String, JsonNode> nullGoogle = gemini.extractToolCallMetadata(
                 MAPPER.readTree("{\"extra_content\":{\"google\":null}}"));

@@ -2,6 +2,8 @@ package com.ragagent.session.service.sse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.agent.fixtures.ContractJson;
 import com.ragagent.contract.model.ResponseType;
 import com.ragagent.contract.model.StreamResponse;
@@ -15,8 +17,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletResponse;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@link StreamResponseBuilder} 的逐字节契约测试。
@@ -66,13 +66,13 @@ class StreamResponseBuilderTest {
         // 重建结果**自身**（不是 data 直通）必须真的带上这些字段——
         // 若读者按错的键形状读，这里会全空（B135b1 修复的正是这个静默缺陷）
         JsonNode rebuilt = MAPPER.readTree(json).path("knowledgeReferences").path(0);
-        assertThat(rebuilt.path("knowledgeId").asString()).isEqualTo("kb-1");
+        assertThat(rebuilt.path("knowledgeId").asText()).isEqualTo("kb-1");
         assertThat(rebuilt.path("chunkIndex").asInt()).isEqualTo(3);
-        assertThat(rebuilt.path("knowledgeTitle").asString()).isEqualTo("t");
+        assertThat(rebuilt.path("knowledgeTitle").asText()).isEqualTo("t");
         assertThat(rebuilt.path("startAt").asInt()).isEqualTo(10);
         assertThat(rebuilt.path("endAt").asInt()).isEqualTo(20);
-        assertThat(rebuilt.path("knowledgeFilename").asString()).isEqualTo("a.md");
-        assertThat(rebuilt.path("knowledgeSource").asString()).isEqualTo("file");
+        assertThat(rebuilt.path("knowledgeFilename").asText()).isEqualTo("a.md");
+        assertThat(rebuilt.path("knowledgeSource").asText()).isEqualTo("file");
         assertThat(json).contains("\"data\":{\"references\":[");
         assertThat(json).contains("\"chunkIndex\":3");
         assertThat(json).contains("\"extra_unknown_key\":\"ignored\"");

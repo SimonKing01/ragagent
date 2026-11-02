@@ -1,5 +1,7 @@
 package com.ragagent.datasource.connector.ima;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.datasource.connector.ima.ImaApiTypes.FolderInfo;
 import com.ragagent.datasource.connector.ima.ImaApiTypes.GetAddableKnowledgeBaseListResp;
 import com.ragagent.datasource.connector.ima.ImaApiTypes.GetKnowledgeListResp;
@@ -27,8 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 腾讯 IMA（ima.qq.com）数据源连接器。
@@ -71,7 +71,8 @@ public class ImaConnector implements Connector {
      * <p>必须容忍未知属性：IMA 会在
      * 这些对象上继续加字段，严格模式会让整条列表解析失败。</p>
      */
-    private static final ObjectMapper MAPPER = JsonMappers.lenient();
+    private static final ObjectMapper MAPPER = JsonMappers.lenient()
+            .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private final ImaRetryPolicy retryPolicy;
 
@@ -410,7 +411,7 @@ public class ImaConnector implements Connector {
                             FolderInfo fi;
                             try {
                                 fi = MAPPER.treeToValue(raw, FolderInfo.class);
-                            } catch (RuntimeException e) {
+                            } catch (RuntimeException | java.io.IOException e) {
                                 continue;
                             }
                             String child = cur.path().isEmpty()
@@ -426,7 +427,7 @@ public class ImaConnector implements Connector {
                         KnowledgeInfo ki;
                         try {
                             ki = MAPPER.treeToValue(raw, KnowledgeInfo.class);
-                        } catch (RuntimeException e) {
+                        } catch (RuntimeException | java.io.IOException e) {
                             continue;
                         }
                         WalkedFile walked = new WalkedFile();
@@ -453,7 +454,7 @@ public class ImaConnector implements Connector {
             return "";
         }
         JsonNode v = node.get(field);
-        return v == null || !v.isString() ? "" : v.asString();
+        return v == null || !v.isTextual() ? "" : v.asText();
     }
 
     // ── 单条目抓取 ────────────────────────────────────────────────────────

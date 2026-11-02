@@ -3,6 +3,7 @@ package com.ragagent.platform.access;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
  * 可嵌入异步负载的观测上下文：
@@ -19,6 +20,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @param sessionId 跨异步边界保留的会话标签
  */
 
+// 键序显式钉住：record 分量上带 @JsonInclude 的属性会被 Jackson 2 提前到最前，
+// 不能依赖声明序（金片按字节锁）。
+@JsonPropertyOrder({"lf_trace_id", "lf_parent_obs_id", "lf_traceparent", "lf_user_id", "lf_session_id"})
 public record TracingContext(
         @JsonProperty("lf_trace_id")
         @JsonInclude(JsonInclude.Include.NON_EMPTY) String traceId,

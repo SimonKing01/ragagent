@@ -2,12 +2,12 @@ package com.ragagent.agent.tool;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.ContractJson;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenA;
 import com.ragagent.platform.web.ToolJson;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * ToolJson 的录制语料（9 条：把 JSON 解析成树再重编码）。
@@ -34,10 +34,10 @@ class ToolJsonRecordingTest {
     void reencodeMatchesAgentPromptGolden() {
         for (String name : CASES) {
             JsonNode r = RecordingSupport.rec(field(name));
-            JsonNode tree = RecordingSupport.readTree(r.get("in").asString());
+            JsonNode tree = RecordingSupport.readTree(r.get("in").asText());
             assertThat(ContractJson.deep(ToolJson.write(tree)))
-                    .as("codec %s", r.get("id").asString())
-                    .isEqualTo(ContractJson.deep(r.get("out").asString()));
+                    .as("codec %s", r.get("id").asText())
+                    .isEqualTo(ContractJson.deep(r.get("out").asText()));
         }
     }
 

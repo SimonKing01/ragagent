@@ -1,12 +1,12 @@
 package com.ragagent.auth.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.platform.web.JsonBodyErrors;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.platform.web.RequestFields;
 import com.ragagent.platform.web.ToolJson;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 租户目录的绑定错误形态助手（全静态）：
@@ -19,9 +19,9 @@ final class TenantBindSupport {
      *  JavaTimeModule 供含 created_at 等时间字段的全路径往返 */
     static final ObjectMapper MAPPER = JsonMappers.lenient();
     /** string 字段类型检查；违规返回字段级类型文案，否则 null。 */
-    static String stringFieldTypeError(tools.jackson.databind.JsonNode root, String field) {
-        tools.jackson.databind.JsonNode node = root.get(field);
-        if (node == null || node.isNull() || node.isString()) {
+    static String stringFieldTypeError(com.fasterxml.jackson.databind.JsonNode root, String field) {
+        com.fasterxml.jackson.databind.JsonNode node = root.get(field);
+        if (node == null || node.isNull() || node.isTextual()) {
             return null;
         }
         return RequestFields.wrongType(field, "string", ToolJson.nodeTypeLabel(node));

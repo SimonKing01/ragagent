@@ -1,5 +1,7 @@
 package com.ragagent.agent.tool;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.tool.BaseTool;
 import com.ragagent.contract.tool.ToolDefinitions;
 import com.ragagent.contract.tool.ToolRequest;
@@ -10,8 +12,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * todo_write 计划工具。
@@ -174,7 +174,7 @@ public class TodoWriteTool extends BaseTool {
     @Override
     public ToolResult execute(ToolRequest request) {
         JsonNode args = JsonMappers.toJsonNode(request.args());
-        String task = args.path("task").asString("");
+        String task = args.path("task").asText("");
         List<PlanStep> steps = parseSteps(args.get("steps"));
 
         if (task.isEmpty()) {
@@ -214,9 +214,9 @@ public class TodoWriteTool extends BaseTool {
         if (stepsNode.isArray()) {
             for (JsonNode n : stepsNode) {
                 steps.add(new PlanStep(
-                        n.path("id").asString(""),
-                        n.path("description").asString(""),
-                        n.path("status").asString("")));
+                        n.path("id").asText(""),
+                        n.path("description").asText(""),
+                        n.path("status").asText("")));
             }
         }
         return steps;

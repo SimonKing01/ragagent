@@ -1,5 +1,7 @@
 package com.ragagent.memory.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.memory.MemoryConfig;
 import com.ragagent.contract.tenant.TenantConfigLookup;
 import com.ragagent.memory.MemoryContext;
@@ -9,8 +11,6 @@ import com.ragagent.memory.repository.MemoryRepository;
 import com.ragagent.platform.web.JsonMappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 记忆三层开关的单次求值：workspace → agent → subject。

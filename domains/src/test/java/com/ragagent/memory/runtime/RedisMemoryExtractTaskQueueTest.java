@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.memory.domain.MemoryExtractHandler;
 import com.ragagent.memory.domain.MemoryExtractPayload;
 import com.ragagent.memory.service.MemoryExtractionService;
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@link RedisMemoryExtractTaskQueue} 的真 Redis 语义：执行与终态清理、

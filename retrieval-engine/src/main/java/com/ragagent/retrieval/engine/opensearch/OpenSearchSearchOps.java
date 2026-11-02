@@ -1,5 +1,6 @@
 package com.ragagent.retrieval.engine.opensearch;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.retrieval.engine.EngineTypes;
 import com.ragagent.retrieval.engine.EngineTypes.IndexWithScore;
 import com.ragagent.retrieval.engine.EngineTypes.RetrieveParams;
@@ -11,7 +12,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * OpenSearch 引擎的检索簇：k-NN（min_score 直通 COSINESIMIL）与 BM25 两路、
@@ -205,16 +205,16 @@ final class OpenSearchSearchOps {
         JsonNode hits = OpenSearchRetrieveRepository.MAPPER.readTree(response).path("hits").path("hits");
         for (JsonNode h : hits) {
             IndexWithScore s = new IndexWithScore();
-            s.id = h.path("_id").asString("");
+            s.id = h.path("_id").asText("");
             s.score = h.path("_score").asDouble(0);
             JsonNode source = h.path("_source");
-            s.chunkId = source.path("chunk_id").asString("");
-            s.knowledgeId = source.path("knowledge_id").asString("");
-            s.knowledgeBaseId = source.path("knowledge_base_id").asString("");
-            s.sourceId = source.path("source_id").asString("");
+            s.chunkId = source.path("chunk_id").asText("");
+            s.knowledgeId = source.path("knowledge_id").asText("");
+            s.knowledgeBaseId = source.path("knowledge_base_id").asText("");
+            s.sourceId = source.path("source_id").asText("");
             s.sourceType = source.path("source_type").asInt(0);
-            s.tagId = source.path("tag_id").asString("");
-            s.content = source.path("content").asString("");
+            s.tagId = source.path("tag_id").asText("");
+            s.content = source.path("content").asText("");
             s.isEnabled = source.path("is_enabled").asBoolean(false);
             if (!s.id.equals(s.chunkId)) {
                 // D12 不变量告警（_id 恒 = chunk_id）

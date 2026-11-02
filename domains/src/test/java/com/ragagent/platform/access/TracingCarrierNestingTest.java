@@ -3,6 +3,7 @@ package com.ragagent.platform.access;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.datasource.domain.DataSourceSyncPayload;
 import com.ragagent.datasource.domain.TaskInitiator;
 import com.ragagent.knowledge.domain.ExtractChunkPayload;
@@ -14,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 追踪载体形状：四个域的队列载荷统一为**嵌套 {@code tracing} 键**，

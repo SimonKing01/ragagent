@@ -3,6 +3,8 @@ package com.ragagent.retrieval.engine.weaviate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.vectorstore.IndexConfig;
 import com.ragagent.retrieval.engine.EngineTypes;
 import com.ragagent.retrieval.engine.EngineTypes.IndexInfo;
@@ -25,8 +27,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Weaviate 驱动：惰性建类
@@ -146,12 +146,12 @@ class WeaviateRetrieveRepositoryTest {
 
         Captured create = byMethodPath("POST", "/v1/schema");
         JsonNode body = create.json();
-        assertThat(body.path("class").asString()).isEqualTo("Weknora_embeddings_3");
-        assertThat(body.path("description").asString())
+        assertThat(body.path("class").asText()).isEqualTo("Weknora_embeddings_3");
+        assertThat(body.path("description").asText())
                 .isEqualTo("WeKnora embeddings collection with dimension 3");
         JsonNode embedding = body.path("vectorConfig").path("embedding");
-        assertThat(embedding.path("vectorIndexType").asString()).isEqualTo("hnsw");
-        assertThat(embedding.path("vectorIndexConfig").path("distance").asString())
+        assertThat(embedding.path("vectorIndexType").asText()).isEqualTo("hnsw");
+        assertThat(embedding.path("vectorIndexConfig").path("distance").asText())
                 .isEqualTo("cosine");
         assertThat(embedding.path("vectorIndexConfig").path("efConstruction").asInt())
                 .isEqualTo(128);
@@ -160,11 +160,11 @@ class WeaviateRetrieveRepositoryTest {
         assertThat(embedding.path("vectorIndexConfig").path("ef").asInt()).isEqualTo(64);
         assertThat(embedding.path("vectorizer").has("none")).isTrue();
         JsonNode content = body.path("properties").get(0);
-        assertThat(content.path("name").asString()).isEqualTo("content");
-        assertThat(content.path("tokenization").asString()).isEqualTo("gse");
+        assertThat(content.path("name").asText()).isEqualTo("content");
+        assertThat(content.path("tokenization").asText()).isEqualTo("gse");
         JsonNode enabled = body.path("properties").get(7);
-        assertThat(enabled.path("name").asString()).isEqualTo("is_enabled");
-        assertThat(enabled.path("dataType").get(0).asString()).isEqualTo("boolean");
+        assertThat(enabled.path("name").asText()).isEqualTo("is_enabled");
+        assertThat(enabled.path("dataType").get(0).asText()).isEqualTo("boolean");
         assertThat(enabled.path("indexFilterable").asBoolean()).isTrue();
         assertThat(body.path("replicationConfig").path("factor").asInt()).isEqualTo(2);
         assertThat(body.path("shardingConfig").path("desiredCount").asInt()).isEqualTo(3);
@@ -183,14 +183,14 @@ class WeaviateRetrieveRepositoryTest {
 
         Captured created = byMethodPath("POST", "/v1/objects");
         JsonNode body = created.json();
-        assertThat(body.path("class").asString()).isEqualTo("Weknora_embeddings_1");
-        assertThat(body.path("id").asString()).isEqualTo(CHUNK);
+        assertThat(body.path("class").asText()).isEqualTo("Weknora_embeddings_1");
+        assertThat(body.path("id").asText()).isEqualTo(CHUNK);
         assertThat(body.path("vector").get(0).asDouble()).isEqualTo(0.5);
         JsonNode props = body.path("properties");
-        assertThat(props.path("source_id").asString()).isEqualTo(CHUNK);
-        assertThat(props.path("chunk_id").asString()).isEqualTo(CHUNK);
-        assertThat(props.path("knowledge_id").asString()).isEqualTo("k1");
-        assertThat(props.path("knowledge_base_id").asString()).isEqualTo("kb1");
+        assertThat(props.path("source_id").asText()).isEqualTo(CHUNK);
+        assertThat(props.path("chunk_id").asText()).isEqualTo(CHUNK);
+        assertThat(props.path("knowledge_id").asText()).isEqualTo("k1");
+        assertThat(props.path("knowledge_base_id").asText()).isEqualTo("kb1");
         assertThat(props.path("is_enabled").asBoolean()).isTrue();
         assertThat(props.path("source_type").asInt()).isEqualTo(0);
 
@@ -218,9 +218,9 @@ class WeaviateRetrieveRepositoryTest {
 
         Captured batch = byMethodPath("POST", "/v1/batch/objects");
         JsonNode body = batch.json();
-        assertThat(body.path("fields").get(0).asString()).isEqualTo("ALL");
+        assertThat(body.path("fields").get(0).asText()).isEqualTo("ALL");
         assertThat(body.path("objects")).hasSize(3);
-        assertThat(body.path("objects").get(0).path("id").asString()).isIn(vectors.keySet());
+        assertThat(body.path("objects").get(0).path("id").asText()).isIn(vectors.keySet());
     }
 
     // ── 删除与更新 ─────────────────────────────────────────────────────────
@@ -232,13 +232,13 @@ class WeaviateRetrieveRepositoryTest {
         repo.deleteByChunkIdList(List.of(CHUNK), 3, "document");
         Captured del = byMethodPath("DELETE", "/v1/batch/objects");
         JsonNode body = del.json();
-        assertThat(body.path("output").asString()).isEqualTo("minimal");
-        assertThat(body.path("match").path("class").asString())
+        assertThat(body.path("output").asText()).isEqualTo("minimal");
+        assertThat(body.path("match").path("class").asText())
                 .isEqualTo("Weknora_embeddings_3");
         JsonNode where = body.path("match").path("where");
-        assertThat(where.path("operator").asString()).isEqualTo("ContainsAny");
-        assertThat(where.path("path").get(0).asString()).isEqualTo("chunk_id");
-        assertThat(where.path("valueTextArray").get(0).asString()).isEqualTo(CHUNK);
+        assertThat(where.path("operator").asText()).isEqualTo("ContainsAny");
+        assertThat(where.path("path").get(0).asText()).isEqualTo("chunk_id");
+        assertThat(where.path("valueTextArray").get(0).asText()).isEqualTo(CHUNK);
     }
 
     @Test
@@ -255,8 +255,8 @@ class WeaviateRetrieveRepositoryTest {
 
         Captured patch = byMethodPath("PATCH", "/v1/objects/Weknora_embeddings_3/" + CHUNK);
         JsonNode body = patch.json();
-        assertThat(body.path("class").asString()).isEqualTo("Weknora_embeddings_3");
-        assertThat(body.path("id").asString()).isEqualTo(CHUNK);
+        assertThat(body.path("class").asText()).isEqualTo("Weknora_embeddings_3");
+        assertThat(body.path("id").asText()).isEqualTo(CHUNK);
         assertThat(body.path("properties").path("is_enabled").asBoolean()).isFalse();
         assertThat(body.path("properties").size()).isEqualTo(1); // merge：只发变更字段
         assertThat(captured.stream().noneMatch(c -> c.path().contains("other_base"))).isTrue();
@@ -287,7 +287,7 @@ class WeaviateRetrieveRepositoryTest {
         List<RetrieveResult> results = repo.retrieve(params);
 
         Captured gql = byMethodPath("POST", "/v1/graphql");
-        String query = gql.json().path("query").asString();
+        String query = gql.json().path("query").asText();
         assertThat(query).isEqualTo(
                 "{Get {Weknora_embeddings_2 (where:{operator: And operands:[{operator: Equal "
                         + "path: [\"is_enabled\"] valueBoolean: true},{operator: ContainsAny "
@@ -396,21 +396,21 @@ class WeaviateRetrieveRepositoryTest {
         repo.copyIndices("srcKb", Map.of("k1", "tk1"), Map.of(c1, c2), "targetKb", 2, "document");
 
         Captured gql = byMethodPath("POST", "/v1/graphql");
-        assertThat(gql.json().path("query").asString()).contains("limit: 64, offset: 0")
+        assertThat(gql.json().path("query").asText()).contains("limit: 64, offset: 0")
                 .contains("_additional{id vectors{embedding}}");
         Captured batch = byMethodPath("POST", "/v1/batch/objects");
         JsonNode objects = batch.json().path("objects");
         assertThat(objects).hasSize(2);
         JsonNode first = objects.get(0);
-        assertThat(first.path("id").asString()).matches("[0-9a-f-]{36}");
-        assertThat(first.path("properties").path("source_id").asString()).isEqualTo(c2);
-        assertThat(first.path("properties").path("chunk_id").asString()).isEqualTo(c2);
-        assertThat(first.path("properties").path("knowledge_id").asString()).isEqualTo("tk1");
-        assertThat(first.path("properties").path("knowledge_base_id").asString())
+        assertThat(first.path("id").asText()).matches("[0-9a-f-]{36}");
+        assertThat(first.path("properties").path("source_id").asText()).isEqualTo(c2);
+        assertThat(first.path("properties").path("chunk_id").asText()).isEqualTo(c2);
+        assertThat(first.path("properties").path("knowledge_id").asText()).isEqualTo("tk1");
+        assertThat(first.path("properties").path("knowledge_base_id").asText())
                 .isEqualTo("targetKb");
         assertThat(first.path("properties").path("is_enabled").asBoolean()).isTrue();
         assertThat(first.path("vector").get(0).asDouble()).isEqualTo(0.5);
-        assertThat(objects.get(1).path("properties").path("source_id").asString())
+        assertThat(objects.get(1).path("properties").path("source_id").asText())
                 .isEqualTo(c2 + "-q7");
 
         // 空映射 → 短路
@@ -435,9 +435,9 @@ class WeaviateRetrieveRepositoryTest {
                 .hasMessageContaining("move indices made no progress for " + id1);
 
         Captured patch = byMethodPath("PATCH", "/v1/objects/Weknora_embeddings_2/" + id1);
-        assertThat(patch.json().path("properties").path("knowledge_base_id").asString())
+        assertThat(patch.json().path("properties").path("knowledge_base_id").asText())
                 .isEqualTo("targetKb");
-        assertThat(patch.json().path("properties").path("tag_id").asString()).isEmpty();
+        assertThat(patch.json().path("properties").path("tag_id").asText()).isEmpty();
 
         // 空页 → 正常收束
         responses.put("POST /v1/graphql",

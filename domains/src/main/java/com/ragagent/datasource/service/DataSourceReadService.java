@@ -1,5 +1,6 @@
 package com.ragagent.datasource.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.datasource.domain.DataSource;
 import com.ragagent.datasource.dto.DataSourceOwnership;
 import com.ragagent.datasource.dto.DataSourceResponse;
@@ -9,7 +10,6 @@ import com.ragagent.platform.web.JsonMappers;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
 
 /** 数据源控制面读模型：把实体装配/映射收在这里，控制器只拿响应 DTO。 */
 @Service

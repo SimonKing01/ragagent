@@ -1,5 +1,8 @@
 package com.ragagent.im.channel.wechat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.CallbackExchange;
 import com.ragagent.im.runtime.ImTypes;
@@ -15,9 +18,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.Duration;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 微信（个人号）iLink 机器人适配器。

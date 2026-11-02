@@ -1,5 +1,6 @@
 package com.ragagent.auth.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.auth.dto.TenantInvitationResponse;
 import com.ragagent.auth.dto.TenantRowView;
 import com.ragagent.auth.service.TenantInvitationReadService;
@@ -28,7 +29,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 邀请相关的 9 条路由：租户侧 GET/POST /tenants/{id}/invitations、
@@ -103,16 +103,16 @@ public class TenantInvitationController {
         long tenantId = TenantMemberController.parseTenantId(id);
         JsonNode body = TenantMemberController.bindJson(TenantMemberController.rawBody(request));
         TenantMemberController.requireFields(body, "email", "role");
-        String email = body.path("email").asString();
+        String email = body.path("email").asText();
         if (!TenantMemberController.isValidEmailFormat(email)) {
             throw new BizException(AppError.validation("invalid request body")
                     .withDetails(RequestFields.message("Email", "email")));
         }
-        TenantRole role = TenantRole.fromString(body.path("role").asString());
+        TenantRole role = TenantRole.fromString(body.path("role").asText());
         if (!role.isValid()) {
             throw new BizException(AppError.validation("role must be one of owner/admin/contributor/viewer"));
         }
-        String message = body.path("message").isString() ? body.path("message").asString() : "";
+        String message = body.path("message").isTextual() ? body.path("message").asText() : "";
 
         var user = userService.getUserByEmail(TenantMemberController.trimToEmpty(email));
         if (user == null) {
@@ -179,11 +179,11 @@ public class TenantInvitationController {
         long tenantId = TenantMemberController.parseTenantId(id);
         JsonNode body = TenantMemberController.bindJson(TenantMemberController.rawBody(request));
         TenantMemberController.requireFields(body, "role");
-        TenantRole role = TenantRole.fromString(body.path("role").asString());
+        TenantRole role = TenantRole.fromString(body.path("role").asText());
         if (!role.isValid()) {
             throw new BizException(AppError.validation("role must be one of owner/admin/contributor/viewer"));
         }
-        String message = body.path("message").isString() ? body.path("message").asString() : "";
+        String message = body.path("message").isTextual() ? body.path("message").asText() : "";
         String invitedBy = TenantMemberController.invitedByForCaller(TenantContext.currentUserId());
 
         var result = readService.createShareLinkResponse(
@@ -256,7 +256,7 @@ public class TenantInvitationController {
         String caller = TenantMemberController.requireCaller();
         JsonNode body = TenantMemberController.bindJson(TenantMemberController.rawBody(request));
         requireToken(body);
-        String token = TenantMemberController.trimToEmpty(body.path("token").asString());
+        String token = TenantMemberController.trimToEmpty(body.path("token").asText());
         if (token.isEmpty()) {
             // 纯空白过了 binding（required 对 string 是非零值），由 trim 后的空检查拦下
             throw new BizException(AppError.validation("token is required"));
@@ -307,7 +307,7 @@ public class TenantInvitationController {
     /** token required（validator 原文进 details） */
     private static void requireToken(JsonNode body) {
         JsonNode n = body.get("token");
-        boolean missing = n == null || n.isNull() || (n.isString() && n.asString().isEmpty());
+        boolean missing = n == null || n.isNull() || (n.isTextual() && n.asText().isEmpty());
         if (missing) {
             throw new BizException(AppError.validation("token is required")
                     .withDetails(RequestFields.message("Token", "required")));

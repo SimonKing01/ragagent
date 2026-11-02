@@ -1,6 +1,6 @@
 package com.ragagent.knowledge.dto.kb;
 
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /** KB 更新请求：名称/描述 + 配置 jsonb。 */
 public record UpdateKnowledgeBaseRequest(String name, String description, JsonNode config) {

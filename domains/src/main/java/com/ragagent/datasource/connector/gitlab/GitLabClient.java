@@ -1,17 +1,18 @@
 package com.ragagent.datasource.connector.gitlab;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.text.Whitespace;
 import com.ragagent.datasource.domain.connector.ConnectorException;
 import com.ragagent.datasource.domain.connector.ConnectorHttp;
 import com.ragagent.platform.web.JsonMappers;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JavaType;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * GitLab REST 客户端。
@@ -325,7 +326,7 @@ public final class GitLabClient {
     private static <T> T parse(byte[] body, JavaType type) {
         try {
             return MAPPER.readValue(body == null ? new byte[0] : body, type);
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             // 调用方只把它当"这次请求失败了"，
             // 具体文案由 Jackson 给出
             throw new ConnectorException("gitlab API response decode: " + e.getMessage(), e);

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.event.payload.MCPOAuthRequiredData;
 import com.ragagent.contract.event.payload.MCPOAuthResolvedData;
 import com.ragagent.contract.event.payload.ToolApprovalRequiredData;
@@ -20,7 +21,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@code Gate} 的逐用例覆盖（请求-等待 / Resolve / IsEnabled / OAuth 等待族）。

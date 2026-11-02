@@ -1,8 +1,8 @@
 package com.ragagent.agenttools.wiki;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /** wiki 工具共享文本处理：JSON 字段解析、截断、按查询摘要、码点切片。 */
 public final class WikiTexts {
@@ -17,8 +17,8 @@ public final class WikiTexts {
         if (val == null || val.isNull()) {
             return result;
         }
-        if (val.isString()) {
-            String s = val.asString();
+        if (val.isTextual()) {
+            String s = val.asText();
             if (!s.isEmpty()) {
                 result.add(s);
             }
@@ -26,8 +26,8 @@ public final class WikiTexts {
         }
         if (val.isArray()) {
             for (JsonNode item : val) {
-                if (item.isString()) {
-                    String s = item.asString();
+                if (item.isTextual()) {
+                    String s = item.asText();
                     if (!s.isEmpty()) {
                         result.add(s);
                     }

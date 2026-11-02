@@ -13,6 +13,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.audit.WikiActivityAudit;
 import com.ragagent.contract.knowledge.KnowledgeBaseLookup;
 import com.ragagent.contract.knowledge.KnowledgeBaseView;
@@ -45,7 +46,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.ObjectProvider;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@link WikiIngestBatchHandler} 的行为测试，外加批次主干里几个可独立验证的纯函数

@@ -1,5 +1,6 @@
 package com.ragagent.knowledge.service.management;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.model.Embedder;
@@ -31,7 +32,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * KB clone（copy 路由 worker 面）+ Duplicate（同步 settings-only）+ 跨库兼容性校验。

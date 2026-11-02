@@ -3,6 +3,9 @@ package com.ragagent.wiki.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.ragagent.contract.wiki.WikiException;
 import com.ragagent.contract.wiki.WikiIndex;
 import com.ragagent.contract.wiki.WikiIndexEntry;
@@ -22,9 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.JsonNodeFactory;
 
 /**
  * Wiki 领域类型的语义测试。
@@ -168,7 +168,7 @@ class WikiDomainTest {
         WikiPage page = new WikiPage();
         page.setPageMetadata(JsonNodeFactory.instance.objectNode().put("tag", "x"));
         WikiPage restored = JSON.readValue(JSON.writeValueAsString(page), WikiPage.class);
-        assertThat(restored.getPageMetadata().get("tag").asString()).isEqualTo("x");
+        assertThat(restored.getPageMetadata().get("tag").asText()).isEqualTo("x");
     }
 
     // ── sourceKnowledgeID 提取 ──
@@ -273,7 +273,7 @@ class WikiDomainTest {
         assertThat(node.has("extractionGranularity")).isTrue();
         assertThat(node.has("ingestBatchSize")).isTrue();
         assertThat(node.get("maxPagesPerIngest").asInt()).isZero();
-        assertThat(node.get("synthesisModelId").asString()).isEqualTo("m-1");
+        assertThat(node.get("synthesisModelId").asText()).isEqualTo("m-1");
         // ⚠️ *OrDefault 便捷方法必须 @JsonIgnore，否则会被写进 wiki_config jsonb
         assertThat(node.has("ingestBatchSizeOrDefault")).isFalse();
         assertThat(node.has("normalizedExtractionGranularity")).isFalse();
@@ -401,9 +401,9 @@ class WikiDomainTest {
         WikiFolderNode node = new WikiFolderNode(folder, 3, true);
         JsonNode json = JSON.readTree(JSON.writeValueAsString(node));
         // folder 字段扁平化到顶层（无嵌套 folder 键）
-        assertThat(json.get("id").asString()).isEqualTo("f-1");
-        assertThat(json.get("name").asString()).isEqualTo("AI");
-        assertThat(json.get("parentId").asString()).isEmpty();
+        assertThat(json.get("id").asText()).isEqualTo("f-1");
+        assertThat(json.get("name").asText()).isEqualTo("AI");
+        assertThat(json.get("parentId").asText()).isEmpty();
         assertThat(json.get("pageCount").asLong()).isEqualTo(3);
         assertThat(json.get("hasChildren").asBoolean()).isTrue();
         assertThat(json.has("folder")).isFalse();

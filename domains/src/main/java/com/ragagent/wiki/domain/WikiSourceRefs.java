@@ -1,7 +1,7 @@
 package com.ragagent.wiki.domain;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@code source_refs} 的匹配谓词构造。

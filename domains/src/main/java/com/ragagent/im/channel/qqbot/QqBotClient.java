@@ -1,5 +1,7 @@
 package com.ragagent.im.channel.qqbot;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.platform.web.JsonMappers;
 import java.net.URI;
@@ -11,8 +13,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * QQ 机器人开放平台 HTTP 客户端。
@@ -148,7 +148,7 @@ public class QqBotClient {
             return gatewayUrl;
         }
         JsonNode result = doJson("GET", gatewayDiscoveryUrl, null);
-        String url = result.path("url").asString("");
+        String url = result.path("url").asText("");
         if (url.isEmpty()) {
             throw new IllegalStateException("empty qqbot gateway url");
         }
@@ -224,11 +224,11 @@ public class QqBotClient {
         body.put("appId", appId);
         body.put("clientSecret", clientSecret);
         JsonNode result = doJson("POST", tokenUrl, body);
-        String token = result.path("access_token").asString("");
+        String token = result.path("access_token").asText("");
         if (token.isEmpty()) {
             throw new IllegalStateException("empty qqbot access token: code="
                     + result.path("code").asInt(0) + " message="
-                    + result.path("message").asString(""));
+                    + result.path("message").asText(""));
         }
         int expiresIn = parseExpiresIn(result.path("expires_in"));
         synchronized (tokenLock) {
@@ -247,9 +247,9 @@ public class QqBotClient {
             int number = raw.asInt(0);
             return number > 0 ? number : DEFAULT_EXPIRES_IN;
         }
-        if (raw.isString()) {
+        if (raw.isTextual()) {
             try {
-                int parsed = Integer.parseInt(raw.asString().trim());
+                int parsed = Integer.parseInt(raw.asText().trim());
                 return parsed > 0 ? parsed : DEFAULT_EXPIRES_IN;
             } catch (NumberFormatException ignored) {
                 return DEFAULT_EXPIRES_IN;

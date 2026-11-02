@@ -2,6 +2,8 @@ package com.ragagent.session.service;
 
 import static com.ragagent.session.service.QaSupport.TagScope;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.agent.AgentLookup;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.event.EventBusInterface;
@@ -40,8 +42,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 知识问答 service 面（chat_pipeline 的调用方）。
@@ -173,7 +173,7 @@ public class SessionKnowledgeQaService {
             }
         }
         if (req.agentConfig != null) {
-            vlmModelId = req.agentConfig.path("vlmModelId").asString("");
+            vlmModelId = req.agentConfig.path("vlmModelId").asText("");
         }
 
         // Resolve retrieval tenant scope using shared helper
@@ -602,8 +602,8 @@ public class SessionKnowledgeQaService {
         List<String> out = new ArrayList<>();
         if (arr != null && arr.isArray()) {
             for (JsonNode n : arr) {
-                if (n.isString()) {
-                    out.add(n.asString());
+                if (n.isTextual()) {
+                    out.add(n.asText());
                 }
             }
         }
@@ -667,7 +667,7 @@ public class SessionKnowledgeQaService {
 
     /** RetrievalConfig 的读取视图（GetEffective* 兜底）。 */
     private record RetrievalConfigView(JsonNode raw) {
-        String rerankModelId() { return raw == null ? null : raw.path("rerankModelId").asString(null); }
+        String rerankModelId() { return raw == null ? null : raw.path("rerankModelId").asText(null); }
         int embeddingTopK() { return effInt("embeddingTopK", 30); }
         double vectorThreshold() { return effDouble("vectorThreshold", 0.2); }
         double keywordThreshold() { return effDouble("keywordThreshold", 0.3); }

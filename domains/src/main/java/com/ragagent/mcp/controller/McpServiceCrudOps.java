@@ -1,5 +1,6 @@
 package com.ragagent.mcp.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.mcp.domain.McpAdvancedConfig;
 import com.ragagent.mcp.domain.McpAuthConfig;
@@ -27,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import tools.jackson.databind.JsonNode;
 
 /**
  * MCP 服务 CRUD 协作者（自 {@link McpServiceController} 拆出）：创建/列表/详情/更新/删除、
@@ -143,8 +143,8 @@ final class McpServiceCrudOps {
 
         if (updateData.has("usageInstructions")) {
             JsonNode raw = updateData.get("usageInstructions");
-            String instructions = raw.isString() ? raw.asString().trim() : "";
-            if (!raw.isString() || instructions.isEmpty()
+            String instructions = raw.isTextual() ? raw.asText().trim() : "";
+            if (!raw.isTextual() || instructions.isEmpty()
                     || instructions.codePointCount(0, instructions.length()) > 16000) {
                 throw BizException.badRequest(
                         "Usage instructions must contain between 1 and 16000 characters");
@@ -153,12 +153,12 @@ final class McpServiceCrudOps {
             updateFields.put("usageInstructions", true);
         }
 
-        if (updateData.path("name").isString()) {
-            service.setName(updateData.get("name").asString());
+        if (updateData.path("name").isTextual()) {
+            service.setName(updateData.get("name").asText());
             updateFields.put("name", true);
         }
-        if (updateData.path("description").isString()) {
-            service.setDescription(updateData.get("description").asString());
+        if (updateData.path("description").isTextual()) {
+            service.setDescription(updateData.get("description").asText());
             updateFields.put("description", true);
         }
         if (updateData.path("enabled").isBoolean()) {
@@ -166,11 +166,11 @@ final class McpServiceCrudOps {
             service.setEnabled(updateData.get("enabled").asBoolean());
             updateFields.put("enabled", true);
         }
-        if (updateData.path("transportType").isString()) {
-            service.setTransportType(updateData.get("transportType").asString());
+        if (updateData.path("transportType").isTextual()) {
+            service.setTransportType(updateData.get("transportType").asText());
         }
-        if (updateData.path("url").isString() && !updateData.get("url").asString().isEmpty()) {
-            service.setUrl(updateData.get("url").asString());
+        if (updateData.path("url").isTextual() && !updateData.get("url").asText().isEmpty()) {
+            service.setUrl(updateData.get("url").asText());
         } else if (updateData.has("url")) {
             // 显式 null / 空串：置 null。⚠️ 应用层"URL 非空才更新"的判断会让
             // 这一步在落库时变成空操作——既有分层语义如此，不在这里"修好"。
@@ -183,15 +183,15 @@ final class McpServiceCrudOps {
         if (updateData.path("stdioConfig").isObject()) {
             JsonNode stdioConfig = updateData.get("stdioConfig");
             McpStdioConfig config = new McpStdioConfig();
-            if (stdioConfig.path("command").isString()) {
-                config.setCommand(stdioConfig.get("command").asString());
+            if (stdioConfig.path("command").isTextual()) {
+                config.setCommand(stdioConfig.get("command").asText());
             }
             if (stdioConfig.path("args").isArray()) {
                 // 非字符串元素占位为空串（不是丢弃）
                 JsonNode args = stdioConfig.get("args");
                 List<String> list = new ArrayList<>(args.size());
                 for (JsonNode arg : args) {
-                    list.add(arg.isString() ? arg.asString() : "");
+                    list.add(arg.isTextual() ? arg.asText() : "");
                 }
                 config.setArgs(list);
             }
@@ -224,30 +224,30 @@ final class McpServiceCrudOps {
             // auth_type / scopes / auth_server_metadata_url 属非秘密 OAuth 配置，允许经主 PUT 切换。
             // 写侧用 parseStrict：未知取值 → 400（不再静默写 null。历史缺陷：
             // 前端发 "apiKey"、枚举取值 "api_key"，策略被静默清空、凭据改发 X-API-Key）。
-            if (authConfig.path("authType").isString()) {
+            if (authConfig.path("authType").isTextual()) {
                 try {
-                    auth.setAuthType(McpAuthType.parseStrict(authConfig.get("authType").asString()));
+                    auth.setAuthType(McpAuthType.parseStrict(authConfig.get("authType").asText()));
                 } catch (IllegalArgumentException e) {
                     throw BizException.badRequest(e.getMessage());
                 }
                 updateFields.put("authType", true);
             }
             // api_key_header 是非秘密的结构配置（承载 api_key 的头名），与 custom_headers 同路
-            if (authConfig.path("apiKeyHeader").isString()) {
-                auth.setApiKeyHeader(authConfig.get("apiKeyHeader").asString());
+            if (authConfig.path("apiKeyHeader").isTextual()) {
+                auth.setApiKeyHeader(authConfig.get("apiKeyHeader").asText());
                 updateFields.put("apiKeyHeader", true);
             }
             if (authConfig.path("scopes").isArray()) {
                 List<String> scopes = new ArrayList<>();
                 for (JsonNode s : authConfig.get("scopes")) {
-                    if (s.isString()) {
-                        scopes.add(s.asString());
+                    if (s.isTextual()) {
+                        scopes.add(s.asText());
                     }
                 }
                 auth.setScopes(scopes);
             }
-            if (authConfig.path("authServerMetadataUrl").isString()) {
-                auth.setAuthServerMetadataUrl(authConfig.get("authServerMetadataUrl").asString());
+            if (authConfig.path("authServerMetadataUrl").isTextual()) {
+                auth.setAuthServerMetadataUrl(authConfig.get("authServerMetadataUrl").asText());
             }
             service.setAuthConfig(auth);
         }
@@ -391,9 +391,9 @@ final class McpServiceCrudOps {
     /** 只取字符串值：非字符串值丢弃 */
     private static Map<String, String> stringMap(JsonNode node) {
         Map<String, String> out = new LinkedHashMap<>();
-        node.properties().forEach(entry -> {
-            if (entry.getValue().isString()) {
-                out.put(entry.getKey(), entry.getValue().asString());
+        node.fields().forEachRemaining(entry -> {
+            if (entry.getValue().isTextual()) {
+                out.put(entry.getKey(), entry.getValue().asText());
             }
         });
         return out;

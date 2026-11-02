@@ -1,5 +1,6 @@
 package com.ragagent.websearch.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.websearch.WebSearchResult;
 import com.ragagent.platform.web.ProviderJson;
 import com.ragagent.websearch.config.WebSearchProviderParams;
@@ -8,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * Google CSE 搜索 provider。
@@ -72,9 +72,9 @@ public final class GoogleProvider implements WebSearchProvider {
         List<WebSearchResult> results = new ArrayList<>();
         for (JsonNode item : data.path("items")) {
             WebSearchResult result = new WebSearchResult();
-            result.setTitle(item.path("title").asString(""));
-            result.setUrl(item.path("link").asString(""));
-            result.setSnippet(item.path("snippet").asString(""));
+            result.setTitle(item.path("title").asText(""));
+            result.setUrl(item.path("link").asText(""));
+            result.setSnippet(item.path("snippet").asText(""));
             result.setSource("google");
             results.add(result);
         }

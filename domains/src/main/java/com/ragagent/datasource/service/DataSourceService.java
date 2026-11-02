@@ -1,5 +1,6 @@
 package com.ragagent.datasource.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.audit.AuditAction;
 import com.ragagent.contract.audit.AuditOutcome;
 import com.ragagent.contract.audit.AuditWritePort;
@@ -32,7 +33,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 数据源的应用服务。

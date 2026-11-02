@@ -2,7 +2,7 @@ package com.ragagent.modelruntime.adapter.provider.chat.anthropic;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Anthropic content block。

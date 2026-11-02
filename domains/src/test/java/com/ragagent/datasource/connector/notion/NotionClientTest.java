@@ -630,7 +630,7 @@ class NotionClientTest {
                 .isInstanceOf(ConnectorException.class)
                 .hasMessage("invalid Notion response: 'results' is missing");
         NotionPaginatedResponse nonArray = new NotionPaginatedResponse();
-        nonArray.results = new tools.jackson.databind.ObjectMapper().readTree("{\"a\":1}");
+        nonArray.results = new com.fasterxml.jackson.databind.ObjectMapper().readTree("{\"a\":1}");
         assertThatThrownBy(() -> NotionClient.parsePages(nonArray))
                 .hasMessage("invalid Notion response: 'results' must be an array, got object");
         assertThatThrownBy(() -> NotionClient.parseBlocks(missing, "invalid Notion blocks response"))

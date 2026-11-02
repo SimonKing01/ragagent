@@ -2,6 +2,7 @@ package com.ragagent.agenttools.knowledge;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenA;
 import com.ragagent.contract.knowledge.ChunkFacts;
@@ -11,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * FaqSnippet 的录制语料（10 条）。XML 投影逐字节比对（含相似问截断的 omitted 标记）。
@@ -27,7 +27,7 @@ class FaqSnippetRecordingTest {
         meta.answers = List.of("在控制台点击新建知识库。");
         StringBuilder b = new StringBuilder();
         FaqSnippet.writeFaqMetadataXml(b, meta);
-        assertThat(b.toString()).isEqualTo(r.get("out").asString());
+        assertThat(b.toString()).isEqualTo(r.get("out").asText());
     }
 
     @Test
@@ -39,12 +39,12 @@ class FaqSnippetRecordingTest {
         }
         StringBuilder b = new StringBuilder();
         FaqSnippet.writeSimilarQuestionsXml(b, qs);
-        assertThat(b.toString()).isEqualTo(r8.get("out").asString());
+        assertThat(b.toString()).isEqualTo(r8.get("out").asText());
 
         JsonNode rNil = RecordingSupport.rec(field("R_FAQ_SIMILAR_NIL"));
         StringBuilder b2 = new StringBuilder();
         FaqSnippet.writeSimilarQuestionsXml(b2, null);
-        assertThat(b2.toString()).isEqualTo(rNil.get("out").asString());
+        assertThat(b2.toString()).isEqualTo(rNil.get("out").asText());
     }
 
     @Test
@@ -53,7 +53,7 @@ class FaqSnippetRecordingTest {
         ChunkFacts chunk = faqChunk();
         StringBuilder b = new StringBuilder();
         FaqSnippet.writeFaqEntryXml(b, chunk);
-        assertThat(b.toString()).isEqualTo(r.get("out").asString());
+        assertThat(b.toString()).isEqualTo(r.get("out").asText());
         assertThat(b.toString()).doesNotContain("<chunk");
     }
 
@@ -66,11 +66,11 @@ class FaqSnippetRecordingTest {
 
         JsonNode hit = RecordingSupport.rec(field("R_FAQ_MATCH_SNIPPET_QUERIES"));
         assertThat(FaqSnippet.faqMatchSnippetFromQueries(meta, List.of("如何创建")))
-                .isEqualTo(hit.get("out").asString());
+                .isEqualTo(hit.get("out").asText());
 
         JsonNode miss = RecordingSupport.rec(field("R_FAQ_MATCH_SNIPPET_QUERIES_MISS"));
         assertThat(FaqSnippet.faqMatchSnippetFromQueries(meta, List.of("无关问题")))
-                .isEqualTo(miss.get("out").asString());
+                .isEqualTo(miss.get("out").asText());
     }
 
     @Test
@@ -79,7 +79,7 @@ class FaqSnippetRecordingTest {
         List<String> got = FaqSnippet.searchQueryTokens(
                 List.of("Hello, World! 你好 world", "a b", ""));
         assertThat(RecordingSupport.PLAIN.valueToTree(got).toString())
-                .isEqualTo(r.get("out").asString());
+                .isEqualTo(r.get("out").asText());
     }
 
     @Test
@@ -102,7 +102,7 @@ class FaqSnippetRecordingTest {
         Map<String, Object> data = new java.util.LinkedHashMap<>();
         data.put("content", "x");
         FaqSnippet.appendFaqChunkData(data, faqChunk());
-        assertThat(RecordingSupport.jsonOfData(data)).isEqualTo(r.get("out").asString());
+        assertThat(RecordingSupport.jsonOfData(data)).isEqualTo(r.get("out").asText());
     }
 
     /** 对照探针的 chunkFaq（metadata 由 FaqChunkMetadata.toJsonNode 落进 chunk.metadata）。 */

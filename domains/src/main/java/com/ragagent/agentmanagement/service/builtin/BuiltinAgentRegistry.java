@@ -1,5 +1,8 @@
 package com.ragagent.agentmanagement.service.builtin;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.agentmanagement.service.config.AgentConfigJson;
 import com.ragagent.contract.wiki.WikiLanguageSupport;
 import com.ragagent.platform.prompt.PromptSource;
@@ -10,9 +13,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 内建 agent 注册表（config/builtin_agents.yaml + {@code PromptSource} 提示词模板的启动装载）。
@@ -97,28 +97,28 @@ public class BuiltinAgentRegistry {
             return;
         }
         for (JsonNode a : agents) {
-            String id = a.path("id").asString("");
+            String id = a.path("id").asText("");
             if (id.isEmpty()) {
                 continue;
             }
             Map<String, String[]> i18n = new LinkedHashMap<>();
             JsonNode node = a.get("i18n");
             if (node != null && node.isObject()) {
-                node.properties().forEach(e -> i18n.put(e.getKey(), new String[] {
-                        e.getValue().path("name").asString(""),
-                        e.getValue().path("description").asString("") }));
+                node.fields().forEachRemaining(e -> i18n.put(e.getKey(), new String[] {
+                        e.getValue().path("name").asText(""),
+                        e.getValue().path("description").asText("") }));
             }
             // 未知键丢弃 + 深拷贝
             ObjectNode cfg = MAPPER.createObjectNode();
             JsonNode rawCfg = a.get("config");
             if (rawCfg != null && rawCfg.isObject()) {
-                rawCfg.properties().forEach(e -> {
+                rawCfg.fields().forEachRemaining(e -> {
                     if (CONFIG_KEYS.contains(e.getKey())) {
                         cfg.set(e.getKey(), e.getValue().deepCopy());
                     }
                 });
             }
-            entries.put(id, new Entry(id, a.path("avatar").asString(""),
+            entries.put(id, new Entry(id, a.path("avatar").asText(""),
                     a.path("isBuiltin").asBoolean(false), i18n, cfg));
         }
         resolvePromptRefs();
@@ -129,13 +129,13 @@ public class BuiltinAgentRegistry {
         Map<String, String> templates = loadTemplates();
         for (Entry e : entries.values()) {
             ObjectNode cfg = e.config();
-            String spid = cfg.path("systemPromptId").asString("");
-            if (!spid.isEmpty() && cfg.path("systemPrompt").asString("").isEmpty()
+            String spid = cfg.path("systemPromptId").asText("");
+            if (!spid.isEmpty() && cfg.path("systemPrompt").asText("").isEmpty()
                     && templates.containsKey(spid)) {
                 cfg.put("systemPrompt", templates.get(spid));
             }
-            String ctid = cfg.path("contextTemplateId").asString("");
-            if (!ctid.isEmpty() && cfg.path("contextTemplate").asString("").isEmpty()
+            String ctid = cfg.path("contextTemplateId").asText("");
+            if (!ctid.isEmpty() && cfg.path("contextTemplate").asText("").isEmpty()
                     && templates.containsKey(ctid)) {
                 cfg.put("contextTemplate", templates.get(ctid));
             }
@@ -157,9 +157,9 @@ public class BuiltinAgentRegistry {
                     continue;
                 }
                 for (JsonNode t : list) {
-                    String id = t.path("id").asString("");
+                    String id = t.path("id").asText("");
                     if (!id.isEmpty() && !byId.containsKey(id)) {
-                        byId.put(id, t.path("content").asString(""));
+                        byId.put(id, t.path("content").asText(""));
                     }
                 }
             } catch (Exception ignored) {

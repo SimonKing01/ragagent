@@ -2,6 +2,7 @@ package com.ragagent.session.qa;
 
 import static com.ragagent.session.service.QaSupport.KnowledgeTargets;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.agentmanagement.service.config.AgentConfigJson;
 import com.ragagent.contract.agent.AgentLookup;
 import com.ragagent.contract.apikey.TenantAPIKeyScope;
@@ -34,7 +35,6 @@ import com.ragagent.session.support.SessionNotFoundException;
 import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * {@code KnowledgeQaController} 的**请求解析主体**：把 HTTP 请求（会话 id、
@@ -323,7 +323,7 @@ public final class QaRequestParser {
             : (customAgent != null && customAgent.tenantId() != null ? customAgent.tenantId() : 0);
     String modelId = request.summaryModelId;
     if (modelId.isEmpty() && rc.agentConfig != null) {
-        modelId = rc.agentConfig.path("modelId").asString("");
+        modelId = rc.agentConfig.path("modelId").asText("");
     }
     Message assistant = new Message();
     assistant.setSessionId(rc.sessionId);

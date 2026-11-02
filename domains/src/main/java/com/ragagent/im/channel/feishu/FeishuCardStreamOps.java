@@ -1,5 +1,8 @@
 package com.ragagent.im.channel.feishu;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.im.runtime.IncomingMessage;
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -10,9 +13,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 飞书 CardKit 流式卡片协作者：建卡 → interactive 发出 → 严格递增 seq
@@ -166,9 +166,9 @@ final class FeishuCardStreamOps {
         JsonNode result = FeishuAdapter.readTree(response.body());
         int code = result.path("code").asInt(0);
         if (code != 0) {
-            throw new IllegalStateException("code=" + code + " msg=" + result.path("msg").asString(""));
+            throw new IllegalStateException("code=" + code + " msg=" + result.path("msg").asText(""));
         }
-        String cardId = result.path("data").path("card_id").asString("");
+        String cardId = result.path("data").path("card_id").asText("");
         if (cardId.isEmpty()) {
             throw new IllegalStateException("parse card_id: empty (raw: " + response.body().length
                     + " bytes)");
@@ -218,7 +218,7 @@ final class FeishuCardStreamOps {
         int code = result.path("code").asInt(0);
         if (code != 0) {
             throw new IllegalStateException("update element error: code=" + code + " msg="
-                    + result.path("msg").asString(""));
+                    + result.path("msg").asText(""));
         }
     }
 
@@ -247,7 +247,7 @@ final class FeishuCardStreamOps {
         int code = result.path("code").asInt(0);
         if (code != 0) {
             throw new IllegalStateException("set streaming error: code=" + code + " msg="
-                    + result.path("msg").asString(""));
+                    + result.path("msg").asText(""));
         }
     }
 }

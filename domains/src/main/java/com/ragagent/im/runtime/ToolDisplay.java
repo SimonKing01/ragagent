@@ -1,13 +1,13 @@
 package com.ragagent.im.runtime;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * IM 工具步骤显示（文案与 Web 端 agentStream/RagPipelineProgress 对齐）。字节契约：

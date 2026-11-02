@@ -1,5 +1,7 @@
 package com.ragagent.rerank.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.model.RankResult;
 import com.ragagent.contract.model.Reranker;
 import com.ragagent.platform.web.ProviderJson;
@@ -9,8 +11,6 @@ import com.ragagent.rerank.RerankerConfig;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * OpenAI 兼容 rerank 客户端。

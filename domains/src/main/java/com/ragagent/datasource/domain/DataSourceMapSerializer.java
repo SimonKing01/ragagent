@@ -1,13 +1,14 @@
 package com.ragagent.datasource.domain;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializable;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.ragagent.platform.web.SortedMapSerializer;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.util.RawValue;
 
 /**
  * {@link SortedMapSerializer} 的 datasource 版本：在"按键排序且递归"之上，**再把嵌套的
@@ -32,32 +33,34 @@ import tools.jackson.databind.util.RawValue;
  * 与 {@code sortDeep}，只补一层"值归一"。</p>
  *
  * <h2>归一的手段</h2>
- * <p>把 {@code Double}/{@code Float} 换成 {@link tools.jackson.databind.util.RawValue}。
- * {@code sortDeep} 对非 Map/Collection 的值原样透传，Jackson 会调 RawValue 自带的
- * 序列化器——于是嵌套在任意深度的数字都能走同一套编码器。用 {@code writeRawValue} 而不是
+ * <p>把 {@code Double}/{@code Float} 换成实现了 {@link JsonSerializable} 的
+ * {@link RawNumber}。{@code sortDeep} 对非 Map/Collection 的值原样透传，而 Jackson 对
+ * 实现 {@code JsonSerializable} 的对象会调它自己的 {@code serialize}——
+ * 于是嵌套在任意深度的数字都能走同一套编码器。用 {@code writeRawValue} 而不是
  * {@code writeNumber} 是因为 {@code 1e+21} 这类输出不是合法的 Java 数字字面量写法，
  * 只能原样写出。</p>
  */
 public class DataSourceMapSerializer extends SortedMapSerializer {
 
     @Override
-    public void serialize(Map<String, Object> value, JsonGenerator gen, SerializationContext serializers) {
+    public void serialize(Map<String, Object> value, JsonGenerator gen, SerializerProvider serializers)
+            throws IOException {
         if (value == null) {
             gen.writeNull();
             return;
         }
         // 先归一（Double → RawNumber），再交给父类的 sortDeep 排序。
         // 顺序不能反：sortDeep 会把 map 换成 TreeMap，之后仍然要递归一遍值。
-        gen.writePOJO(sortDeep(normalize(value)));
+        gen.writeObject(sortDeep(normalize(value)));
     }
 
     /** 递归把数字归一为 {@code Double.toString} 文本；map / 集合的容器结构原样保留（排序交给 {@code sortDeep}）。 */
     private static Object normalize(Object value) {
         if (value instanceof Double d) {
-            return new RawValue(Double.toString(d));
+            return new RawNumber(Double.toString(d));
         }
         if (value instanceof Float f) {
-            return new RawValue(Double.toString(f.doubleValue()));
+            return new RawNumber(Double.toString(f.doubleValue()));
         }
         if (value instanceof Map<?, ?> map) {
             Map<String, Object> out = new LinkedHashMap<>();
@@ -74,5 +77,37 @@ public class DataSourceMapSerializer extends SortedMapSerializer {
             return out;
         }
         return value;
+    }
+
+    /**
+     * 一个"已经格式化好"的 JSON 数字。
+     *
+     * <p>{@code JsonSerializable} 是 Jackson 自带的钩子：实现它的对象无论出现在
+     * 多深的位置都会被调 {@link #serialize}，不需要额外注册。</p>
+     */
+    static final class RawNumber implements JsonSerializable {
+
+        private final String text;
+
+        RawNumber(String text) {
+            this.text = text;
+        }
+
+        /** 供测试直接比对格式（不经过 Jackson）。 */
+        public String text() {
+            return text;
+        }
+
+        @Override
+        public void serialize(JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            gen.writeRawValue(text);
+        }
+
+        @Override
+        public void serializeWithType(JsonGenerator gen, SerializerProvider serializers,
+                                      com.fasterxml.jackson.databind.jsontype.TypeSerializer typeSer)
+                throws IOException {
+            serialize(gen, serializers);
+        }
     }
 }

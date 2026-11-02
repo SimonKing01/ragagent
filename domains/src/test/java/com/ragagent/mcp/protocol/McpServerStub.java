@@ -1,5 +1,8 @@
 package com.ragagent.mcp.protocol;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
@@ -13,9 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 极简 MCP 服务端桩（HTTP Streamable 传输）。
@@ -89,7 +89,7 @@ final class McpServerStub implements AutoCloseable {
                 requestBodies.add(new String(raw, StandardCharsets.UTF_8));
             }
             JsonNode request = raw.length == 0 ? MAPPER.createObjectNode() : MAPPER.readTree(raw);
-            String method = request.path("method").asString("");
+            String method = request.path("method").asText("");
             String sessionHeader = exchange.getRequestHeaders().getFirst(McpProtocol.HEADER_SESSION_ID);
             methods.add(method);
             if (sessionHeader != null) {

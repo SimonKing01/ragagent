@@ -1,16 +1,17 @@
 package com.ragagent.agent.fixtures;
 
-import com.ragagent.platform.web.JsonMappers;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ragagent.platform.web.ContractJsonModule;
 import com.ragagent.platform.web.ToolJson;
 import java.util.ArrayList;
 import java.util.Collections;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /** 4.5a 录制测试的共享小工具。 */
 public final class RecordingSupport {
 
-    public static final ObjectMapper PLAIN = JsonMappers.lenient();
+    public static final ObjectMapper PLAIN = new ObjectMapper()
+            .registerModule(new ContractJsonModule());
 
     /**
      * 数字文本归一——把文本里的数字 token 统一成 Java {@code Double.toString} 形态
@@ -50,7 +51,8 @@ public final class RecordingSupport {
     }
 
     /** JSON mapper（map 键序由类型上的 serializer 负责；2026-10-03 起标准转义）。 */
-    public static final ObjectMapper JSON_MAPPER = JsonMappers.lenient();
+    public static final ObjectMapper JSON_MAPPER = new ObjectMapper()
+            .registerModule(new ContractJsonModule());
 
     private RecordingSupport() {
     }
@@ -61,7 +63,7 @@ public final class RecordingSupport {
 
     public static String text(JsonNode rec, String field) {
         JsonNode n = rec.get(field);
-        return n == null || n.isNull() ? null : n.asString();
+        return n == null || n.isNull() ? null : n.asText();
     }
 
     public static JsonNode readTree(String json) {
@@ -93,7 +95,7 @@ public final class RecordingSupport {
         }
         if (node.isObject()) {
             java.util.List<String> keys = new ArrayList<>();
-            node.propertyNames().forEach(keys::add);
+            node.fieldNames().forEachRemaining(keys::add);
             Collections.sort(keys);
             StringBuilder sb = new StringBuilder("{");
             for (int i = 0; i < keys.size(); i++) {
@@ -126,7 +128,7 @@ public final class RecordingSupport {
         JsonNode repeats = rec.get("repeats");
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < pieces.size(); i++) {
-            sb.append(pieces.get(i).asString().repeat(repeats.get(i).asInt()));
+            sb.append(pieces.get(i).asText().repeat(repeats.get(i).asInt()));
         }
         return sb.toString();
     }

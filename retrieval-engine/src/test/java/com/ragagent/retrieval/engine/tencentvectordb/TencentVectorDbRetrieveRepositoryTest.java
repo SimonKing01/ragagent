@@ -3,6 +3,8 @@ package com.ragagent.retrieval.engine.tencentvectordb;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.vectorstore.IndexConfig;
 import com.ragagent.retrieval.engine.EngineTypes;
 import com.ragagent.retrieval.engine.EngineTypes.IndexInfo;
@@ -23,8 +25,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 腾讯 VectorDB 驱动：wire 形状
@@ -146,7 +146,7 @@ class TencentVectorDbRetrieveRepositoryTest {
         Captured upsert = last("/document/upsert");
         assertThat(upsert.auth()).isEqualTo("Bearer account=root&api_key=key-1");
         assertThat(upsert.sdkVersion()).isEqualTo("v1.8.4");
-        assertThat(last("/collection/create").json().path("database").asString())
+        assertThat(last("/collection/create").json().path("database").asText())
                 .isEqualTo("weknora");
     }
 
@@ -188,22 +188,22 @@ class TencentVectorDbRetrieveRepositoryTest {
 
         assertThat(captured.stream().anyMatch(c -> c.path().equals("/database/create"))).isTrue();
         JsonNode create = last("/collection/create").json();
-        assertThat(create.path("collection").asString()).isEqualTo("weknora_embeddings_3");
+        assertThat(create.path("collection").asText()).isEqualTo("weknora_embeddings_3");
         assertThat(create.path("shardNum").asInt()).isEqualTo(1);
         assertThat(create.path("replicaNum").asInt()).isEqualTo(1);
         JsonNode indexes = create.path("indexes");
-        assertThat(indexes.get(0).path("fieldName").asString()).isEqualTo("vector");
-        assertThat(indexes.get(0).path("indexType").asString()).isEqualTo("HNSW");
-        assertThat(indexes.get(0).path("metricType").asString()).isEqualTo("COSINE");
+        assertThat(indexes.get(0).path("fieldName").asText()).isEqualTo("vector");
+        assertThat(indexes.get(0).path("indexType").asText()).isEqualTo("HNSW");
+        assertThat(indexes.get(0).path("metricType").asText()).isEqualTo("COSINE");
         assertThat(indexes.get(0).path("dimension").asInt()).isEqualTo(3);
         assertThat(indexes.get(0).path("params").path("M").asInt()).isEqualTo(16);
         assertThat(indexes.get(0).path("params").path("efConstruction").asInt()).isEqualTo(200);
-        assertThat(indexes.get(1).path("fieldName").asString()).isEqualTo("sparse_vector");
-        assertThat(indexes.get(1).path("indexType").asString()).isEqualTo("inverted");
-        assertThat(indexes.get(1).path("metricType").asString()).isEqualTo("IP");
-        assertThat(indexes.get(2).path("indexType").asString()).isEqualTo("primaryKey");
-        assertThat(indexes.get(10).path("fieldName").asString()).isEqualTo("is_enabled");
-        assertThat(indexes.get(10).path("fieldType").asString()).isEqualTo("uint64");
+        assertThat(indexes.get(1).path("fieldName").asText()).isEqualTo("sparse_vector");
+        assertThat(indexes.get(1).path("indexType").asText()).isEqualTo("inverted");
+        assertThat(indexes.get(1).path("metricType").asText()).isEqualTo("IP");
+        assertThat(indexes.get(2).path("indexType").asText()).isEqualTo("primaryKey");
+        assertThat(indexes.get(10).path("fieldName").asText()).isEqualTo("is_enabled");
+        assertThat(indexes.get(10).path("fieldType").asText()).isEqualTo("uint64");
     }
 
     @Test
@@ -214,14 +214,14 @@ class TencentVectorDbRetrieveRepositoryTest {
         repo.batchSave(List.of(noId), embeddings("src-1", new float[] {0.5f, 0.25f, 0f}));
 
         JsonNode doc = last("/document/upsert").json().path("documents").get(0);
-        assertThat(doc.path("id").asString()).isEqualTo("src-1");
+        assertThat(doc.path("id").asText()).isEqualTo("src-1");
         assertThat(doc.path("vector").get(0).asDouble()).isEqualTo(0.5);
         JsonNode sparse = doc.path("sparse_vector").get(0);
         assertThat(sparse.get(0).asLong()).isEqualTo(613153351L); // murmur3("hello")
         assertThat(sparse.get(1).asDouble()).isGreaterThan(0);
-        assertThat(doc.path("content").asString()).isEqualTo("hello");
-        assertThat(doc.path("source_id").asString()).isEqualTo("src-1");
-        assertThat(doc.path("chunk_id").asString()).isEqualTo("chunk-1");
+        assertThat(doc.path("content").asText()).isEqualTo("hello");
+        assertThat(doc.path("source_id").asText()).isEqualTo("src-1");
+        assertThat(doc.path("chunk_id").asText()).isEqualTo("chunk-1");
         assertThat(doc.path("is_enabled").asLong()).isEqualTo(1L);
         assertThat(last("/document/upsert").json().path("buildIndex").asBoolean()).isTrue();
 
@@ -239,9 +239,9 @@ class TencentVectorDbRetrieveRepositoryTest {
         responses.put("POST /collection/describe", "{\"code\":15202,\"msg\":\"not exist\"}");
         TencentVectorDbRetrieveRepository repo = repo("my_collection", false);
         repo.batchSave(List.of(info(CHUNK, CHUNK)), embeddings(CHUNK, new float[] {1f, 2f}));
-        assertThat(last("/document/upsert").json().path("collection").asString())
+        assertThat(last("/document/upsert").json().path("collection").asText())
                 .isEqualTo("my_collection");
-        assertThat(last("/collection/create").json().path("collection").asString())
+        assertThat(last("/collection/create").json().path("collection").asText())
                 .isEqualTo("my_collection");
         assertThat(TencentVectorDbRetrieveRepository.shouldUseDimensionSuffix(idx)).isFalse();
         assertThat(TencentVectorDbRetrieveRepository.shouldUseDimensionSuffix(null)).isTrue();
@@ -252,7 +252,7 @@ class TencentVectorDbRetrieveRepositoryTest {
     void deleteFilters() throws Exception {
         TencentVectorDbRetrieveRepository repo = repo("weknora_embeddings", true);
         repo.deleteByChunkIdList(List.of("a", "b"), 3, "document");
-        assertThat(last("/document/delete").json().path("query").path("filter").asString())
+        assertThat(last("/document/delete").json().path("query").path("filter").asText())
                 .isEqualTo("chunk_id in (\"a\",\"b\")");
         int before = captured.size();
         repo.deleteBySourceIdList(List.of(), 3, "document");
@@ -286,7 +286,7 @@ class TencentVectorDbRetrieveRepositoryTest {
         assertThat(search.path("retrieveVector").asBoolean()).isFalse();
         assertThat(search.path("limit").asLong()).isEqualTo(5);
         assertThat(search.path("radius").asDouble()).isCloseTo(0.7, org.assertj.core.data.Offset.offset(1e-6));
-        assertThat(search.path("filter").asString()).isEqualTo(
+        assertThat(search.path("filter").asText()).isEqualTo(
                 "is_enabled=1 and knowledge_base_id in (\"kb1\") and chunk_id not in (\"c9\")");
         assertThat(search.path("outputFields")).hasSize(9);
         assertThat(results.get(0).results().get(0).score).isEqualTo(0.93);
@@ -323,10 +323,10 @@ class TencentVectorDbRetrieveRepositoryTest {
         List<RetrieveResult> results = repo.retrieve(params);
 
         JsonNode search = last("/document/fullTextSearch").json().path("search");
-        assertThat(search.path("match").path("fieldName").asString()).isEqualTo("sparse_vector");
+        assertThat(search.path("match").path("fieldName").asText()).isEqualTo("sparse_vector");
         JsonNode data = search.path("match").path("data").get(0).get(0);
         assertThat(data.get(0).asLong()).isEqualTo(613153351L);
-        assertThat(search.path("filter").asString()).isEqualTo("is_enabled=1");
+        assertThat(search.path("filter").asText()).isEqualTo("is_enabled=1");
         assertThat(results.get(0).results()).extracting(r -> r.chunkId)
                 .containsExactly("c2", "c3"); // 0.9 > 0.5，截到 2 条
         assertThat(results.get(0).results().get(0).matchType)
@@ -347,12 +347,12 @@ class TencentVectorDbRetrieveRepositoryTest {
         TencentVectorDbRetrieveRepository repo = repo("weknora_embeddings", true);
         repo.batchUpdateChunkEnabledStatus(new LinkedHashMap<>(Map.of(CHUNK, false)));
         JsonNode update = last("/document/update").json();
-        assertThat(update.path("query").path("filter").asString())
+        assertThat(update.path("query").path("filter").asText())
                 .isEqualTo("chunk_id in (\"" + CHUNK + "\")");
         assertThat(update.path("update").path("is_enabled").asLong()).isEqualTo(0L);
 
         repo.batchUpdateChunkTagID(Map.of(CHUNK, "t9"));
-        assertThat(last("/document/update").json().path("update").path("tag_id").asString())
+        assertThat(last("/document/update").json().path("update").path("tag_id").asText())
                 .isEqualTo("t9");
 
         statuses.put("POST /document/update", 500);
@@ -382,15 +382,15 @@ class TencentVectorDbRetrieveRepositoryTest {
         assertThat(query.path("offset").asLong()).isZero();
         assertThat(query.path("limit").asLong()).isEqualTo(500);
         assertThat(query.path("retrieveVector").asBoolean()).isTrue();
-        assertThat(query.path("filter").asString()).isEqualTo(
+        assertThat(query.path("filter").asText()).isEqualTo(
                 "knowledge_base_id in (\"srcKb\") and chunk_id in (\"" + c1 + "\")");
 
         JsonNode doc = last("/document/upsert").json().path("documents").get(0);
-        assertThat(doc.path("id").asString()).isEqualTo(c2);
-        assertThat(doc.path("source_id").asString()).isEqualTo(c2);
-        assertThat(doc.path("chunk_id").asString()).isEqualTo(c2);
-        assertThat(doc.path("knowledge_id").asString()).isEqualTo("tk1");
-        assertThat(doc.path("knowledge_base_id").asString()).isEqualTo("targetKb");
+        assertThat(doc.path("id").asText()).isEqualTo(c2);
+        assertThat(doc.path("source_id").asText()).isEqualTo(c2);
+        assertThat(doc.path("chunk_id").asText()).isEqualTo(c2);
+        assertThat(doc.path("knowledge_id").asText()).isEqualTo("tk1");
+        assertThat(doc.path("knowledge_base_id").asText()).isEqualTo("targetKb");
         assertThat(doc.path("is_enabled").asLong()).isZero(); // 沿用源值
         assertThat(doc.path("vector").get(0).asDouble()).isEqualTo(0.5);
         assertThat(doc.path("sparse_vector").isArray()).isTrue();
@@ -429,12 +429,12 @@ class TencentVectorDbRetrieveRepositoryTest {
         TencentVectorDbRetrieveRepository repo = repo("weknora_embeddings", true);
         repo.moveKnowledgeIndices("srcKb", "targetKb", "k1", List.of(), 3, "document");
         JsonNode update = last("/document/update").json();
-        assertThat(update.path("collection").asString()).isEqualTo("weknora_embeddings_3");
-        assertThat(update.path("query").path("filter").asString())
+        assertThat(update.path("collection").asText()).isEqualTo("weknora_embeddings_3");
+        assertThat(update.path("query").path("filter").asText())
                 .isEqualTo("knowledge_base_id in (\"srcKb\") and knowledge_id in (\"k1\")");
-        assertThat(update.path("update").path("knowledge_base_id").asString())
+        assertThat(update.path("update").path("knowledge_base_id").asText())
                 .isEqualTo("targetKb");
-        assertThat(update.path("update").path("tag_id").asString()).isEmpty();
+        assertThat(update.path("update").path("tag_id").asText()).isEmpty();
     }
 
     // ── 纯函数面 ───────────────────────────────────────────────────────────

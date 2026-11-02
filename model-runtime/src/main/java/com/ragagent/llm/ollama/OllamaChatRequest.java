@@ -1,11 +1,11 @@
 package com.ragagent.llm.ollama;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * Ollama {@code POST /api/chat} 请求体（对齐 ollama v0.23.2 API）。

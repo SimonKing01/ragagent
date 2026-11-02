@@ -1,14 +1,16 @@
 package com.ragagent.platform.event;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ragagent.platform.web.ContractJsonModule;
 import com.ragagent.platform.web.ZeroTimeSerializer;
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.Map;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.SerializationFeature;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.module.SimpleModule;
 
 /**
  * 事件 payload 进出 JSON 的唯一 ObjectMapper，集中定义三条序列化行为。
@@ -36,13 +38,15 @@ public final class EventJson {
         SimpleModule zeroTimeModule = new SimpleModule();
         zeroTimeModule.addSerializer(OffsetDateTime.class, new ZeroTimeSerializer());
 
-        ObjectMapper mapper = JsonMapper.builder().disable(tools.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        ObjectMapper mapper = JsonMapper.builder()
+                .addModule(new JavaTimeModule())
                 // ZeroTimeSerializer：常规时间转 JVM 默认时区 + RFC3339Nano，零值输出 year-1 字面量。
                 // 只此一份——若再叠一个普通 OffsetDateTime 序列化器会后注册者胜、丢掉零值分支。
                 .addModule(zeroTimeModule)
                 .addModule(new ContractJsonModule())
                 .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .build();
         return mapper;
     }
@@ -58,7 +62,7 @@ public final class EventJson {
     public static String write(Object payload) {
         try {
             return MAPPER.writeValueAsString(payload);
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             throw new IllegalStateException("failed to marshal event payload: " + e.getMessage(), e);
         }
     }
@@ -67,7 +71,7 @@ public final class EventJson {
     public static <T> T read(String json, Class<T> type) {
         try {
             return MAPPER.readValue(json, type);
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             throw new IllegalStateException("failed to unmarshal event payload: " + e.getMessage(), e);
         }
     }
@@ -77,7 +81,7 @@ public final class EventJson {
     public static Map<String, Object> readToMap(String json) {
         try {
             return MAPPER.readValue(json, Map.class);
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             throw new IllegalStateException("failed to unmarshal event payload map: " + e.getMessage(), e);
         }
     }

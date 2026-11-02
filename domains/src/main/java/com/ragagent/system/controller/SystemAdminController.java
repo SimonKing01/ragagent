@@ -1,5 +1,6 @@
 package com.ragagent.system.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.auth.api.CreateUserResult;
 import com.ragagent.auth.apikey.service.ApiKeyAdminAdapter;
 import com.ragagent.contract.apikey.APIKeyCapability;
@@ -43,7 +44,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * /api/v1/system/admin 组：用户管理 / 平台 API Key / 系统设置 / 运行时队列 / 配额批量应用。

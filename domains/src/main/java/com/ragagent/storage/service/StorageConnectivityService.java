@@ -1,5 +1,8 @@
 package com.ragagent.storage.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.storage.StorageBackendPort;
 import com.ragagent.contract.storage.StorageBackendView;
 import com.ragagent.contract.storage.StorageConnectivityPort;
@@ -15,9 +18,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 存储引擎的可用性判定与连通性探测。
@@ -147,15 +147,15 @@ public class StorageConnectivityService implements StorageConnectivityPort {
         if (cfg == null || cfg.isNull()) {
             return new CheckResult(false, "未提供 MinIO 配置");
         }
-        String bucketName = cfg.path("bucket_name").asString("");
+        String bucketName = cfg.path("bucket_name").asText("");
         if (!bucketName.isEmpty() && !FIELD_PATTERN.matcher(bucketName).matches()) {
             return new CheckResult(false, "Bucket 名称格式不正确，仅允许字母、数字、点、连字符");
         }
         // mode != "remote" → env 兜底（任一缺失即拒绝）
-        String endpoint = cfg.path("endpoint").asString("");
-        String accessKey = cfg.path("access_key_id").asString("");
-        String secretKey = cfg.path("secret_access_key").asString("");
-        if (!"remote".equals(cfg.path("mode").asString(""))) {
+        String endpoint = cfg.path("endpoint").asText("");
+        String accessKey = cfg.path("access_key_id").asText("");
+        String secretKey = cfg.path("secret_access_key").asText("");
+        if (!"remote".equals(cfg.path("mode").asText(""))) {
             endpoint = orEnv(endpoint, "MINIO_ENDPOINT");
             accessKey = orEnv(accessKey, "MINIO_ACCESS_KEY_ID");
             secretKey = orEnv(secretKey, "MINIO_SECRET_ACCESS_KEY");
@@ -163,7 +163,7 @@ public class StorageConnectivityService implements StorageConnectivityPort {
         if (endpoint.isEmpty() || accessKey.isEmpty() || secretKey.isEmpty()) {
             return new CheckResult(false, "Endpoint、Access Key、Secret Key 不能为空");
         }
-        if ("remote".equals(cfg.path("mode").asString(""))) {
+        if ("remote".equals(cfg.path("mode").asText(""))) {
             String blocked = blockedStorageEndpoint(endpoint);
             if (blocked != null) {
                 return new CheckResult(false, blocked);
@@ -176,10 +176,10 @@ public class StorageConnectivityService implements StorageConnectivityPort {
         if (cfg == null || cfg.isNull()) {
             return new CheckResult(false, "未提供 COS 配置");
         }
-        String secretId = cfg.path("secret_id").asString("");
-        String secretKey = cfg.path("secret_key").asString("");
-        String region = cfg.path("region").asString("");
-        String bucketName = cfg.path("bucket_name").asString("");
+        String secretId = cfg.path("secret_id").asText("");
+        String secretKey = cfg.path("secret_key").asText("");
+        String region = cfg.path("region").asText("");
+        String bucketName = cfg.path("bucket_name").asText("");
         if (secretId.isEmpty() || secretKey.isEmpty() || region.isEmpty() || bucketName.isEmpty()) {
             return new CheckResult(false, "Secret ID、Secret Key、Region、Bucket 名称不能为空");
         }
@@ -196,17 +196,17 @@ public class StorageConnectivityService implements StorageConnectivityPort {
         if (cfg == null || cfg.isNull()) {
             return new CheckResult(false, "未提供 S3 配置");
         }
-        String region = cfg.path("region").asString("");
-        String bucketName = cfg.path("bucket_name").asString("");
-        String accessKey = cfg.path("access_key").asString("");
-        String secretKey = cfg.path("secret_key").asString("");
+        String region = cfg.path("region").asText("");
+        String bucketName = cfg.path("bucket_name").asText("");
+        String accessKey = cfg.path("access_key").asText("");
+        String secretKey = cfg.path("secret_key").asText("");
         if (region.isEmpty() || bucketName.isEmpty()) {
             return new CheckResult(false, "Region、Bucket 名称不能为空");
         }
         if (accessKey.isEmpty() != secretKey.isEmpty()) {
             return new CheckResult(false, "Access Key 与 Secret Key 必须同时填写或同时留空（使用 AWS 默认凭证链）");
         }
-        String endpoint = cfg.path("endpoint").asString("");
+        String endpoint = cfg.path("endpoint").asText("");
         if (!endpoint.isEmpty()) {
             String blocked = blockedStorageEndpoint(endpoint);
             if (blocked != null) {
@@ -220,10 +220,10 @@ public class StorageConnectivityService implements StorageConnectivityPort {
         if (cfg == null || cfg.isNull()) {
             return new CheckResult(false, "未提供 OSS 配置");
         }
-        String endpoint = cfg.path("endpoint").asString("");
-        String accessKey = cfg.path("access_key").asString("");
-        String secretKey = cfg.path("secret_key").asString("");
-        String bucketName = cfg.path("bucket_name").asString("");
+        String endpoint = cfg.path("endpoint").asText("");
+        String accessKey = cfg.path("access_key").asText("");
+        String secretKey = cfg.path("secret_key").asText("");
+        String bucketName = cfg.path("bucket_name").asText("");
         if (endpoint.isEmpty() || accessKey.isEmpty() || secretKey.isEmpty() || bucketName.isEmpty()) {
             return new CheckResult(false, "Endpoint、Access Key、Secret Key、Bucket Name 不能为空");
         }
@@ -232,7 +232,7 @@ public class StorageConnectivityService implements StorageConnectivityPort {
         if (blocked != null) {
             return new CheckResult(false, blocked);
         }
-        String region = cfg.path("region").asString("");
+        String region = cfg.path("region").asText("");
         if (!FIELD_PATTERN.matcher(region).matches()) {
             return new CheckResult(false, "Region 格式不正确，仅允许字母、数字、点、连字符");
         }
@@ -246,11 +246,11 @@ public class StorageConnectivityService implements StorageConnectivityPort {
         if (cfg == null || cfg.isNull()) {
             return new CheckResult(false, "未提供 OBS 配置");
         }
-        String endpoint = cfg.path("endpoint").asString("");
-        String region = cfg.path("region").asString("");
-        String accessKey = cfg.path("access_key").asString("");
-        String secretKey = cfg.path("secret_key").asString("");
-        String bucketName = cfg.path("bucket_name").asString("");
+        String endpoint = cfg.path("endpoint").asText("");
+        String region = cfg.path("region").asText("");
+        String accessKey = cfg.path("access_key").asText("");
+        String secretKey = cfg.path("secret_key").asText("");
+        String bucketName = cfg.path("bucket_name").asText("");
         if (endpoint.isEmpty() || region.isEmpty() || accessKey.isEmpty() || secretKey.isEmpty()
                 || bucketName.isEmpty()) {
             return new CheckResult(false, "Endpoint、Region、Access Key、Secret Key、Bucket 名称不能为空");
@@ -274,11 +274,11 @@ public class StorageConnectivityService implements StorageConnectivityPort {
         if (cfg == null || cfg.isNull()) {
             return new CheckResult(false, "未提供 " + label + " 配置");
         }
-        String endpoint = cfg.path("endpoint").asString("");
-        String region = cfg.path("region").asString("");
-        String accessKey = cfg.path("access_key").asString("");
-        String secretKey = cfg.path("secret_key").asString("");
-        String bucketName = cfg.path("bucket_name").asString("");
+        String endpoint = cfg.path("endpoint").asText("");
+        String region = cfg.path("region").asText("");
+        String accessKey = cfg.path("access_key").asText("");
+        String secretKey = cfg.path("secret_key").asText("");
+        String bucketName = cfg.path("bucket_name").asText("");
         if (endpoint.isEmpty() || region.isEmpty() || accessKey.isEmpty() || secretKey.isEmpty()
                 || bucketName.isEmpty()) {
             return new CheckResult(false, String.join("、", requiredFields) + "不能为空");
@@ -304,7 +304,7 @@ public class StorageConnectivityService implements StorageConnectivityPort {
         ObjectNode config = MAPPER.createObjectNode();
         config.put("mode", "remote");
         config.put("endpoint", endpoint);
-        config.put("region", cfg.path("region").asString(""));
+        config.put("region", cfg.path("region").asText(""));
         config.put("access_key_id", accessKeyOf(provider, cfg));
         config.put("secret_access_key", secretKeyOf(provider, cfg));
         config.put("bucket_name", bucketName);
@@ -331,14 +331,14 @@ public class StorageConnectivityService implements StorageConnectivityPort {
 
     private static String accessKeyOf(String provider, JsonNode cfg) {
         return "minio".equals(provider)
-                ? cfg.path("access_key_id").asString("")
-                : cfg.path("access_key").asString("");
+                ? cfg.path("access_key_id").asText("")
+                : cfg.path("access_key").asText("");
     }
 
     private static String secretKeyOf(String provider, JsonNode cfg) {
         return "minio".equals(provider)
-                ? cfg.path("secret_access_key").asString("")
-                : cfg.path("secret_key").asString("");
+                ? cfg.path("secret_access_key").asText("")
+                : cfg.path("secret_key").asText("");
     }
 
     private static String authFailedMessage(String provider) {
@@ -384,10 +384,10 @@ public class StorageConnectivityService implements StorageConnectivityPort {
     /** 租户是否已配置 MinIO（remote 三要素齐全，或部署 env 齐备）。 */
     public boolean isMinioConfigured(long tenantId) {
         JsonNode minio = storageConfig(tenantId, "minio");
-        if (minio != null && "remote".equals(minio.path("mode").asString(""))) {
-            return !minio.path("endpoint").asString("").isEmpty()
-                    && !minio.path("access_key_id").asString("").isEmpty()
-                    && !minio.path("secret_access_key").asString("").isEmpty();
+        if (minio != null && "remote".equals(minio.path("mode").asText(""))) {
+            return !minio.path("endpoint").asText("").isEmpty()
+                    && !minio.path("access_key_id").asText("").isEmpty()
+                    && !minio.path("secret_access_key").asText("").isEmpty();
         }
         return isMinioEnvAvailable();
     }
@@ -396,7 +396,7 @@ public class StorageConnectivityService implements StorageConnectivityPort {
         JsonNode conf = storageConfig(tenantId, provider);
         if (conf != null) {
             for (String f : fields) {
-                if (conf.path(f).asString("").isEmpty()) {
+                if (conf.path(f).asText("").isEmpty()) {
                     return false;
                 }
             }
@@ -437,10 +437,10 @@ public class StorageConnectivityService implements StorageConnectivityPort {
     private boolean isS3Configured(long tenantId) {
         JsonNode s3 = storageConfig(tenantId, "s3");
         if (s3 != null) {
-            String accessKey = s3.path("access_key").asString("");
-            String secretKey = s3.path("secret_key").asString("");
-            return !s3.path("region").asString("").isEmpty()
-                    && !s3.path("bucket_name").asString("").isEmpty()
+            String accessKey = s3.path("access_key").asText("");
+            String secretKey = s3.path("secret_key").asText("");
+            return !s3.path("region").asText("").isEmpty()
+                    && !s3.path("bucket_name").asText("").isEmpty()
                     && (accessKey.isEmpty()) == (secretKey.isEmpty());
         }
         return false;

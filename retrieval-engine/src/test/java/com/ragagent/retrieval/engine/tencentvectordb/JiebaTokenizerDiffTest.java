@@ -3,19 +3,20 @@ package com.ragagent.retrieval.engine.tencentvectordb;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * jieba 分词<b>差分测试</b>：Java {@link JiebaTokenizer} vs 参考基准
@@ -43,7 +44,7 @@ class JiebaTokenizerDiffTest {
     private static List<String> strings(JsonNode array) {
         List<String> out = new ArrayList<>(array.size());
         for (JsonNode node : array) {
-            out.add(node.asString());
+            out.add(node.asText());
         }
         return out;
     }
@@ -67,7 +68,8 @@ class JiebaTokenizerDiffTest {
 
         int checked = 0;
         int multiToken = 0;
-        for (Map.Entry<String, JsonNode> entry : cases.properties()) {
+        for (Iterator<Map.Entry<String, JsonNode>> it = cases.fields(); it.hasNext(); ) {
+            Map.Entry<String, JsonNode> entry = it.next();
             List<String> expected = strings(entry.getValue());
             List<String> actual = tokenizer.cut(entry.getKey());
             assertThat(actual).as("cut(%s)", entry.getKey()).containsExactlyElementsOf(expected);
@@ -96,7 +98,8 @@ class JiebaTokenizerDiffTest {
 
         int checked = 0;
         int filteredSomewhere = 0;
-        for (Map.Entry<String, JsonNode> entry : cases.properties()) {
+        for (Iterator<Map.Entry<String, JsonNode>> it = cases.fields(); it.hasNext(); ) {
+            Map.Entry<String, JsonNode> entry = it.next();
             List<String> expected = strings(entry.getValue());
             List<String> raw = tokenizer.cut(entry.getKey());
             List<String> actual = tokenizer.tokens(entry.getKey());

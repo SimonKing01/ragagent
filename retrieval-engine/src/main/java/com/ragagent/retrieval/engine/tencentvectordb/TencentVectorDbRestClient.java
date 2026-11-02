@@ -1,5 +1,9 @@
 package com.ragagent.retrieval.engine.tencentvectordb;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.platform.web.JsonMappers;
 import java.io.IOException;
@@ -10,10 +14,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 腾讯 VectorDB <b>HTTP API</b> 传输层——本仓自持 SDK 的 HTTP 面（同一服务端的等价接口，SDK 的
@@ -99,7 +99,7 @@ public final class TencentVectorDbRestClient {
                         Json.mapper().writeValueAsString(body == null ? Json.object() : body),
                         StandardCharsets.UTF_8));
             }
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             throw new IllegalStateException("marshal tencent vectordb request: " + e.getMessage(), e);
         }
         HttpResponse<byte[]> resp;
@@ -120,7 +120,7 @@ public final class TencentVectorDbRestClient {
         JsonNode root;
         try {
             root = Json.mapper().readTree(raw);
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             throw new IllegalStateException("invalid response content: " + raw, e);
         }
         if (root == null || !root.isObject()) {
@@ -129,7 +129,7 @@ public final class TencentVectorDbRestClient {
         int code = root.path("code").asInt(0);
         if (code != 0) {
             throw new TencentVectorDbApiException(
-                    "code: " + code + ", message: " + root.path("msg").asString(""));
+                    "code: " + code + ", message: " + root.path("msg").asText(""));
         }
         return root;
     }
@@ -148,7 +148,7 @@ public final class TencentVectorDbRestClient {
         JsonNode root = send("GET", "/database/list", null);
         List<String> names = new ArrayList<>();
         for (JsonNode node : root.path("databases")) {
-            names.add(node.asString(""));
+            names.add(node.asText(""));
         }
         return names;
     }

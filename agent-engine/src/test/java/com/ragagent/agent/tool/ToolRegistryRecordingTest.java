@@ -3,6 +3,7 @@ package com.ragagent.agent.tool;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.ContractJson;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenA;
@@ -16,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * ToolRegistry 的录制判定（17 条）。覆盖：first-wins 拒绝重名、ListTools/defs 按名排序且
@@ -125,19 +125,19 @@ class ToolRegistryRecordingTest {
 
         JsonNode listTools = RecordingSupport.rec(field("R_REGISTRY_LIST_TOOLS"));
         List<String> wantNames = new ArrayList<>();
-        RecordingSupport.readTree(listTools.get("out").asString()).forEach(n -> wantNames.add(n.asString()));
+        RecordingSupport.readTree(listTools.get("out").asText()).forEach(n -> wantNames.add(n.asText()));
         assertThat(reg.listTools()).containsExactlyElementsOf(wantNames);
 
         JsonNode defs = RecordingSupport.rec(field("R_REGISTRY_DEFS"));
-        assertThat(jsonText(reg.getFunctionDefinitions())).isEqualTo(defs.get("out").asString());
+        assertThat(jsonText(reg.getFunctionDefinitions())).isEqualTo(defs.get("out").asText());
 
         JsonNode modelDefs = RecordingSupport.rec(field("R_REGISTRY_MODEL_DEFS"));
-        assertThat(jsonText(reg.getModelFunctionDefinitions())).isEqualTo(modelDefs.get("out").asString());
+        assertThat(jsonText(reg.getModelFunctionDefinitions())).isEqualTo(modelDefs.get("out").asText());
 
         JsonNode getMissing = RecordingSupport.rec(field("R_REGISTRY_GET_MISSING"));
         assertThatThrownBy(() -> reg.getTool("missing_tool"))
                 .isInstanceOf(ToolRegistry.ToolNotFoundException.class)
-                .hasMessage(getMissing.get("out").asString());
+                .hasMessage(getMissing.get("out").asText());
     }
 
     @Test
@@ -198,8 +198,8 @@ class ToolRegistryRecordingTest {
         ToolResult got = reg.executeTool(name, args);
         // 两侧经 ContractJson.deep 归一（转义形态不再构成断言目标）。
         assertThat(ContractJson.deep(RecordingSupport.normalizeNumberText(jsonText(got))))
-                .as("executeTool %s (%s)", name, r.get("id").asString())
-                .isEqualTo(ContractJson.deep(RecordingSupport.normalizeNumberText(r.get("result").asString())));
+                .as("executeTool %s (%s)", name, r.get("id").asText())
+                .isEqualTo(ContractJson.deep(RecordingSupport.normalizeNumberText(r.get("result").asText())));
     }
 
     private static String field(String name) {

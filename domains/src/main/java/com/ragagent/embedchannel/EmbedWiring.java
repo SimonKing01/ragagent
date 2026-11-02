@@ -37,7 +37,7 @@ public class EmbedWiring {
      * 容器错误，Spring 的 JSON 错误契约不受影响。
      */
     @org.springframework.context.annotation.Bean
-    public org.springframework.boot.web.server.WebServerFactoryCustomizer<org.springframework.boot.tomcat.servlet.TomcatServletWebServerFactory>
+    public org.springframework.boot.web.server.WebServerFactoryCustomizer<org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory>
             plainTextErrorReportValveCustomizer() {
         return factory -> factory.addContextCustomizers(sc -> {
             if (sc.getParent() instanceof org.apache.catalina.core.StandardHost host) {

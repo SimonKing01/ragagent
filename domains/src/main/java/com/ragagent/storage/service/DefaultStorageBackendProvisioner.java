@@ -1,5 +1,7 @@
 package com.ragagent.storage.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.storage.StorageBackendProvisioner;
 import com.ragagent.contract.tenant.StorageEngineConfig;
 import com.ragagent.platform.web.JsonMappers;
@@ -13,8 +15,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * {@link StorageBackendProvisioner} 的实现——「env 快照 → 存储后端实体/config JSON → 落库」。

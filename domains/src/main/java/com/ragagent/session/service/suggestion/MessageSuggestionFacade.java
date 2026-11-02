@@ -1,5 +1,6 @@
 package com.ragagent.session.service.suggestion;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.platform.security.LogSanitizer;
 import com.ragagent.platform.web.JsonMappers;
@@ -10,7 +11,6 @@ import com.ragagent.session.support.SessionNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 追问建议的**双面门面**：HTTP 端点与 embed 委托面共用的绑定、消毒与错误映射，

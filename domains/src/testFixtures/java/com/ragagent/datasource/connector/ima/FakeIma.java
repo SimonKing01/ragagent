@@ -1,5 +1,7 @@
 package com.ragagent.datasource.connector.ima;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.datasource.domain.DataSourceConfig;
 import com.ragagent.datasource.domain.connector.ConnectorHttp;
 import com.ragagent.platform.security.SsrfGuard;
@@ -16,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * IMA OpenAPI 的进程内替身，
@@ -318,7 +318,7 @@ final class FakeIma implements AutoCloseable {
                 JsonNode ids = req == null ? null : req.get("ids");
                 if (ids != null && ids.isArray()) {
                     for (JsonNode id : ids) {
-                        String v = id.asString();
+                        String v = id.asText();
                         Map<String, Object> info = new LinkedHashMap<>();
                         info.put("id", v);
                         info.put("name", "KB " + v);
@@ -465,7 +465,7 @@ final class FakeIma implements AutoCloseable {
             return "";
         }
         JsonNode v = node.get(field);
-        return v == null || !v.isString() ? "" : v.asString();
+        return v == null || !v.isTextual() ? "" : v.asText();
     }
 
     private void writeEnvelope(HttpExchange ex, int code, String msg, Object data)

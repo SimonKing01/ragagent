@@ -1,5 +1,7 @@
 package com.ragagent.modelruntime.adapter.provider.asr;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.model.AsrTranscriber;
 import com.ragagent.platform.http.LlmTransport;
 import com.ragagent.platform.security.SsrfGuard;
@@ -15,8 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * ASR 缺省实现：OpenAI 兼容 transcription（所有 ASR 厂商共用
@@ -104,17 +104,17 @@ public class OpenAiAsrTranscriber implements AsrTranscriber {
         JsonNode node;
         try {
             node = MAPPER.readTree(respBody);
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             throw new AsrTranscribeException(
                     "ASR transcription request failed: decode response: " + e.getMessage());
         }
-        String text = node.path("text").asString("").trim();
+        String text = node.path("text").asText("").trim();
         List<TranscriptionResult.Segment> segments = new ArrayList<>();
         JsonNode segs = node.get("segments");
         if (segs != null && segs.isArray()) {
             for (JsonNode s : segs) {
                 segments.add(new TranscriptionResult.Segment(s.path("start").asDouble(0), s.path("end").asDouble(0),
-                        s.path("text").asString("").trim()));
+                        s.path("text").asText("").trim()));
             }
         }
         return new TranscriptionResult(text, segments);
@@ -181,16 +181,16 @@ public class OpenAiAsrTranscriber implements AsrTranscriber {
                 if (err != null && err.isObject()) {
                     JsonNode msg = err.get("message");
                     if (msg != null && !msg.isNull()) {
-                        if (msg.isString()) {
-                            detail = msg.asString();
+                        if (msg.isTextual()) {
+                            detail = msg.asText();
                         } else if (msg.isArray()) {
                             List<String> parts = new ArrayList<>();
-                            msg.forEach(m -> parts.add(m.asString()));
+                            msg.forEach(m -> parts.add(m.asText()));
                             detail = String.join(", ", parts);
                         }
                     }
                 }
-            } catch (tools.jackson.core.JacksonException ignored) {
+            } catch (IOException ignored) {
                 detail = null;
             }
         }

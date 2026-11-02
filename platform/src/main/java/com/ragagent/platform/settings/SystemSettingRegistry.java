@@ -1,13 +1,13 @@
 package com.ragagent.platform.settings;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.platform.web.ToolJson;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
 
 /**
  * system_settings 的 in-code 注册表（17 条）。
@@ -164,21 +164,21 @@ public final class SystemSettingRegistry {
                     }
                     return MAPPER.valueToTree((long) d);
                 }
-                if (rawValue.isString()) {
+                if (rawValue.isTextual()) {
                     try {
-                        return MAPPER.valueToTree(Long.parseLong(rawValue.asString()));
+                        return MAPPER.valueToTree(Long.parseLong(rawValue.asText()));
                     } catch (NumberFormatException e) {
                         throw new IllegalArgumentException(
-                                "expected integer, got \"" + rawValue.asString() + "\"");
+                                "expected integer, got \"" + rawValue.asText() + "\"");
                     }
                 }
                 throw new IllegalArgumentException("expected integer, got " + jsonTypeLabel(rawValue));
             }
             case "string": {
-                if (!rawValue.isString()) {
+                if (!rawValue.isTextual()) {
                     throw new IllegalArgumentException("expected string, got " + jsonTypeLabel(rawValue));
                 }
-                return MAPPER.valueToTree(rawValue.asString());
+                return MAPPER.valueToTree(rawValue.asText());
             }
             case "bool": {
                 if (!rawValue.isBoolean()) {
@@ -190,18 +190,18 @@ public final class SystemSettingRegistry {
                 ArrayNode out = MAPPER.createArrayNode();
                 if (rawValue.isArray()) {
                     for (JsonNode item : rawValue) {
-                        if (!item.isString()) {
+                        if (!item.isTextual()) {
                             throw new IllegalArgumentException(
                                     "expected string at index " + indexOf(rawValue, item)
                                             + ", got " + jsonTypeLabel(item));
                         }
-                        String s = item.asString().trim();
+                        String s = item.asText().trim();
                         if (!s.isEmpty()) {
                             out.add(s);
                         }
                     }
-                } else if (rawValue.isString()) {
-                    for (String s : rawValue.asString().split(",", -1)) {
+                } else if (rawValue.isTextual()) {
+                    for (String s : rawValue.asText().split(",", -1)) {
                         String t = s.trim();
                         if (!t.isEmpty()) {
                             out.add(t);

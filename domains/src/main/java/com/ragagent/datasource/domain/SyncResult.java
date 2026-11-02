@@ -1,9 +1,10 @@
 package com.ragagent.datasource.domain;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 一次同步的成果汇总。
@@ -33,7 +34,8 @@ import tools.jackson.databind.ObjectMapper;
  */
 public class SyncResult {
 
-    private static final ObjectMapper MAPPER = JsonMappers.lenient();
+    private static final ObjectMapper MAPPER = JsonMappers.lenient()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     /** 处理过的条目总数。 */
     private int total;

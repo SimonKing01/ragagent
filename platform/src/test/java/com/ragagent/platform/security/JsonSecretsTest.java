@@ -2,12 +2,12 @@ package com.ragagent.platform.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /** JSON 配置的逐字段加解密：只动敏感键、结构不变、历史明文与无密钥降级可读。 */
 class JsonSecretsTest {
@@ -30,26 +30,26 @@ class JsonSecretsTest {
         CryptoService.installAesKey(originalKey);
     }
 
-    private static JsonNode json(String raw) {
+    private static JsonNode json(String raw) throws com.fasterxml.jackson.core.JsonProcessingException {
         return MAPPER.readTree(raw);
     }
 
     @Test
-    void encryptsOnlySensitiveStringValues() {
+    void encryptsOnlySensitiveStringValues() throws com.fasterxml.jackson.core.JsonProcessingException {
         JsonNode out = JsonSecrets.encrypt(json("""
                 {"endpoint":"https://s3.example.com","accessKeyId":"AK0",
                  "secretAccessKey":"SK0","bucketName":"b0","maxTokens":4096}
                 """));
 
-        assertThat(out.get("endpoint").asString()).isEqualTo("https://s3.example.com");
-        assertThat(out.get("bucketName").asString()).isEqualTo("b0");
+        assertThat(out.get("endpoint").asText()).isEqualTo("https://s3.example.com");
+        assertThat(out.get("bucketName").asText()).isEqualTo("b0");
         assertThat(out.get("maxTokens").asInt()).isEqualTo(4096);
-        assertThat(out.get("accessKeyId").asString()).startsWith("enc:v1:");
-        assertThat(out.get("secretAccessKey").asString()).startsWith("enc:v1:");
+        assertThat(out.get("accessKeyId").asText()).startsWith("enc:v1:");
+        assertThat(out.get("secretAccessKey").asText()).startsWith("enc:v1:");
     }
 
     @Test
-    void roundTripsNestedObjectsAndArrays() {
+    void roundTripsNestedObjectsAndArrays() throws com.fasterxml.jackson.core.JsonProcessingException {
         JsonNode original = json("""
                 {"defaultProvider":"s3","s3":{"secretKey":"SK","region":"ap-east-1"},
                  "rules":[{"apiKey":"k1","name":"a"}]}
@@ -57,42 +57,42 @@ class JsonSecretsTest {
 
         JsonNode encrypted = JsonSecrets.encrypt(original);
 
-        assertThat(encrypted.get("s3").get("secretKey").asString()).startsWith("enc:v1:");
-        assertThat(encrypted.get("rules").get(0).get("apiKey").asString()).startsWith("enc:v1:");
-        assertThat(encrypted.get("s3").get("region").asString()).isEqualTo("ap-east-1");
+        assertThat(encrypted.get("s3").get("secretKey").asText()).startsWith("enc:v1:");
+        assertThat(encrypted.get("rules").get(0).get("apiKey").asText()).startsWith("enc:v1:");
+        assertThat(encrypted.get("s3").get("region").asText()).isEqualTo("ap-east-1");
         assertThat(JsonSecrets.decrypt(encrypted)).isEqualTo(original);
     }
 
     @Test
-    void keepsLegacyPlaintextReadable() {
+    void keepsLegacyPlaintextReadable() throws com.fasterxml.jackson.core.JsonProcessingException {
         JsonNode plaintext = json("{\"apiKey\":\"legacy-key\"}");
 
-        assertThat(JsonSecrets.decrypt(plaintext).get("apiKey").asString()).isEqualTo("legacy-key");
+        assertThat(JsonSecrets.decrypt(plaintext).get("apiKey").asText()).isEqualTo("legacy-key");
     }
 
     @Test
-    void degradesToPlaintextWithoutKey() {
+    void degradesToPlaintextWithoutKey() throws com.fasterxml.jackson.core.JsonProcessingException {
         CryptoService.installAesKey(null);
         JsonNode plaintext = json("{\"apiKey\":\"k\"}");
 
-        assertThat(JsonSecrets.encrypt(plaintext).get("apiKey").asString()).isEqualTo("k");
+        assertThat(JsonSecrets.encrypt(plaintext).get("apiKey").asText()).isEqualTo("k");
     }
 
     @Test
-    void returnsEmptyWhenKeyRotated() {
+    void returnsEmptyWhenKeyRotated() throws com.fasterxml.jackson.core.JsonProcessingException {
         JsonNode encrypted = JsonSecrets.encrypt(json("{\"apiKey\":\"k\"}"));
 
         CryptoService.installAesKey(KEY_B);
 
-        assertThat(JsonSecrets.decrypt(encrypted).get("apiKey").asString()).isEmpty();
+        assertThat(JsonSecrets.decrypt(encrypted).get("apiKey").asText()).isEmpty();
     }
 
     @Test
-    void doesNotDoubleEncrypt() {
+    void doesNotDoubleEncrypt() throws com.fasterxml.jackson.core.JsonProcessingException {
         JsonNode once = JsonSecrets.encrypt(json("{\"apiKey\":\"k\"}"));
 
-        assertThat(JsonSecrets.encrypt(once).get("apiKey").asString())
-                .isEqualTo(once.get("apiKey").asString());
+        assertThat(JsonSecrets.encrypt(once).get("apiKey").asText())
+                .isEqualTo(once.get("apiKey").asText());
     }
 
     @Test
@@ -106,9 +106,9 @@ class JsonSecretsTest {
     }
 
     @Test
-    void leavesEmptyStringsAlone() {
+    void leavesEmptyStringsAlone() throws com.fasterxml.jackson.core.JsonProcessingException {
         JsonNode out = JsonSecrets.encrypt(json("{\"apiKey\":\"\"}"));
 
-        assertThat(out.get("apiKey").asString()).isEmpty();
+        assertThat(out.get("apiKey").asText()).isEmpty();
     }
 }

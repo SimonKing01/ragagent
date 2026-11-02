@@ -1,12 +1,12 @@
 package com.ragagent.modelruntime.adapter.provider.chat.common;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.model.ChatMessage;
 import com.ragagent.contract.model.ChatOptions;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpHeaders;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * OpenAI 兼容后端中**厂商特有**的全部行为。

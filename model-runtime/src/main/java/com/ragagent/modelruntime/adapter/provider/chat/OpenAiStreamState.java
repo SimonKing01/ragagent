@@ -1,5 +1,6 @@
 package com.ragagent.modelruntime.adapter.provider.chat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.model.TokenUsage;
 import com.ragagent.contract.model.ToolCall;
 import com.ragagent.llm.domain.ProviderMetadataMaps;
@@ -10,7 +11,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * OpenAI 兼容流式处理状态。

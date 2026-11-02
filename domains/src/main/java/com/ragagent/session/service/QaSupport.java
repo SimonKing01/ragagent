@@ -58,7 +58,7 @@ public final class QaSupport {
         /** 已解析的 agent 视图（id/config/租户）；null = 未指定或未解析到 */
         public AgentLookup.AgentView agentRow;
         /** agent 的 config 树（ensureDefaults 后的 ObjectNode；装配面载荷为纯 JDK 值，边界经 JsonMappers 归一）。 */
-        public tools.jackson.databind.node.ObjectNode agentConfig;
+        public com.fasterxml.jackson.databind.node.ObjectNode agentConfig;
         public Message assistantMessage;
         public List<String> knowledgeBaseIds = new ArrayList<>();
         public List<String> knowledgeIds = new ArrayList<>();
@@ -515,7 +515,7 @@ public final class QaSupport {
         public AgentLookup.AgentView agentRow;
         /** 未带实体的调用面（im）只传 agent id；服务入口经 {@code AgentResolver#resolveInto} 补 {@link #agentRow}。 */
         public String agentId = "";
-        public tools.jackson.databind.node.ObjectNode agentConfig;
+        public com.fasterxml.jackson.databind.node.ObjectNode agentConfig;
         public List<String> knowledgeBaseIds = new ArrayList<>();
         public List<String> knowledgeIds = new ArrayList<>();
         public List<TagScope> tagScopes = new ArrayList<>();

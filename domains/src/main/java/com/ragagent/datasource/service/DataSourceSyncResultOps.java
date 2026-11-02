@@ -41,7 +41,7 @@ final class DataSourceSyncResultOps {
      * 其余置 active。</p>
      */
     void updateSyncRunResult(DataSource ds, SyncLog syncLog, SyncResult result,
-                             tools.jackson.databind.JsonNode resultJson,
+                             com.fasterxml.jackson.databind.JsonNode resultJson,
                              String status, String errorMessage, boolean wasPaused,
                              DataSourceSupport.ActivityTask activityTask) {
         syncLog.setItemsTotal(result.getTotal());

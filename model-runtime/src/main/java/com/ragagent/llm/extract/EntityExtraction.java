@@ -1,5 +1,7 @@
 package com.ragagent.llm.extract;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.graph.GraphNode;
 import com.ragagent.contract.graph.GraphRelation;
 import com.ragagent.contract.model.ChatMessage;
@@ -15,8 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 实体抽取的提示词生成与 LLM 输出解析。
@@ -130,11 +130,11 @@ public final class EntityExtraction {
     }
 
     /** 值字符串化（Java 原生）：标量走 asText、容器走 JSON 形态、null → "null"。 */
-    private static String valueStr(tools.jackson.databind.JsonNode node) {
+    private static String valueStr(com.fasterxml.jackson.databind.JsonNode node) {
         if (node == null || node.isNull()) {
             return "null";
         }
-        return node.isContainer() ? node.toString() : node.asString();
+        return node.isContainerNode() ? node.toString() : node.asText();
     }
 
     // Formater
@@ -211,7 +211,9 @@ public final class EntityExtraction {
             for (JsonNode item : itemsNode) {
                 if (item.isObject()) {
                     Map<String, JsonNode> row = new LinkedHashMap<>();
-                    for (var e : item.properties()) {
+                    var fields = item.fields();
+                    while (fields.hasNext()) {
+                        var e = fields.next();
                         // null 值键等价"不存在"，跳过
                         if (e.getValue() == null || e.getValue().isNull()) {
                             continue;
@@ -227,7 +229,7 @@ public final class EntityExtraction {
         }
 
         private static String jsonKind(JsonNode n) {
-            if (n.isString()) {
+            if (n.isTextual()) {
                 return "string";
             }
             if (n.isNumber()) {

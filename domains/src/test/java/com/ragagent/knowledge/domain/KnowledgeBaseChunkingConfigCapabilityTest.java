@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.knowledge.support.KnowledgeBaseConfigCodec;
 import com.ragagent.knowledge.support.KnowledgeBaseConfigMaps;
@@ -12,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * K8 配置能力矩阵：**声明了的配置要么生效、要么被显式告知**，不许静默吞掉。
@@ -108,7 +108,7 @@ class KnowledgeBaseChunkingConfigCapabilityTest {
         JsonNode node = view.get("inactiveFeatures");
         List<String> keys = new ArrayList<>();
         if (node != null && node.isArray()) {
-            node.forEach(k -> keys.add(k.asString()));
+            node.forEach(k -> keys.add(k.asText()));
         }
         return keys;
     }

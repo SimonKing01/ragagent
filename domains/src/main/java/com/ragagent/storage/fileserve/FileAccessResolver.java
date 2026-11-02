@@ -1,5 +1,6 @@
 package com.ragagent.storage.fileserve;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.storage.fileserve.MessageFactsLookup;
 import com.ragagent.contract.storage.fileserve.MessageFileFacts;
 import com.ragagent.platform.access.TenantContext;
@@ -9,7 +10,6 @@ import com.ragagent.storage.domain.StoredResource;
 import com.ragagent.storage.service.ResourceCatalogService;
 import java.util.List;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * KB / 消息两个 scoped 文件代理的授权判定（ResolveKBFile / ResolveMessageFile /

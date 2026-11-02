@@ -1,11 +1,11 @@
 package com.ragagent.knowledge.support;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.knowledge.domain.KnowledgeBaseChunkingConfig;
 import com.ragagent.knowledge.domain.KnowledgeBaseImageProcessingConfig;
 import com.ragagent.knowledge.domain.KnowledgeBaseIndexingStrategy;
 import com.ragagent.platform.web.JsonMappers;
-import tools.jackson.databind.JsonNode;
 
 /**
  * KB 配置 jsonb → 契约配置类型的**解析边界**（承载原先挂在 4 个配置类型上的静态
@@ -28,7 +28,7 @@ public final class KnowledgeBaseConfigCodec {
         KnowledgeBaseChunkingConfig parsed;
         try {
             parsed = JsonMappers.lenient().convertValue(node, KnowledgeBaseChunkingConfig.class);
-        } catch (RuntimeException e) {
+        } catch (IllegalArgumentException e) {
             throw BizException.badRequest("chunkingConfig 解析失败：" + e.getMessage());
         }
         return parsed == null ? new KnowledgeBaseChunkingConfig() : parsed;
@@ -43,7 +43,7 @@ public final class KnowledgeBaseConfigCodec {
             KnowledgeBaseImageProcessingConfig parsed =
                     JsonMappers.lenient().convertValue(node, KnowledgeBaseImageProcessingConfig.class);
             return parsed == null ? new KnowledgeBaseImageProcessingConfig() : parsed;
-        } catch (RuntimeException e) {
+        } catch (IllegalArgumentException e) {
             return new KnowledgeBaseImageProcessingConfig();
         }
     }

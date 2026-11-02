@@ -1,10 +1,10 @@
 package com.ragagent.auth.apikey.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.config.AppEnvLookup;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 建租户时的自动发 Key 支持：自动建 Key 的开关解析 + 创建响应嵌入明文 Key。

@@ -2,6 +2,8 @@ package com.ragagent.agent.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.agent.AgentStep;
 import com.ragagent.contract.agent.AgentToolCall;
 import com.ragagent.contract.agent.ToolCallTarget;
@@ -18,8 +20,6 @@ import java.util.TimeZone;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@code agent_steps}（{@code AgentSteps} jsonb 载荷）的逐字节契约测试。
@@ -231,7 +231,7 @@ class AgentStepsJsonTest {
         String raw = "[{\"iteration\":2,\"thought\":\"t\",\"toolCalls\":null,"
                 + "\"timestamp\":\"2026-09-18T10:00:00+08:00\"}]";
         List<AgentStep> steps = MAPPER.readValue(raw,
-                new tools.jackson.core.type.TypeReference<List<AgentStep>>() {});
+                new com.fasterxml.jackson.core.type.TypeReference<List<AgentStep>>() {});
         assertThat(steps).hasSize(1);
         assertThat(steps.get(0).getIteration()).isEqualTo(2);
         assertThat(steps.get(0).getTimestamp()).isNotNull();
@@ -246,7 +246,7 @@ class AgentStepsJsonTest {
         String raw = "[{\"iteration\":0,\"thought\":\"\",\"toolCalls\":null,"
                 + "\"timestamp\":\"0001-01-01T00:00:00Z\"}]";
         List<AgentStep> steps = MAPPER.readValue(raw,
-                new tools.jackson.core.type.TypeReference<List<AgentStep>>() {});
+                new com.fasterxml.jackson.core.type.TypeReference<List<AgentStep>>() {});
         assertThat(ZeroTimeSerializer.isZeroValue(steps.get(0).getTimestamp()))
                 .as("零值时间读回仍是零值（isZeroValue 判定）")
                 .isTrue();
@@ -259,13 +259,14 @@ class AgentStepsJsonTest {
         String raw = "[{\"iteration\":0,\"toolCalls\":null,"
                 + "\"timestamp\":\"0001-01-01T00:00:00Z\",\"future_field\":123}]";
         List<AgentStep> steps = tolerantMapper().readValue(raw,
-                new tools.jackson.core.type.TypeReference<List<AgentStep>>() {});
+                new com.fasterxml.jackson.core.type.TypeReference<List<AgentStep>>() {});
         assertThat(steps).hasSize(1);
     }
 
     /** 与 {@code AbstractJsonListTypeHandler} 同一套配置。 */
     private static ObjectMapper tolerantMapper() {
-        return JsonMappers.lenient();
+        return JsonMappers.lenient()
+                .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     /** {@code JsonNode} 值原样内联，不是字符串。 */

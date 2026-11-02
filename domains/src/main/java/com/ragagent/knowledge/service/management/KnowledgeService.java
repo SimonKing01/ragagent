@@ -1,6 +1,9 @@
 package com.ragagent.knowledge.service.management;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.error.ErrorCode;
@@ -45,9 +48,6 @@ import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 知识库文档管理门面：file/url/manual 创建、分页列表、get/update/delete、folders 与标签批量。
@@ -436,7 +436,7 @@ public class KnowledgeService implements KnowledgeReadPort, KnowledgeDocumentGat
                 k.setTitle(req.title());
             }
             if (req.description() != null) {
-                k.setDescription(req.description().isNull() ? "" : req.description().asString());
+                k.setDescription(req.description().isNull() ? "" : req.description().asText());
                 // description 显式更新联动 summary_status
                 k.setSummaryStatus(k.getDescription().isEmpty() ? "none" : "completed");
             }

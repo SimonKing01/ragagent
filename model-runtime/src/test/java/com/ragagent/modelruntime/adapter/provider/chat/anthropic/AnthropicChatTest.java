@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.model.CacheRetention;
 import com.ragagent.contract.model.ChatConfig;
 import com.ragagent.contract.model.ChatMessage;
@@ -28,8 +30,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Anthropic chat 语义测试（表内 7 条 + 端点拼接 2 条）。
@@ -149,20 +149,20 @@ class AnthropicChatTest {
 
             Captured request = captured.get();
             assertEquals("/v1/messages", request.path());
-            assertEquals("claude-sonnet-4-5", request.body().get("model").asString());
+            assertEquals("claude-sonnet-4-5", request.body().get("model").asText());
             assertEquals(7, request.body().get("max_tokens").asInt());
 
             JsonNode system = request.body().get("system");
             assertTrue(system.isArray(), "system 应升格为内容块（有 cache_control 断点）");
-            assertEquals("You are helpful.", system.get(0).get("text").asString());
-            assertEquals("ephemeral", system.get(0).get("cache_control").get("type").asString());
+            assertEquals("You are helpful.", system.get(0).get("text").asText());
+            assertEquals("ephemeral", system.get(0).get("cache_control").get("type").asText());
 
             assertEquals(1, request.body().get("messages").size());
             JsonNode user = request.body().get("messages").get(0);
-            assertEquals("user", user.get("role").asString());
+            assertEquals("user", user.get("role").asText());
             assertTrue(user.get("content").isArray(), "最后一条消息也要打断点");
-            assertEquals("Hi", user.get("content").get(0).get("text").asString());
-            assertEquals("ephemeral", user.get("content").get(0).get("cache_control").get("type").asString());
+            assertEquals("Hi", user.get("content").get(0).get("text").asText());
+            assertEquals("ephemeral", user.get("content").get(0).get("cache_control").get("type").asText());
 
             assertEquals("hello", resp.getContent());
             assertEquals("end_turn", resp.getFinishReason());
@@ -388,8 +388,8 @@ class AnthropicChatTest {
             chat("http://127.0.0.1:" + server.getAddress().getPort())
                     .chat(List.of(ChatMessage.system("You are helpful."), ChatMessage.user("Hi")), opts);
 
-            assertEquals("You are helpful.", captured.get().body().get("system").asString());
-            assertEquals("Hi", captured.get().body().get("messages").get(0).get("content").asString());
+            assertEquals("You are helpful.", captured.get().body().get("system").asText());
+            assertEquals("Hi", captured.get().body().get("messages").get(0).get("content").asText());
         } finally {
             server.stop(0);
         }

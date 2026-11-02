@@ -3,11 +3,11 @@ package com.ragagent.knowledge.service.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.knowledge.domain.KnowledgeBase;
 import com.ragagent.knowledge.domain.KnowledgeBaseIndexingStrategy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 覆盖 {@code KnowledgeBaseService.ensureDefaults}。

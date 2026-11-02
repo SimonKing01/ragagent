@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.retrieval.engine.EngineTypes.IndexInfo;
 import com.ragagent.retrieval.engine.EngineTypes.RetrieveParams;
 import com.ragagent.retrieval.engine.EngineTypes.RetrieveResult;
@@ -24,8 +26,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Elasticsearch v8 检索引擎仓库：
@@ -204,13 +204,13 @@ class ElasticsearchV8RetrieveRepositoryTest {
                 .findFirst().orElseThrow();
         assertEquals("POST", post.method());
         JsonNode body = MAPPER.readTree(post.body());
-        assertEquals("内容", body.path("content").asString());
-        assertEquals("s1", body.path("source_id").asString());
+        assertEquals("内容", body.path("content").asText());
+        assertEquals("s1", body.path("source_id").asText());
         assertEquals(1, body.path("source_type").asInt());
-        assertEquals("c1", body.path("chunk_id").asString());
-        assertEquals("k1", body.path("knowledge_id").asString());
-        assertEquals("kb1", body.path("knowledge_base_id").asString());
-        assertEquals("t1", body.path("tag_id").asString());
+        assertEquals("c1", body.path("chunk_id").asText());
+        assertEquals("k1", body.path("knowledge_id").asText());
+        assertEquals("kb1", body.path("knowledge_base_id").asText());
+        assertEquals("t1", body.path("tag_id").asText());
         assertEquals(0.5, body.path("embedding").get(0).asDouble(), 1e-6);
         assertFalse(body.path("is_enabled").asBoolean(), "chunk_enabled 覆盖生效");
         assertTrue(body.path("is_recommended").asBoolean());
@@ -252,7 +252,7 @@ class ElasticsearchV8RetrieveRepositoryTest {
         assertEquals("{\"create\":{\"_index\":\"" + INDEX + "\"}}", lines[2]);
         JsonNode doc1 = MAPPER.readTree(lines[1]);
         JsonNode doc2 = MAPPER.readTree(lines[3]);
-        assertEquals("s1", doc1.path("source_id").asString());
+        assertEquals("s1", doc1.path("source_id").asText());
         assertEquals(1, doc1.path("embedding").size());
         assertEquals(2, doc2.path("embedding").size());
 
@@ -288,11 +288,11 @@ class ElasticsearchV8RetrieveRepositoryTest {
         assertEquals(3, deletes.size());
         JsonNode first = MAPPER.readTree(deletes.get(0).body());
         assertEquals("c1", first.path("query").path("terms").path("chunk_id.keyword").get(0)
-                .asString());
+                .asText());
         assertEquals("s1", MAPPER.readTree(deletes.get(1).body())
-                .path("query").path("terms").path("source_id.keyword").get(0).asString());
+                .path("query").path("terms").path("source_id.keyword").get(0).asText());
         assertEquals("k1", MAPPER.readTree(deletes.get(2).body())
-                .path("query").path("terms").path("knowledge_id.keyword").get(0).asString());
+                .path("query").path("terms").path("knowledge_id.keyword").get(0).asText());
 
         captured.clear();
         r.deleteByChunkIdList(List.of(), 0, "");
@@ -347,20 +347,20 @@ class ElasticsearchV8RetrieveRepositoryTest {
                 .filter(c -> c.path().endsWith("/_search")).findFirst().orElseThrow().body());
         JsonNode scriptScore = body.path("query").path("script_score");
         assertEquals("cosineSimilarity(params.query_vector, 'embedding')",
-                scriptScore.path("script").path("source").asString());
+                scriptScore.path("script").path("source").asText());
         assertEquals(0.1, scriptScore.path("script").path("params").path("query_vector").get(0)
                 .asDouble(), 1e-6);
         assertEquals(0.5, scriptScore.path("min_score").asDouble(), 1e-6);
         JsonNode filter = scriptScore.path("query").path("bool").path("filter").get(0)
                 .path("bool");
         assertEquals("kb1", filter.path("must").get(0).path("terms")
-                .path("knowledge_base_id").get(0).asString());
+                .path("knowledge_base_id").get(0).asText());
         assertFalse(filter.path("must_not").get(0).path("term").path("is_enabled")
                 .path("value").asBoolean());
         assertEquals("c9", filter.path("must_not").get(1).path("terms").path("chunk_id")
-                .get(0).asString());
+                .get(0).asText());
         assertEquals(10, body.path("size").asInt());
-        assertEquals("embedding", body.path("_source").path("excludes").get(0).asString());
+        assertEquals("embedding", body.path("_source").path("excludes").get(0).asText());
     }
 
     @Test
@@ -398,9 +398,9 @@ class ElasticsearchV8RetrieveRepositoryTest {
                 .filter(c -> c.path().endsWith("/_search")).findFirst().orElseThrow().body());
         JsonNode bool = body.path("query").path("bool");
         assertEquals("你好 世界", bool.path("must").get(0).path("match").path("content")
-                .path("query").asString());
+                .path("query").asText());
         assertEquals("k9", bool.path("filter").get(0).path("bool").path("must_not").get(1)
-                .path("terms").path("knowledge_id").get(0).asString());
+                .path("terms").path("knowledge_id").get(0).asText());
         assertEquals(5, body.path("size").asInt());
 
         RetrieveParams bad = new RetrieveParams();
@@ -432,12 +432,12 @@ class ElasticsearchV8RetrieveRepositoryTest {
                 .filter(c -> c.path().endsWith("/_update_by_query")).toList();
         assertEquals(2, updates.size());
         JsonNode enable = MAPPER.readTree(updates.get(0).body());
-        assertEquals("ctx._source.is_enabled = true", enable.path("script").path("source").asString());
-        assertEquals("painless", enable.path("script").path("lang").asString());
+        assertEquals("ctx._source.is_enabled = true", enable.path("script").path("source").asText());
+        assertEquals("painless", enable.path("script").path("lang").asText());
         assertEquals("c1", enable.path("query").path("bool").path("must").get(0)
-                .path("terms").path("chunk_id").get(0).asString());
+                .path("terms").path("chunk_id").get(0).asText());
         assertEquals("ctx._source.is_enabled = false",
-                MAPPER.readTree(updates.get(1).body()).path("script").path("source").asString());
+                MAPPER.readTree(updates.get(1).body()).path("script").path("source").asText());
 
         captured.clear();
         r.batchUpdateChunkTagID(Map.of("c1", "t1", "c2", "t1", "c3", "t2"));
@@ -449,8 +449,8 @@ class ElasticsearchV8RetrieveRepositoryTest {
         for (Captured c : tagUpdates) {
             JsonNode body = MAPPER.readTree(c.body());
             assertEquals("ctx._source.tag_id = params.tag_id",
-                    body.path("script").path("source").asString());
-            String tag = body.path("script").path("params").path("tag_id").asString();
+                    body.path("script").path("source").asText());
+            String tag = body.path("script").path("params").path("tag_id").asText();
             groupSizes.put(tag, body.path("query").path("bool").path("must").get(0)
                     .path("terms").path("chunk_id").size());
         }
@@ -498,30 +498,30 @@ class ElasticsearchV8RetrieveRepositoryTest {
         assertEquals(500, search.path("size").asInt());
         assertEquals("kb-old", search.path("query").path("bool").path("filter").get(0)
                 .path("bool").path("must").get(0).path("terms").path("knowledge_base_id")
-                .get(0).asString());
+                .get(0).asText());
 
         Captured bulk = captured.stream().filter(c -> c.path().endsWith("/_bulk"))
                 .findFirst().orElseThrow();
         String[] lines = bulk.body().split("\n");
         assertEquals(6, lines.length, "3 条文档 → 3 对行");
         JsonNode doc1 = MAPPER.readTree(lines[1]);
-        assertEquals("c-new1", doc1.path("chunk_id").asString());
-        assertEquals("c-new1", doc1.path("source_id").asString(), "普通块：SourceID = 目标 chunkID");
-        assertEquals("k-new", doc1.path("knowledge_id").asString());
-        assertEquals("kb-new", doc1.path("knowledge_base_id").asString());
+        assertEquals("c-new1", doc1.path("chunk_id").asText());
+        assertEquals("c-new1", doc1.path("source_id").asText(), "普通块：SourceID = 目标 chunkID");
+        assertEquals("k-new", doc1.path("knowledge_id").asText());
+        assertEquals("kb-new", doc1.path("knowledge_base_id").asText());
         // 修复后：向量按"目标 SourceID"为键随行带上——doc1（普通块）拿自己的 [0.25,0.5]；
         // doc2（生成问题，目标 SourceID c-new1-q9）也拿自己的 [0.7]
         assertEquals(2, doc1.path("embedding").size());
         assertEquals(0.25, doc1.path("embedding").get(0).asDouble(), 1e-6);
 
         JsonNode doc2 = MAPPER.readTree(lines[3]);
-        assertEquals("c-new1-q9", doc2.path("source_id").asString(),
+        assertEquals("c-new1-q9", doc2.path("source_id").asText(),
                 "生成问题：保留 questionID 段");
         assertEquals(1, doc2.path("embedding").size(), "生成问题也带自己的向量（Go 取不到）");
         assertEquals(0.7, doc2.path("embedding").get(0).asDouble(), 1e-6);
 
         JsonNode doc3 = MAPPER.readTree(lines[5]);
-        assertTrue(doc3.path("source_id").asString()
+        assertTrue(doc3.path("source_id").asText()
                         .matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"),
                 "异常形态 → 新 UUID");
         assertTrue(doc3.path("embedding").isMissingNode() || doc3.path("embedding").isNull(),
@@ -583,12 +583,12 @@ class ElasticsearchV8RetrieveRepositoryTest {
         JsonNode body = MAPPER.readTree(call.body());
         JsonNode boolBody = body.path("query").path("bool");
         assertEquals("source", boolBody.path("filter").get(0).path("terms")
-                .path("knowledge_base_id").get(0).asString(), "v8 用 terms 数组");
+                .path("knowledge_base_id").get(0).asText(), "v8 用 terms 数组");
         assertEquals("doc", boolBody.path("filter").get(1).path("terms").path("knowledge_id")
-                .get(0).asString());
+                .get(0).asText());
         assertEquals("ctx._source.knowledge_base_id = params.target; ctx._source.tag_id = ''",
-                body.path("script").path("source").asString());
-        assertEquals("target", body.path("script").path("params").path("target").asString());
+                body.path("script").path("source").asText());
+        assertEquals("target", body.path("script").path("params").path("target").asText());
         assertTrue(body.path("script").path("lang").isMissingNode(), "v8 的脚本不带 lang");
     }
 }

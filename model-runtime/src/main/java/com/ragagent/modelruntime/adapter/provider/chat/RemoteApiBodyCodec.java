@@ -1,14 +1,14 @@
 package com.ragagent.modelruntime.adapter.provider.chat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.JsonNodeFactory;
-import tools.jackson.databind.node.ObjectNode;
 
 
 /**
@@ -41,7 +41,7 @@ final class RemoteApiBodyCodec {
         }
         if (node.isObject()) {
             List<String> names = new ArrayList<>();
-            node.propertyNames().forEach(names::add);
+            node.fieldNames().forEachRemaining(names::add);
             names.sort((a, b) -> java.util.Arrays.compare(
                     a.getBytes(java.nio.charset.StandardCharsets.UTF_8),
                     b.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
@@ -106,7 +106,7 @@ final class RemoteApiBodyCodec {
         }
         if (node.isObject()) {
             List<String> names = new ArrayList<>();
-            node.propertyNames().forEach(names::add);
+            node.fieldNames().forEachRemaining(names::add);
             List<String> known = new ArrayList<>(names);
             List<String> unknown = new ArrayList<>();
             for (String name : names) {

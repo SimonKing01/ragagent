@@ -2,6 +2,7 @@ package com.ragagent.knowledge.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.knowledge.FaqChunkMetadata;
 import com.ragagent.knowledge.domain.Chunk;
 import com.ragagent.knowledge.mapper.ChunkMapper;
@@ -17,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.sql.DataSource;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
 
 /**
  * FAQ 条目的 chunk 仓储面（FAQ 条目 = chunk_type=faq 的行）：按 seq_id/知识/KB 的

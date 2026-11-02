@@ -1,6 +1,7 @@
 package com.ragagent.knowledge.service.chunk;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.graph.EntityExtractionResult;
 import com.ragagent.contract.graph.GraphData;
 import com.ragagent.contract.graph.GraphNode;
@@ -36,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 分块图抽取任务：
@@ -315,7 +315,7 @@ public class ChunkExtractService implements ChunkExtractConsumer {
 
     private static String text(JsonNode node, String field) {
         JsonNode v = node == null ? null : node.get(field);
-        return v == null || v.isNull() ? "" : v.asString("");
+        return v == null || v.isNull() ? "" : v.asText("");
     }
 
     private static List<String> stringList(JsonNode node, String field) {
@@ -323,7 +323,7 @@ public class ChunkExtractService implements ChunkExtractConsumer {
         JsonNode arr = node == null ? null : node.get(field);
         if (arr != null && arr.isArray()) {
             for (JsonNode item : arr) {
-                out.add(item.asString(""));
+                out.add(item.asText(""));
             }
         }
         return out;

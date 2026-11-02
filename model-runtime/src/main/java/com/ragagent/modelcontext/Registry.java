@@ -1,6 +1,9 @@
 package com.ragagent.modelcontext;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.ragagent.contract.model.ChatMessage;
 import com.ragagent.contract.model.ChatResponse;
 import com.ragagent.contract.model.ChatTool;
@@ -14,9 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.StringNode;
 
 /**
  * 请求局部模型句柄的唯一边界。
@@ -317,14 +317,14 @@ public final class Registry {
     static String rewriteMCPField(String raw, String key, java.util.function.UnaryOperator<String> rewrite) {
         String result = ToolPolicy.RawJson.rewriteRawObject(raw, key, rawValue -> {
             JsonNode value = ModelJsonValues.parse(rawValue);
-            if (value == null || !value.isString()) {
+            if (value == null || !value.isTextual()) {
                 return null;
             }
-            String rewritten = rewrite.apply(value.asString());
-            if (rewritten.equals(value.asString())) {
+            String rewritten = rewrite.apply(value.asText());
+            if (rewritten.equals(value.asText())) {
                 return null;
             }
-            return new ToolPolicy.RawJson.Raw(ToolJson.write(StringNode.valueOf(rewritten)));
+            return new ToolPolicy.RawJson.Raw(ToolJson.write(TextNode.valueOf(rewritten)));
         });
         return result != null ? result : raw;
     }
@@ -502,10 +502,10 @@ public final class Registry {
         ArrayNode array = (ArrayNode) node;
         List<String> ids = new ArrayList<>(array.size());
         for (JsonNode id : array) {
-            if (!id.isString()) {
+            if (!id.isTextual()) {
                 return null;
             }
-            ids.add(id.asString());
+            ids.add(id.asText());
         }
         return ids;
     }
@@ -538,8 +538,8 @@ public final class Registry {
         // 只在用于找链接的草稿副本里解 JSON 字符串转义；外部正文与持久 ToolResult 不动
         String scanned = SourceRegistry.replaceAllFunc(MCP_JSON_STRING, output, token -> {
             JsonNode value = ModelJsonValues.parse(token);
-            if (value != null && value.isString()) {
-                return "\"" + value.asString() + "\"";
+            if (value != null && value.isTextual()) {
+                return "\"" + value.asText() + "\"";
             }
             return token;
         });

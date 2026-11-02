@@ -3,12 +3,12 @@
 
 判据（硬零）：
   V1 根 pom 的 Spring Boot 与 README 的 badge/技术栈大版本一致；
-  V2 Boot 4.1 对应 springdoc 3.1.x（Boot 3.5 配 2.8.x）；
+  V2 Boot 3.3 对应 springdoc 2.8.x；
   V3 mybatis-plus starter 与 jsqlparser 共用同一个版本引用；
   V4 子模块 pom 不得自行 import spring-boot-dependencies（BOM 只在根 pom）；
   V5 Dockerfile 的 JDK 大版本与 pom 的 java.version 一致。
 
-红态探针：把 README badge 的 4.1 改成 4.0，本脚本必须非零退出；跑完恢复。
+红态探针：把 README badge 的 3.3 改成 3.2，本脚本必须非零退出；跑完恢复。
 """
 
 import pathlib
@@ -66,14 +66,12 @@ def main() -> int:
             problems.append(f"V1 README 写的是 Spring Boot {found}，pom 为 {boot}")
 
     # V2 Boot 与 springdoc 对应线
-    if boot_mm == "4.1" and not springdoc.startswith("3.1."):
-        problems.append(f"V2 Boot {boot} 应配 springdoc 3.1.x，当前 {springdoc}")
-    elif boot_mm == "3.5" and not springdoc.startswith("2.8."):
+    if boot_mm == "3.3" and not springdoc.startswith("2.8."):
         problems.append(f"V2 Boot {boot} 应配 springdoc 2.8.x，当前 {springdoc}")
 
     # V3 jsqlparser artifact 与 starter 共用同一版本引用
     refs = managed_versions(pom_text)
-    starter_ref = refs.get("mybatis-plus-spring-boot4-starter")
+    starter_ref = refs.get("mybatis-plus-spring-boot3-starter")
     parser_ref = refs.get("mybatis-plus-jsqlparser")
     if not starter_ref or not parser_ref or starter_ref != parser_ref:
         problems.append(

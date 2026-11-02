@@ -1,11 +1,11 @@
 package com.ragagent.agenttools.datasource;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.pipeline.PipelinePorts;
 import com.ragagent.contract.tool.ToolResult;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * {@link PipelinePorts.DataAnalysisSessionFactory} 的 agent 侧实现（由 {@code chatpipeline} 搬入）。

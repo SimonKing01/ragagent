@@ -1,5 +1,8 @@
 package com.ragagent.retrieval.engine.elasticsearch;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.retrieval.engine.EngineTypes;
 import com.ragagent.retrieval.engine.EngineTypes.IndexWithScore;
 import com.ragagent.retrieval.engine.EngineTypes.RetrieveParams;
@@ -8,9 +11,6 @@ import com.ragagent.retrieval.engine.elasticsearch.ElasticsearchV8RetrieveReposi
 import com.ragagent.retrieval.engine.elasticsearch.ElasticsearchV8RetrieveRepository.VectorEmbedding;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Elasticsearch v8 引擎的检索簇：基础条件（bool must/must_not，恒排除 is_enabled=false）、
@@ -148,7 +148,7 @@ final class ElasticsearchV8SearchOps {
         for (JsonNode hit : root.path("hits").path("hits")) {
             VectorEmbedding embedding = ElasticsearchV8RetrieveRepository.parseSource(hit.path("_source"));
             embedding.score = hit.path("_score").asDouble(0);
-            results.add(ElasticsearchV8RetrieveRepository.fromDbVectorEmbeddingWithScore(hit.path("_id").asString(""), embedding,
+            results.add(ElasticsearchV8RetrieveRepository.fromDbVectorEmbeddingWithScore(hit.path("_id").asText(""), embedding,
                     EngineTypes.RETRIEVER_VECTOR.equals(retrieverType)
                             ? EngineTypes.MATCH_EMBEDDING : EngineTypes.MATCH_KEYWORDS));
         }

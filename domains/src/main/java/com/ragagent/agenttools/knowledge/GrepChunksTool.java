@@ -1,5 +1,6 @@
 package com.ragagent.agenttools.knowledge;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.agent.SearchAuth;
 import com.ragagent.contract.knowledge.ChunkFacts;
 import com.ragagent.contract.retrieval.SearchTarget;
@@ -18,7 +19,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import tools.jackson.databind.JsonNode;
 
 /**
  * grep_chunks 工具。
@@ -111,7 +111,7 @@ public class GrepChunksTool extends BaseTool {
 
         // 入参只有 "query" 一个字段（历史 schema 的数组形态 queries/patterns/pattern
         // 仅为旧前端兼容别名，不再解析）。
-        String query = args.path("query").asString("").trim();
+        String query = args.path("query").asText("").trim();
         if (query.isEmpty()) {
             return failure("query parameter is required and must be a non-empty regex string");
         }

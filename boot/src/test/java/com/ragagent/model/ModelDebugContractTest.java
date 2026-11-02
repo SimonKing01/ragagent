@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.TestSchema;
 import com.ragagent.agent.fixtures.ContractJson;
 import com.ragagent.auth.domain.Tenant;
@@ -32,16 +34,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 模型调试契约测试：POST /api/v1/models/{id}/debug，对照 golden 逐字节比对。
@@ -140,10 +140,10 @@ class ModelDebugContractTest {
         JsonNode req;
         try {
             req = MAPPER.readTree(body.length == 0 ? "{}" : new String(body, StandardCharsets.UTF_8));
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             req = MAPPER.createObjectNode();
         }
-        String model = req.path("model").asString("stub-model");
+        String model = req.path("model").asText("stub-model");
         boolean stream = req.path("stream").asBoolean(false);
         String usage = "\"usage\":{\"prompt_tokens\":12,\"completion_tokens\":9,\"total_tokens\":21}";
         if (!stream) {
@@ -469,8 +469,8 @@ class ModelDebugContractTest {
         return m.group(1);
     }
 
-    private static final tools.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String golden(String name) throws Exception {
         // PR4 语义比较：键序/HTML 转义归一后返回（非 JSON 文本原样），断言侧不变

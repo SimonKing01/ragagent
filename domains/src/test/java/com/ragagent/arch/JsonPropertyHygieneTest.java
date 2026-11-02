@@ -41,8 +41,10 @@ import org.junit.jupiter.api.Test;
  *   <li><b>class 面删同名必重排</b>——混改名 class 删任一同名注解触发全类型字段序重排
  *       （WikiNode {@code title} 前跳 / DocxBlock {@code block_id} 移尾），且 setter-only 字段会
  *       <b>整键消失</b>（{@code AuthServerMetadata.issuer}）——与有无序列化出口无关，继续整文件保护。</li>
- *   <li>未知键容忍由 mapper 层统一承担（Jackson 3 默认翻转 + {@code WebConfig}/{@code JsonMappers.lenient()}
- *       双路径），逐类 {@code ignoreUnknown=true} 已在 B269② 全数摘除。</li>
+ *   <li>未知键容忍由 mapper 层统一承担（{@code WebConfig} 的 builder 自定义器 +
+ *       {@code JsonMappers.lenient()} 双路径显式禁用 {@code FAIL_ON_UNKNOWN_PROPERTIES}），
+ *       逐类 {@code ignoreUnknown=true} 已在 B269② 全数摘除——Jackson 2 默认严格，
+ *       所以这两条禁用是承重的，不是冗余。</li>
  * </ul>
  *
  * <p>基线 <b>0</b>（不是棘轮——我们自己的面已清零，从第一天起就是"新增即红"）。</p>

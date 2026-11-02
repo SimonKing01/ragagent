@@ -104,7 +104,7 @@ public final class DocChunkSupport {
 
     /** 独立 ObjectMapper（主源码不可依赖测试侧的 RecordingSupport）。 */
     private static final class ImageJson {
-        static final tools.jackson.databind.ObjectMapper PLAIN =
+        static final com.fasterxml.jackson.databind.ObjectMapper PLAIN =
                 JsonMappers.lenient();
 
         private ImageJson() {
@@ -117,22 +117,22 @@ public final class DocChunkSupport {
             return null;
         }
         try {
-            tools.jackson.databind.JsonNode node = ImageJson.PLAIN.readTree(imageInfoJson);
+            com.fasterxml.jackson.databind.JsonNode node = ImageJson.PLAIN.readTree(imageInfoJson);
             if (!node.isArray() || node.isEmpty()) {
                 return null;
             }
             List<ImageInfoRow> out = new ArrayList<>();
-            for (tools.jackson.databind.JsonNode item : node) {
-                String url = item.path("url").asString("");
-                String originalUrl = item.path("originalUrl").asString("");
+            for (com.fasterxml.jackson.databind.JsonNode item : node) {
+                String url = item.path("url").asText("");
+                String originalUrl = item.path("originalUrl").asText("");
                 if (url.isEmpty()) {
                     url = originalUrl;
                 }
                 out.add(new ImageInfoRow(url,
-                        item.path("caption").asString(""), item.path("ocrText").asString("")));
+                        item.path("caption").asText(""), item.path("ocrText").asText("")));
             }
             return out;
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (java.io.IOException e) {
             return null;
         }
     }

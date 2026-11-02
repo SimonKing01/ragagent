@@ -1,5 +1,6 @@
 package com.ragagent.retrieval;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.error.ErrorCode;
@@ -44,7 +45,6 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
 
 /**
  * HybridSearch 执行面：多 KB 检索的 store-group 路由、扇出执行、RRF 融合

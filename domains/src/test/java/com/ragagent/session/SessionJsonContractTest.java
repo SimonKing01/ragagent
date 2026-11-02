@@ -2,6 +2,9 @@ package com.ragagent.session;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ragagent.contract.session.SessionLastRequestState;
 import com.ragagent.session.domain.conversation.Session;
 import com.ragagent.session.dto.SessionListItem;
@@ -12,8 +15,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * 会话响应体的 JSON **键序与键数**（键名＝Java 字段名、键序＝声明序）。
@@ -167,7 +168,7 @@ class SessionJsonContractTest {
 
     private static String json(Object value) {
         try {
-            ObjectMapper mapper = JsonMapper.builder().disable(tools.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY).build();
+            ObjectMapper mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
             return mapper.writeValueAsString(value);
         } catch (Exception e) {
             throw new IllegalStateException(e);

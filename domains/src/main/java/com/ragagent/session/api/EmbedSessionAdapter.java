@@ -1,5 +1,6 @@
 package com.ragagent.session.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.session.EmbedReply;
@@ -18,7 +19,6 @@ import com.ragagent.session.service.suggestion.MessageSuggestionFacade;
 import java.io.IOException;
 import java.util.List;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@link EmbedSessionPort} 的会话域实现：逐参数转发到与 HTTP 面**同一套用例层**

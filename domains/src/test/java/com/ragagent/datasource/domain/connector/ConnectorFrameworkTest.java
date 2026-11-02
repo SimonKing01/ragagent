@@ -4,6 +4,7 @@ package com.ragagent.datasource.domain.connector;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.datasource.catalog.ConnectorCatalog;
 import com.ragagent.datasource.catalog.ConnectorMetadata;
 import com.ragagent.datasource.domain.DataSourceConfig;
@@ -17,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 连接器框架层（{@code ConnectorException} / {@code ConnectorRegistry} /

@@ -1,10 +1,10 @@
 package com.ragagent.agentmanagement.service.config;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.web.JsonMappers;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * CustomAgentConfig 的树级补默认 / 校验。
@@ -59,10 +59,10 @@ public final class AgentConfigJson {
         if (cfg.path("rerankTopK").asInt(0) == 0) {
             cfg.put("rerankTopK", 5);
         }
-        if (cfg.path("fallbackStrategy").asString("").isEmpty()) {
+        if (cfg.path("fallbackStrategy").asText("").isEmpty()) {
             cfg.put("fallbackStrategy", "model");
         }
-        if ("smart-reasoning".equals(cfg.path("agentMode").asString(""))) {
+        if ("smart-reasoning".equals(cfg.path("agentMode").asText(""))) {
             cfg.put("multiTurnEnabled", true);
         }
         JsonNode thinking = cfg.get("thinking");
@@ -100,7 +100,7 @@ public final class AgentConfigJson {
     /** QuestionSuggestionConfig 补默认。 */
     private static void ensureSuggestionDefaults(ObjectNode qs) {
         ObjectNode starters = objectAt(qs, "starters");
-        if (starters.path("mode").asString("").isEmpty()) {
+        if (starters.path("mode").asText("").isEmpty()) {
             starters.put("mode", SUGGESTION_HYBRID);
         }
         if (starters.path("count").asInt(0) <= 0) {
@@ -111,7 +111,7 @@ public final class AgentConfigJson {
             starters.putArray("items");
         }
         ObjectNode fu = objectAt(qs, "followUps");
-        if (fu.path("mode").asString("").isEmpty()) {
+        if (fu.path("mode").asText("").isEmpty()) {
             fu.put("mode", SUGGESTION_HYBRID);
         }
         if (fu.path("count").asInt(0) <= 0) {
@@ -158,18 +158,18 @@ public final class AgentConfigJson {
         if (mct < 1 || mct > 5) {
             return "follow-up max_context_turns must be between 1 and 5";
         }
-        String sMode = starters == null ? "" : starters.path("mode").asString("");
+        String sMode = starters == null ? "" : starters.path("mode").asText("");
         if (!oneOf(sMode, SUGGESTION_CURATED, SUGGESTION_KNOWLEDGE, SUGGESTION_HYBRID)) {
             return "invalid starter suggestion mode " + quote(sMode);
         }
-        String fMode = fu == null ? "" : fu.path("mode").asString("");
+        String fMode = fu == null ? "" : fu.path("mode").asText("");
         if (!oneOf(fMode, SUGGESTION_GENERATED, SUGGESTION_KNOWLEDGE, SUGGESTION_HYBRID)) {
             return "invalid follow-up suggestion mode " + quote(fMode);
         }
         if (starters != null && starters.path("items").isArray()) {
             int i = 0;
             for (JsonNode item : starters.get("items")) {
-                String trimmed = item.asString("").trim();
+                String trimmed = item.asText("").trim();
                 if (trimmed.isEmpty()) {
                     return "starter suggestion " + (i + 1) + " cannot be empty";
                 }
@@ -180,15 +180,15 @@ public final class AgentConfigJson {
             }
         }
         if (fu != null) {
-            String instr = fu.path("additionalInstruction").asString("").trim();
+            String instr = fu.path("additionalInstruction").asText("").trim();
             if (instr.codePointCount(0, instr.length()) > 2000) {
                 return "follow-up additional_instruction exceeds 2000 characters";
             }
             JsonNode cats = fu.get("categories");
             if (cats != null && cats.isArray()) {
                 for (JsonNode c : cats) {
-                    if (!oneOf(c.asString(""), "clarify", "deepen", "action")) {
-                        return "invalid follow-up suggestion category " + quote(c.asString(""));
+                    if (!oneOf(c.asText(""), "clarify", "deepen", "action")) {
+                        return "invalid follow-up suggestion category " + quote(c.asText(""));
                     }
                 }
             }

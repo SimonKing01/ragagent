@@ -1,5 +1,8 @@
 package com.ragagent.knowledge.service.chunk;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.knowledge.DocumentChunkMetadata;
 import com.ragagent.contract.knowledge.GeneratedQuestion;
@@ -40,9 +43,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * chunk 生成问题面：生成问题的 upsert/删除/重生（LLM 生成 + 邻块上下文拼装 + metadata 落库）。
@@ -118,7 +118,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         DocumentChunkMetadata meta;
         try {
             meta = parseDocumentMetadata(chunk.getMetadata());
-        } catch (JacksonException e) {
+        } catch (JsonProcessingException e) {
             throw BizException.badRequest(e.getMessage());
         }
         if (meta == null) {
@@ -152,7 +152,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         }
         try {
             chunk.setMetadata(writeDocumentMetadata(meta));
-        } catch (JacksonException e) {
+        } catch (JsonProcessingException e) {
             throw BizException.badRequest(e.getMessage());
         }
         try {
@@ -194,7 +194,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         DocumentChunkMetadata meta;
         try {
             meta = parseDocumentMetadata(chunk.getMetadata());
-        } catch (JacksonException e) {
+        } catch (JsonProcessingException e) {
             throw BizException.badRequest("failed to parse chunk metadata: " + e.getMessage());
         }
         if (meta == null || meta.getGeneratedQuestions() == null || meta.getGeneratedQuestions().isEmpty()) {
@@ -262,7 +262,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         meta.setGeneratedQuestions(remaining);
         try {
             chunk.setMetadata(writeDocumentMetadata(meta));
-        } catch (JacksonException e) {
+        } catch (JsonProcessingException e) {
             throw BizException.badRequest("failed to set chunk metadata: " + e.getMessage());
         }
         try {
@@ -322,7 +322,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         if (questionCount > 10) {
             questionCount = 10;
         }
-        String customInstructions = qg == null ? "" : qg.path("customInstructions").asString("");
+        String customInstructions = qg == null ? "" : qg.path("customInstructions").asText("");
         List<String> questions = generateQuestionsWithContext(
                 chatModel, chunk.getContent(), prevContent, nextContent,
                 knowledge.getTitle(), questionCount, customInstructions);
@@ -420,7 +420,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         meta.setGeneratedQuestionsRevision(chunk.getContentRevision());
         try {
             chunk.setMetadata(writeDocumentMetadata(meta));
-        } catch (JacksonException e) {
+        } catch (JsonProcessingException e) {
             throw new IllegalStateException("failed to set chunk metadata: " + e.getMessage(), e);
         }
         try {
@@ -571,7 +571,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
     }
 
 
-    private static DocumentChunkMetadata parseDocumentMetadata(JsonNode metadata) throws JacksonException {
+    private static DocumentChunkMetadata parseDocumentMetadata(JsonNode metadata) throws JsonProcessingException {
         if (metadata == null || metadata.isNull() || metadata.isMissingNode()) {
             return null;
         }
@@ -580,7 +580,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
 
     /** 序列化形状由域类型上的注解锁定。 */
 
-    private static JsonNode writeDocumentMetadata(DocumentChunkMetadata meta) throws JacksonException {
+    private static JsonNode writeDocumentMetadata(DocumentChunkMetadata meta) throws JsonProcessingException {
         if (meta == null) {
             return null;
         }

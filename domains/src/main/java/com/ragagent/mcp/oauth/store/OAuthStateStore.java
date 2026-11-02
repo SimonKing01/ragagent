@@ -1,5 +1,8 @@
 package com.ragagent.mcp.oauth.store;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.mcp.oauth.error.OAuthStateNotFoundException;
 import com.ragagent.mcp.oauth.model.OAuthAttempt;
 import com.ragagent.mcp.oauth.model.OAuthState;
@@ -13,9 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 进行中的 OAuth state 存储。

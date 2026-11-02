@@ -1,9 +1,9 @@
 package com.ragagent.session.domain.message;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.ragagent.contract.session.MessageImage;
 import com.ragagent.session.domain.AbstractJsonListTypeHandler;
 import java.util.List;
-import tools.jackson.core.type.TypeReference;
 
 /**
  * {@code messages} 表上 {@code List<MessageImage>} 型 jsonb 列的处理器。

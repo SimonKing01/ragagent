@@ -226,7 +226,7 @@ class TenantAPIKeyDomainTest {
         key.setCapabilities(List.of("retrieve"));
 
         // 契约实体：isPlatform()/tenantIdValue() 是派生方法，key_hash 不出站
-        String json = new tools.jackson.databind.ObjectMapper().writeValueAsString(key);
+        String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(key);
         assertThat(json).doesNotContain("\"platform\"");
         assertThat(json).doesNotContain("\"tenantIdValue\"");
         assertThat(json).doesNotContain("deadbeef");
@@ -239,9 +239,8 @@ class TenantAPIKeyDomainTest {
         assertThat(json).contains("\"apiKey\"");
 
         // 严格映射器回读不炸（漏 @JsonIgnore 会让这里失败）
-        TenantAPIKey back = tools.jackson.databind.json.JsonMapper.builder().disable(tools.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-                .enable(tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                .build()
+        TenantAPIKey back = new com.fasterxml.jackson.databind.ObjectMapper()
+                .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
                 .readValue(json, TenantAPIKey.class);
         assertThat(back.getTenantId()).isEqualTo(42L);
         assertThat(back.getKnowledgeBaseIds()).containsExactly("kb-1");

@@ -3,10 +3,10 @@ package com.ragagent.session.service;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.mock;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.session.rag.ChatManage;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * {@code SessionQaResolution.applyAgentOverridesToChatManage} 的契约测试。

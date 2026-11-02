@@ -1,5 +1,8 @@
 package com.ragagent.retrieval.engine.qdrant;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.retrieval.SearchTextUtil;
 import com.ragagent.contract.vectorstore.IndexConfig;
 import com.ragagent.platform.security.SsrfGuard;
@@ -19,9 +22,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Qdrant 检索引擎仓储。
@@ -252,10 +252,10 @@ public class QdrantRetrieveRepository
             for (String field : List.of(FIELD_CHUNK_ID, FIELD_KNOWLEDGE_ID,
                     FIELD_KNOWLEDGE_BASE_ID, FIELD_SOURCE_ID)) {
                 createFieldIndex(name, field, QdrantRestClient.mapper().getNodeFactory()
-                        .stringNode("keyword"));
+                        .textNode("keyword"));
             }
             createFieldIndex(name, FIELD_IS_ENABLED,
-                    QdrantRestClient.mapper().getNodeFactory().stringNode("bool"));
+                    QdrantRestClient.mapper().getNodeFactory().textNode("bool"));
             ObjectNode textSchema = QdrantRestClient.object();
             textSchema.put("type", "text");
             textSchema.put("tokenizer", "multilingual");
@@ -344,7 +344,7 @@ public class QdrantRetrieveRepository
         JsonNode collections = result == null ? null : result.get("collections");
         if (collections != null) {
             for (JsonNode node : collections) {
-                names.add(node.path("name").asString(""));
+                names.add(node.path("name").asText(""));
             }
         }
         return names;
@@ -536,7 +536,7 @@ public class QdrantRetrieveRepository
             if (probe.status() / 100 != 2) {
                 throw new IllegalStateException("qdrant health check HTTP " + probe.status());
             }
-            return QdrantRestClient.mapper().readTree(probe.body()).path("version").asString("");
+            return QdrantRestClient.mapper().readTree(probe.body()).path("version").asText("");
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {

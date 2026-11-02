@@ -7,6 +7,7 @@ package com.ragagent.agent.tool.runtime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenB;
 import com.ragagent.contract.agent.SearchAuth;
@@ -22,7 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * SearchAuth/SearchTargets 的录制回放（26 条）。错误文案逐字比对；
@@ -93,8 +93,8 @@ class ScopeAuthRecordingTest {
 
         Rec(String constant) {
             JsonNode r = ToolContractGoldenB.rec(field(constant));
-            this.id = r.get("id").asString();
-            this.error = r.get("error").asString();
+            this.id = r.get("id").asText();
+            this.error = r.get("error").asText();
             this.result = r.get("result");
         }
 
@@ -265,7 +265,7 @@ class ScopeAuthRecordingTest {
         }
         List<String> wantIds = new ArrayList<>();
         for (JsonNode n : passthrough.result) {
-            wantIds.add(n.get("id").asString());
+            wantIds.add(n.get("id").asText());
         }
         assertThat(wholeIds).isEqualTo(wantIds);
     }
@@ -318,6 +318,6 @@ class ScopeAuthRecordingTest {
     }
 
     private static String resultId(JsonNode result) {
-        return result == null || result.isNull() ? null : result.get("id").asString();
+        return result == null || result.isNull() ? null : result.get("id").asText();
     }
 }

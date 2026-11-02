@@ -1,5 +1,8 @@
 package com.ragagent.retrieval.engine.milvus;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.vectorstore.IndexConfig;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.retrieval.config.RetrievalEnvLookup;
@@ -18,9 +21,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Milvus 检索引擎仓储。
@@ -433,14 +433,14 @@ public class MilvusRetrieveRepository
     /** 行节点 → 模型（逐列读；缺列留空）。 */
     static MilvusVectorEmbedding fromNode(JsonNode node) {
         MilvusVectorEmbedding row = new MilvusVectorEmbedding();
-        row.id = node.path(FIELD_ID).asString("");
-        row.content = node.path(FIELD_CONTENT).asString("");
-        row.sourceId = node.path(FIELD_SOURCE_ID).asString("");
+        row.id = node.path(FIELD_ID).asText("");
+        row.content = node.path(FIELD_CONTENT).asText("");
+        row.sourceId = node.path(FIELD_SOURCE_ID).asText("");
         row.sourceType = node.path(FIELD_SOURCE_TYPE).asInt(0);
-        row.chunkId = node.path(FIELD_CHUNK_ID).asString("");
-        row.knowledgeId = node.path(FIELD_KNOWLEDGE_ID).asString("");
-        row.knowledgeBaseId = node.path(FIELD_KNOWLEDGE_BASE_ID).asString("");
-        row.tagId = node.path(FIELD_TAG_ID).asString("");
+        row.chunkId = node.path(FIELD_CHUNK_ID).asText("");
+        row.knowledgeId = node.path(FIELD_KNOWLEDGE_ID).asText("");
+        row.knowledgeBaseId = node.path(FIELD_KNOWLEDGE_BASE_ID).asText("");
+        row.tagId = node.path(FIELD_TAG_ID).asText("");
         row.isEnabled = node.path(FIELD_IS_ENABLED).asBoolean(false);
         JsonNode embedding = node.get(FIELD_EMBEDDING);
         if (embedding != null && embedding.isArray()) {

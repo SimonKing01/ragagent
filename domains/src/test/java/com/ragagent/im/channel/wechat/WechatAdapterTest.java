@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.domain.ImChannelEntity;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.CallbackExchange;
@@ -30,8 +32,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 微信 iLink 机器人行为测试：
@@ -143,17 +143,17 @@ class WechatAdapterTest {
         Captured send = captured.get(0);
         assertEquals("/ilink/bot/sendmessage", send.path());
         JsonNode body = MAPPER.readTree(send.body());
-        assertEquals("", body.path("msg").path("from_user_id").asString());
-        assertEquals("u_1", body.path("msg").path("to_user_id").asString());
+        assertEquals("", body.path("msg").path("from_user_id").asText());
+        assertEquals("u_1", body.path("msg").path("to_user_id").asText());
         assertEquals(2, body.path("msg").path("message_type").asInt());
         assertEquals(2, body.path("msg").path("message_state").asInt());
         assertEquals(1, body.path("msg").path("item_list").get(0).path("type").asInt());
         assertEquals("你好", body.path("msg").path("item_list").get(0)
-                .path("text_item").path("text").asString());
-        assertEquals("ct-9", body.path("msg").path("context_token").asString());
-        assertTrue(body.path("msg").path("client_id").asString().startsWith("weknora_"));
+                .path("text_item").path("text").asText());
+        assertEquals("ct-9", body.path("msg").path("context_token").asText());
+        assertTrue(body.path("msg").path("client_id").asText().startsWith("weknora_"));
         assertEquals(WechatAdapter.CHANNEL_VERSION,
-                body.path("base_info").path("channel_version").asString());
+                body.path("base_info").path("channel_version").asText());
 
         assertEquals("Bearer tk-1", send.headers().get("Authorization").get(0));
         assertEquals("ilink_bot_token", send.headers().get("Authorizationtype").get(0));
@@ -165,7 +165,7 @@ class WechatAdapterTest {
         a.sendTyping(incoming);
         assertEquals("/ilink/bot/sendtyping", captured.get(1).path());
         JsonNode typing = MAPPER.readTree(captured.get(1).body());
-        assertEquals("u_1", typing.path("ilink_user_id").asString());
+        assertEquals("u_1", typing.path("ilink_user_id").asText());
         assertEquals(1, typing.path("status").asInt());
     }
 

@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.model.CacheRetention;
 import com.ragagent.contract.model.ChatConfig;
 import com.ragagent.contract.model.ChatMessage;
@@ -26,8 +28,6 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Ollama chat 路径的语义测试（按代码逐条建契约，覆盖最容易出错的几处）。
@@ -124,15 +124,15 @@ class OllamaChatTest {
                 List.of(ChatMessage.user("hi")), opts, false);
         JsonNode sent = MAPPER.valueToTree(request);
 
-        assertEquals("qwen3:latest", sent.get("model").asString());
+        assertEquals("qwen3:latest", sent.get("model").asText());
         assertEquals(false, sent.get("stream").asBoolean());
-        assertEquals("hi", sent.get("messages").get(0).get("content").asString());
+        assertEquals("hi", sent.get("messages").get(0).get("content").asText());
         assertEquals(0.7, sent.get("options").get("temperature").asDouble());
         assertEquals(0.9, sent.get("options").get("top_p").asDouble());
         assertEquals(64, sent.get("options").get("num_predict").asInt(), "补全预算 = num_predict");
         assertTrue(sent.get("options").get("max_tokens") == null, "Ollama 不接受 max_tokens");
         assertEquals(true, sent.get("think").asBoolean());
-        assertEquals("json", sent.get("format").get("type").asString());
+        assertEquals("json", sent.get("format").get("type").asText());
     }
 
     /** max_tokens 与 max_completion_tokens 是同一预算的两个别名，都设时后者优先。 */
@@ -169,8 +169,8 @@ class OllamaChatTest {
 
         JsonNode sent = MAPPER.valueToTree(
                 chat(service).buildChatRequest(List.of(ChatMessage.user("x")), opts, false));
-        assertEquals("function", sent.get("tools").get(0).get("type").asString());
-        assertEquals("lookup", sent.get("tools").get(0).get("function").get("name").asString());
+        assertEquals("function", sent.get("tools").get(0).get("type").asText());
+        assertEquals("lookup", sent.get("tools").get(0).get("function").get("name").asText());
         assertEquals(schema, sent.get("tools").get(0).get("function").get("parameters"));
     }
 

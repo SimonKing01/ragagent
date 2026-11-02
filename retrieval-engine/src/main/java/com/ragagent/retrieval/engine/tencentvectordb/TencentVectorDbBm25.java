@@ -1,5 +1,8 @@
 package com.ragagent.retrieval.engine.tencentvectordb;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -18,10 +21,6 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.core.JsonParser;
-import tools.jackson.core.JsonToken;
-import tools.jackson.core.ObjectReadContext;
-import tools.jackson.core.json.JsonFactory;
 
 /**
  * 腾讯 VectorDB 的客户端 BM25 稀疏向量编码——对齐腾讯 SDK {@code tcvdbtext/encoder} 的
@@ -266,7 +265,7 @@ public final class TencentVectorDbBm25 {
         double avgDocLen = 0;
         Map<String, Double> freq = new HashMap<>();
         JsonFactory factory = new JsonFactory();
-        try (JsonParser parser = factory.createParser(ObjectReadContext.empty(), Files.newInputStream(file))) {
+        try (JsonParser parser = factory.createParser(Files.newInputStream(file))) {
             if (parser.nextToken() != JsonToken.START_OBJECT) {
                 throw new IllegalStateException("bm25 params: not a JSON object");
             }

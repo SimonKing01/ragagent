@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -61,7 +61,7 @@ class WikiHttpContractTest {
     /** 统一外壳下钻：返回 data 的紧凑 JSON（序保持 ✓）；非外壳原样返回。 */
     private static String payload(String body) {
         try {
-            var root = new tools.jackson.databind.ObjectMapper().readTree(body);
+            var root = new com.fasterxml.jackson.databind.ObjectMapper().readTree(body);
             if (root.isObject() && root.has("code") && root.has("data")) {
                 return root.get("data").toString();
             }

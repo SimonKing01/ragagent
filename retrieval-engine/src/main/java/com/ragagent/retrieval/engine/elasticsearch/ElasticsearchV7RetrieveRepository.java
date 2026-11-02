@@ -1,5 +1,9 @@
 package com.ragagent.retrieval.engine.elasticsearch;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.retrieval.engine.EngineTypes;
@@ -18,10 +22,6 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Elasticsearch <b>v7</b> 检索引擎仓库（文档结构与双向转换与 v8 共用）。
@@ -187,14 +187,14 @@ public class ElasticsearchV7RetrieveRepository
                 useKeywordSuffix = true;
                 return;
             }
-            if ("keyword".equals(chunkIdProp.path("type").asString())) {
+            if ("keyword".equals(chunkIdProp.path("type").asText())) {
                 useKeywordSuffix = false;
                 log.info("[ElasticsearchV7] Detected keyword type for ID fields, querying without"
                         + " .keyword suffix");
             } else {
                 useKeywordSuffix = true;
                 log.info("[ElasticsearchV7] Detected {} type for ID fields, querying with"
-                        + " .keyword suffix", chunkIdProp.path("type").asString());
+                        + " .keyword suffix", chunkIdProp.path("type").asText());
             }
         } catch (Exception e) {
             log.warn("[ElasticsearchV7] Failed to get index mapping, defaulting to .keyword suffix", e);

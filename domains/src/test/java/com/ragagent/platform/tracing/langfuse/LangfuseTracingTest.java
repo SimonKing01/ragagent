@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.memory.runtime.MemoryTrace;
 import com.ragagent.platform.access.TenantContext;
 import com.ragagent.platform.access.TracingContext;
@@ -16,7 +17,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 异步追踪接线测试（InjectTracing/任务中间件与
@@ -178,7 +178,7 @@ class LangfuseTracingTest {
     @Test
     @DisplayName("载体 JSON：空值整键省略、非空按 lf_* 键名、未知键可忽略")
     void tracingContextJsonShape() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = com.ragagent.platform.web.JsonMappers.lenient();
         assertEquals("{}", mapper.writeValueAsString(TracingContext.EMPTY));
         assertEquals("{\"lf_trace_id\":\"t\",\"lf_traceparent\":\"00-t-s-01\"}",
                 mapper.writeValueAsString(new TracingContext("t", "", "00-t-s-01", "", "")));

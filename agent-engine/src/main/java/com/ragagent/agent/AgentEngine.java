@@ -1,5 +1,6 @@
 package com.ragagent.agent;
 
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.ragagent.agent.budget.TokenEstimator;
 import com.ragagent.agent.compaction.CompactionSettings;
 import com.ragagent.agent.compaction.Compactor;
@@ -49,7 +50,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.node.NullNode;
 
 /**
  * ReAct agent 引擎。

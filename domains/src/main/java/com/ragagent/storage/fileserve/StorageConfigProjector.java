@@ -1,11 +1,11 @@
 package com.ragagent.storage.fileserve;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.security.CryptoService;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.storage.domain.StorageBackend;
 import com.ragagent.storage.provider.StorageProviders;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 存储实例行 → 引擎面配置投影：camelCase 键改名、凭据解密。
@@ -79,9 +79,9 @@ final class StorageConfigProjector {
         for (String field : new String[]{
                 "accessKeyId", "secretAccessKey", "secretId", "secretKey", "accessKey"}) {
             JsonNode value = providerConfig.get(field);
-            if (value != null && value.isString()) {
+            if (value != null && value.isTextual()) {
                 ((ObjectNode) providerConfig)
-                        .put(field, crypto.decryptStoredSecret(value.asString()));
+                        .put(field, crypto.decryptStoredSecret(value.asText()));
             }
         }
     }
@@ -91,6 +91,6 @@ final class StorageConfigProjector {
             return "";
         }
         JsonNode v = node.get(field);
-        return v == null || v.isNull() ? "" : v.asString();
+        return v == null || v.isNull() ? "" : v.asText();
     }
 }

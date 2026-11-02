@@ -13,7 +13,7 @@ import java.util.Map;
  *
  * <h2>与 {@code JsonNode} 读面的语义对齐（逐条）</h2>
  * <ul>
- *   <li>{@code node.path(k).asString("")} ⇔ {@code asText(get(v, k), "")}：缺键/非标量 → 默认值；</li>
+ *   <li>{@code node.path(k).asText("")} ⇔ {@code asText(get(v, k), "")}：缺键/非标量 → 默认值；</li>
  *   <li>{@code node.get(k)} 缺键 → {@code null}（**不是** MissingNode ⇒ 用 {@code #isNull} 判"缺或空" ✓
  *       ——本仓消费侧的既有写法 `x == null || x.isNull()` 正是这一对）；</li>
  *   <li>{@code asInt/asLong/asDouble}：{@code Number} 直接取；{@code String} 尝试解析，失败 → 默认值；
@@ -21,7 +21,7 @@ import java.util.Map;
  *   <li>{@code asText}：{@code String} 原样；{@code Number}/{@code Boolean} → 其文本（对齐
  *       {@code JsonNode#asText()}）；{@code null}/集合 → 默认值；</li>
  *   <li>{@code asBoolean}：{@code Boolean} 原值；{@code String "true"/"false"}（忽略大小写）→ 解析值；
- *       其余 → 默认值（对齐 {@code StringNode.asBoolean(def)}）。</li>
+ *       其余 → 默认值（对齐 {@code TextNode.asBoolean(def)}）。</li>
  * </ul>
  *
  * <p><b>边界</b>：本类**只读不写**，且不做 JSON 序列化（需要 JSON 文本时由 L1 的

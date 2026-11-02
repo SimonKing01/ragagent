@@ -1,5 +1,7 @@
 package com.ragagent.websearch.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.platform.access.TenantContext;
 import com.ragagent.platform.web.ApiResponse;
@@ -17,8 +19,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * web 搜索 provider 凭据面（两路由 Admin+）。
@@ -103,7 +103,7 @@ public class WebSearchProviderCredentialsController {
             throw BizException.badRequest(e.getMessage());
         }
         JsonNode key = body.get("apiKey");
-        return key == null || key.isNull() ? null : key.asString();
+        return key == null || key.isNull() ? null : key.asText();
     }
 
     /** 裸对象 {fields:{apiKey:{configured}}}（凭据状态形态）。 */

@@ -1,8 +1,8 @@
 package com.ragagent.session.domain;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.ragagent.contract.session.SuggestionItem;
 import java.util.List;
-import tools.jackson.core.type.TypeReference;
 
 /**
  * {@code message_suggestion_sets.questions} 列（{@code List<SuggestionItem>}）的处理器。

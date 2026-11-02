@@ -1,7 +1,7 @@
 package com.ragagent.llm.ollama;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Ollama 工具定义（对齐 ollama v0.23.2 API）。

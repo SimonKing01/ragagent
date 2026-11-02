@@ -1,5 +1,6 @@
 package com.ragagent.storage.support;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.storage.support.FileUrlPort;
 import com.ragagent.contract.storage.support.Resolver;
 import com.ragagent.contract.storage.support.StorageBackendResolver;
@@ -16,7 +17,6 @@ import java.util.Locale;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 按存储 provider 解析并缓存 FileUrlPort。
@@ -77,8 +77,8 @@ public class FileServiceResolver implements Resolver {
             JsonNode config = JsonMappers.toJsonNode(tenant == null ? null : tenant.storageEngineConfig());
             if (config != null && config.isObject()) {
                 JsonNode defaultProvider = config.get("defaultProvider");
-                if (defaultProvider != null && defaultProvider.isString()) {
-                    provider = defaultProvider.asString().trim().toLowerCase(Locale.ROOT);
+                if (defaultProvider != null && defaultProvider.isTextual()) {
+                    provider = defaultProvider.asText().trim().toLowerCase(Locale.ROOT);
                 }
             }
             if (provider.isEmpty()) {
@@ -149,7 +149,7 @@ public class FileServiceResolver implements Resolver {
         }
     }
 
-    private static final tools.jackson.databind.ObjectMapper CONFIG_MAPPER =
+    private static final com.fasterxml.jackson.databind.ObjectMapper CONFIG_MAPPER =
             JsonMappers.lenient();
     /**
      * {@code resource://} 后必须恰好 22 个

@@ -1,5 +1,6 @@
 package com.ragagent.auth.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.auth.domain.TenantConfigRedaction;
 import com.ragagent.auth.dto.TenantRowView;
 import com.ragagent.contract.apikey.APIKeyCapability;
@@ -20,7 +21,6 @@ import com.ragagent.platform.prompt.PromptTemplateCatalog;
 import com.ragagent.platform.web.JsonMappers;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import tools.jackson.databind.JsonNode;
 
 /**
  * KV 配置分发协作者（自 {@link TenantCatalogController} 拆出）：6 个 DB-backed key 的
@@ -45,7 +45,7 @@ final class TenantConfigOps {
             case "web-search-config" -> {
                 WebSearchConfig ws = getWebSearch();
                 yield ws == null
-                        ? tools.jackson.databind.node.NullNode.getInstance()
+                        ? com.fasterxml.jackson.databind.node.NullNode.getInstance()
                         : ws;
             }
             // config.yaml 模板 + Accept-Language 本地化

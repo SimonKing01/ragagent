@@ -1,5 +1,7 @@
 package com.ragagent.retrieval.engine.milvus;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.ragagent.retrieval.engine.EngineTypes;
 import com.ragagent.retrieval.engine.EngineTypes.IndexWithScore;
 import com.ragagent.retrieval.engine.EngineTypes.RetrieveParams;
@@ -9,8 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
 
 /**
  * Milvus 引擎的检索簇：vector（判存 + 范围搜索，threshold 走 radius）与 keywords

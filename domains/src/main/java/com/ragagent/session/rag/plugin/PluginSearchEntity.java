@@ -1,5 +1,6 @@
 package com.ragagent.session.rag.plugin;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.graph.GraphData;
 import com.ragagent.contract.graph.GraphNode;
 import com.ragagent.contract.graph.GraphRelation;
@@ -21,7 +22,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * ENTITY_SEARCH 阶段插件：
@@ -226,9 +226,11 @@ public final class PluginSearchEntity implements Plugin {
         if (meta == null || !meta.isObject() || meta.isEmpty()) {
             return metadata;
         }
-        for (var e : meta.properties()) {
+        var fields = meta.fields();
+        while (fields.hasNext()) {
+            var e = fields.next();
             var v = e.getValue();
-            metadata.put(e.getKey(), v.isContainer() ? v.toString() : v.asString());
+            metadata.put(e.getKey(), v.isContainerNode() ? v.toString() : v.asText());
         }
         return metadata;
     }

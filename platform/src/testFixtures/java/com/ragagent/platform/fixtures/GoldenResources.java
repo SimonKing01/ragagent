@@ -1,5 +1,8 @@
 package com.ragagent.platform.fixtures;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -7,8 +10,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Go 录制金片资源加载器：JSON 外置到 {@code /golden/<bundle>.json}，按附带的
@@ -46,7 +47,7 @@ public final class GoldenResources {
         }
         try {
             return MAPPER.readValue(bytes, new TypeReference<Map<String, String>>() { });
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             throw new IllegalStateException("failed to parse golden bundle: " + path, e);
         }
     }
@@ -57,7 +58,7 @@ public final class GoldenResources {
                 throw new IllegalStateException("golden resource not found: " + path);
             }
             return in.readAllBytes();
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             throw new IllegalStateException("failed to read golden resource: " + path, e);
         }
     }

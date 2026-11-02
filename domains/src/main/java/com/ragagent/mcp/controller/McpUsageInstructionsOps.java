@@ -1,5 +1,9 @@
 package com.ragagent.mcp.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.model.ChatMessage;
@@ -27,10 +31,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 /**
  * 使用说明生成协作者（自 {@link McpServiceController} 拆出）：白名单式输入装配、
  * 60 秒限时 LLM 调用与模型选择。
@@ -85,8 +85,8 @@ final class McpUsageInstructionsOps {
         long tenant = McpServiceController.requireTenant();
         String serviceId = McpServiceController.sanitize(id);
         String language = "Simplified Chinese";
-        if (body != null && body.path("language").isString()) {
-            String mapped = LANGUAGE_MAP.get(body.get("language").asString());
+        if (body != null && body.path("language").isTextual()) {
+            String mapped = LANGUAGE_MAP.get(body.get("language").asText());
             if (mapped != null) {
                 language = mapped;
             }

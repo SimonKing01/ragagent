@@ -2,6 +2,7 @@ package com.ragagent.websearch.provider;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.retrieval.SearchResult;
 import com.ragagent.contract.websearch.WebSearchFilters;
 import com.ragagent.contract.websearch.WebSearchResult;
@@ -19,7 +20,6 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * web_search 执行面的 stub server A/B：请求体/URL 与录制（wire/ws_*.json）
@@ -108,18 +108,18 @@ class WebSearchProviderExecTest {
         try (InputStream in = WebSearchProviderExecTest.class
                 .getResourceAsStream("/wire/" + name + ".json")) {
             assertNotNull(in, "wire recording missing: " + name);
-            return new tools.jackson.databind.ObjectMapper().readTree(in);
+            return new com.fasterxml.jackson.databind.ObjectMapper().readTree(in);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     static String wireBody(String name) {
-        return wire(name).path("body").asString();
+        return wire(name).path("body").asText();
     }
 
     static String wireUrl(String name) {
-        return wire(name).path("url").asString();
+        return wire(name).path("url").asText();
     }
 
     static WebSearchProviderParams params(String apiKey) {

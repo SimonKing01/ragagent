@@ -1,5 +1,7 @@
 package com.ragagent.session.service.suggestion;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.retrieval.SearchResult;
 import com.ragagent.contract.retrieval.SearchTextUtil;
 import com.ragagent.contract.session.SuggestionItem;
@@ -15,8 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@code MessageSuggestionService} 的**无状态管道子模块**：生成输入的上下文装配
@@ -336,7 +336,7 @@ final class MessageSuggestionPipeline {
             return items;
         }
         for (JsonNode question : questions) {
-            String text = question.path("text").asString("").trim();
+            String text = question.path("text").asText("").trim();
             if (text.isEmpty() || text.codePointCount(0, text.length()) > 200) {
                 continue;
             }
@@ -344,7 +344,7 @@ final class MessageSuggestionPipeline {
             if (!seen.add(key)) {
                 continue;
             }
-            String category = question.path("category").asString("");
+            String category = question.path("category").asText("");
             if (!allowed.isEmpty() && !allowed.contains(category)) {
                 category = "";
             }

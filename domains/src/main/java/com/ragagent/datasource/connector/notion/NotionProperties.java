@@ -1,10 +1,11 @@
 package com.ragagent.datasource.connector.notion;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 属性抽取的四个纯函数（{@code extractTitle} / {@code joinPlainText} /
@@ -56,14 +57,15 @@ final class NotionProperties {
         }
         JsonNode props = page.rawProperties;
         if (props != null && props.isObject()) {
-            for (Map.Entry<String, JsonNode> field : props.properties()) {
-                JsonNode propRaw = field.getValue();
+            Iterator<Map.Entry<String, JsonNode>> fields = props.fields();
+            while (fields.hasNext()) {
+                JsonNode propRaw = fields.next().getValue();
                 if (propRaw == null || !propRaw.isObject()) {
                     continue;
                 }
                 JsonNode typeNode = propRaw.get("type");
-                if (typeNode == null || !typeNode.isString()
-                        || !"title".equals(typeNode.stringValue())) {
+                if (typeNode == null || !typeNode.isTextual()
+                        || !"title".equals(typeNode.textValue())) {
                     continue;
                 }
                 JsonNode titleNode = propRaw.get("title");
@@ -92,8 +94,8 @@ final class NotionProperties {
                 continue;
             }
             JsonNode pt = segment.get("plain_text");
-            if (pt != null && pt.isString()) {
-                sb.append(pt.stringValue());
+            if (pt != null && pt.isTextual()) {
+                sb.append(pt.textValue());
             }
         }
         return sb.toString();
@@ -117,8 +119,8 @@ final class NotionProperties {
         }
         String typeName = "";
         JsonNode typeNode = value.get("type");
-        if (typeNode != null && typeNode.isString()) {
-            typeName = typeNode.stringValue();
+        if (typeNode != null && typeNode.isTextual()) {
+            typeName = typeNode.textValue();
         }
         if (typeName.isEmpty()) {
             return extractLeafValue(value);
@@ -142,8 +144,8 @@ final class NotionProperties {
         if (v == null || v.isNull() || v.isMissingNode()) {
             return "";
         }
-        if (v.isString()) {
-            return v.stringValue();
+        if (v.isTextual()) {
+            return v.textValue();
         }
         if (v.isNumber()) {
             return NotionValues.jsonNumberToString(v.doubleValue());
@@ -182,32 +184,32 @@ final class NotionProperties {
             return "";
         }
         JsonNode name = m.get("name");
-        if (name != null && name.isString()) {
-            return name.stringValue();
+        if (name != null && name.isTextual()) {
+            return name.textValue();
         }
         JsonNode content = m.get("content");
-        if (content != null && content.isString()) {
-            return content.stringValue();
+        if (content != null && content.isTextual()) {
+            return content.textValue();
         }
         JsonNode plainText = m.get("plain_text");
-        if (plainText != null && plainText.isString()) {
-            return plainText.stringValue();
+        if (plainText != null && plainText.isTextual()) {
+            return plainText.textValue();
         }
         JsonNode start = m.get("start");
-        if (start != null && start.isString()) {
+        if (start != null && start.isTextual()) {
             JsonNode end = m.get("end");
-            if (end != null && end.isString() && !end.stringValue().isEmpty()) {
-                return start.stringValue() + " ~ " + end.stringValue();
+            if (end != null && end.isTextual() && !end.textValue().isEmpty()) {
+                return start.textValue() + " ~ " + end.textValue();
             }
-            return start.stringValue();
+            return start.textValue();
         }
         JsonNode expression = m.get("expression");
-        if (expression != null && expression.isString()) {
-            return expression.stringValue();
+        if (expression != null && expression.isTextual()) {
+            return expression.textValue();
         }
         JsonNode typeNode = m.get("type");
-        if (typeNode != null && typeNode.isString()) {
-            JsonNode inner = m.get(typeNode.stringValue());
+        if (typeNode != null && typeNode.isTextual()) {
+            JsonNode inner = m.get(typeNode.textValue());
             if (inner != null) {
                 return extractValue(inner);
             }
@@ -237,13 +239,15 @@ final class NotionProperties {
             return null;
         }
         List<String> propNames = new ArrayList<>();
-        for (var entry : props.properties()) {
+        Iterator<Map.Entry<String, JsonNode>> fields = props.fields();
+        while (fields.hasNext()) {
+            Map.Entry<String, JsonNode> entry = fields.next();
             JsonNode propRaw = entry.getValue();
             String type = "";
             if (propRaw != null && propRaw.isObject()) {
                 JsonNode typeNode = propRaw.get("type");
-                if (typeNode != null && typeNode.isString()) {
-                    type = typeNode.stringValue();
+                if (typeNode != null && typeNode.isTextual()) {
+                    type = typeNode.textValue();
                 }
             }
             // ⚠️ 值不是对象时（字符串/数字/数组）type 视为空串，

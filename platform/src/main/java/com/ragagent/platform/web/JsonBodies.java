@@ -1,12 +1,12 @@
 package com.ragagent.platform.web;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 请求体 JSON 的通用读取助手：绑定对象、取文本字段、ISO 时间投影。
@@ -47,7 +47,7 @@ public final class JsonBodies {
     /** 取文本字段；缺失与 null 都返回空串。 */
     public static String text(JsonNode node, String field) {
         JsonNode value = node == null ? null : node.get(field);
-        return value == null || value.isNull() ? "" : value.asString("");
+        return value == null || value.isNull() ? "" : value.asText("");
     }
 
     /** null → 空串。 */

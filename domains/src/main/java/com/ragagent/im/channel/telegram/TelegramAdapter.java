@@ -1,5 +1,7 @@
 package com.ragagent.im.channel.telegram;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.CallbackExchange;
 import com.ragagent.im.runtime.ImTypes;
@@ -20,8 +22,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Telegram Bot 适配器。
@@ -148,20 +148,20 @@ public class TelegramAdapter implements AdapterInterfaces.Adapter,
         String chatType = ImTypes.CHAT_TYPE_DIRECT;
         String chatId = "";
         JsonNode chat = msg.path("chat");
-        String type = chat.path("type").asString("");
+        String type = chat.path("type").asText("");
         if ("group".equals(type) || "supergroup".equals(type)) {
             chatType = ImTypes.CHAT_TYPE_GROUP;
-            chatId = chat.path("id").asString("");
+            chatId = chat.path("id").asText("");
         }
 
         String userId = "";
         String userName = "";
         JsonNode from = msg.path("from");
         if (!from.isMissingNode() && !from.isNull()) {
-            userId = from.path("id").asString("");
-            userName = (from.path("first_name").asString("") + " " + from.path("last_name").asString("")).trim();
+            userId = from.path("id").asText("");
+            userName = (from.path("first_name").asText("") + " " + from.path("last_name").asText("")).trim();
             if (userName.isEmpty()) {
-                userName = from.path("username").asString("");
+                userName = from.path("username").asText("");
             }
         }
 
@@ -176,10 +176,10 @@ public class TelegramAdapter implements AdapterInterfaces.Adapter,
         incoming.userName = userName;
         incoming.chatId = chatId;
         incoming.chatType = chatType;
-        incoming.messageId = msg.path("message_id").asString("");
+        incoming.messageId = msg.path("message_id").asText("");
         incoming.threadId = threadId;
         incoming.messageType = ImTypes.MESSAGE_TYPE_TEXT;
-        incoming.content = msg.path("text").asString("");
+        incoming.content = msg.path("text").asText("");
 
         // 群聊：剥掉 @bot 前缀（"/command@botname text" → "text"）
         if (ImTypes.CHAT_TYPE_GROUP.equals(chatType)) {
@@ -194,8 +194,8 @@ public class TelegramAdapter implements AdapterInterfaces.Adapter,
         JsonNode document = msg.path("document");
         if (!document.isMissingNode() && !document.isNull()) {
             incoming.messageType = ImTypes.MESSAGE_TYPE_FILE;
-            incoming.fileKey = document.path("file_id").asString("");
-            incoming.fileName = document.path("file_name").asString("");
+            incoming.fileKey = document.path("file_id").asText("");
+            incoming.fileName = document.path("file_name").asText("");
             incoming.fileSize = document.path("file_size").asLong(0);
         }
 
@@ -203,7 +203,7 @@ public class TelegramAdapter implements AdapterInterfaces.Adapter,
         if (photo.isArray() && !photo.isEmpty()) {
             JsonNode largest = photo.get(photo.size() - 1);
             incoming.messageType = ImTypes.MESSAGE_TYPE_IMAGE;
-            incoming.fileKey = largest.path("file_id").asString("");
+            incoming.fileKey = largest.path("file_id").asText("");
             incoming.fileName = "photo.jpg";
             incoming.fileSize = largest.path("file_size").asLong(0);
         }
@@ -293,7 +293,7 @@ public class TelegramAdapter implements AdapterInterfaces.Adapter,
         }
         JsonNode result = callApi("sendMessage", body);
 
-        String msgId = result.path("message_id").asString("");
+        String msgId = result.path("message_id").asText("");
         String streamId = chatId + ":" + msgId;
         STREAMS.put(streamId, new StreamState(chatId, msgId));
         log.info("[Telegram] Streaming started: stream_id={}", streamId);
@@ -365,7 +365,7 @@ public class TelegramAdapter implements AdapterInterfaces.Adapter,
             throw new IllegalArgumentException("file_key is required");
         }
         JsonNode fileInfo = callApi("getFile", Map.of("file_id", msg.fileKey));
-        String filePath = fileInfo.path("file_path").asString("");
+        String filePath = fileInfo.path("file_path").asText("");
 
         URI uri = URI.create(apiBase + "/file/bot" + botToken + "/" + filePath);
         HttpRequest request = HttpRequest.newBuilder(uri)

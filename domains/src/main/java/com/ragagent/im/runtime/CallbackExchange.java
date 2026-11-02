@@ -1,12 +1,12 @@
 package com.ragagent.im.runtime;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 平台回调的一次 HTTP 交互（请求绑定/查询参数/请求头/响应写出的窄抽象）。

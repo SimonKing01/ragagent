@@ -1,5 +1,6 @@
 package com.ragagent.agenttools.sql;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agenttools.knowledge.KnowledgeSearchTool;
 import com.ragagent.contract.agent.SearchAuth;
 import com.ragagent.contract.retrieval.SearchTarget;
@@ -16,7 +17,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.LongSupplier;
-import tools.jackson.databind.JsonNode;
 
 /**
  * database_query 工具。
@@ -146,7 +146,7 @@ public class DatabaseQueryTool extends BaseTool {
 
         // 取 "sql" 参数；空判断无 trim。
         JsonNode sqlNode = args == null ? null : args.get("sql");
-        String sql = sqlNode == null || sqlNode.isNull() ? "" : sqlNode.asString();
+        String sql = sqlNode == null || sqlNode.isNull() ? "" : sqlNode.asText();
         if (sql.isEmpty()) {
             return failure("Missing or invalid 'sql' parameter");
         }

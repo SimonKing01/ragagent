@@ -1,5 +1,6 @@
 package com.ragagent.platform.knowledge;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.websearch.ImageInfo;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.platform.web.ProviderJson;
@@ -8,7 +9,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 检索窗口与 image_info 的互相裁剪（{@code ImageURLsInContent / ImageURLsFromInfo} 已在
@@ -219,12 +219,12 @@ public final class ImageInfoMatchUtil {
         List<ImageInfo> out = new ArrayList<>();
         for (JsonNode item : arr) {
             ImageInfo info = new ImageInfo();
-            info.setUrl(item.path("url").asString(""));
-            info.setOriginalUrl(item.path("originalUrl").asString(""));
+            info.setUrl(item.path("url").asText(""));
+            info.setOriginalUrl(item.path("originalUrl").asText(""));
             info.setStartPos(item.path("start_pos").asInt());
             info.setEndPos(item.path("end_pos").asInt());
-            info.setCaption(item.path("caption").asString(""));
-            info.setOcrText(item.path("ocrText").asString(""));
+            info.setCaption(item.path("caption").asText(""));
+            info.setOcrText(item.path("ocrText").asText(""));
             out.add(info);
         }
         return out;

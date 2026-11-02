@@ -1,5 +1,7 @@
 package com.ragagent.retrieval.engine.milvus;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.ragagent.retrieval.engine.EngineTypes.IndexInfo;
 import com.ragagent.retrieval.engine.milvus.MilvusRestClient.Json;
 import java.util.ArrayList;
@@ -9,8 +11,6 @@ import java.util.TreeMap;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
 
 /**
  * Milvus 引擎的写入/删除/批量更新/拷贝簇：新 UUID 行主键 Upsert、按字段 in-filter 删除、

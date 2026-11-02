@@ -1,5 +1,7 @@
 package com.ragagent.im.channel.feishu;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.CallbackExchange;
 import com.ragagent.im.runtime.IncomingMessage;
@@ -17,8 +19,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 飞书 / Lark 适配器。
@@ -299,9 +299,9 @@ public class FeishuAdapter implements AdapterInterfaces.Adapter,
         int code = result.path("code").asInt(0);
         if (code != 0) {
             throw new IllegalStateException("get token error: code=" + code + " msg="
-                    + result.path("msg").asString(""));
+                    + result.path("msg").asText(""));
         }
-        String token = result.path("tenant_access_token").asString("");
+        String token = result.path("tenant_access_token").asText("");
         long expireSeconds = result.path("expire").asLong(0);
         synchronized (tokenLock) {
             tokenCache = token;

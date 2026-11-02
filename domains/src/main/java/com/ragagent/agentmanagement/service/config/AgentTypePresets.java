@@ -1,14 +1,14 @@
 package com.ragagent.agentmanagement.service.config;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.web.JsonMappers;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * agent 类型预设。
@@ -38,11 +38,11 @@ public class AgentTypePresets {
                 return;
             }
             for (JsonNode e : list) {
-                String id = e.path("id").asString("");
+                String id = e.path("id").asText("");
                 if (id.isEmpty()) {
                     continue; // 空 id 跳过
                 }
-                entries.add((ObjectNode) e.deepCopy());
+                entries.add(e.deepCopy());
             }
         } catch (Exception ex) {
             throw new IllegalStateException("failed to load agent_type_presets.yaml", ex);
@@ -54,7 +54,7 @@ public class AgentTypePresets {
         ArrayNode out = MAPPER.createArrayNode();
         for (ObjectNode e : entries) {
             ObjectNode item = out.addObject();
-            item.put("id", e.path("id").asString(""));
+            item.put("id", e.path("id").asText(""));
             item.set("i18n", resolveI18n(e.get("i18n"), locale));
             JsonNode config = e.get("config");
             if (config != null && config.isObject() && config.size() > 0) {
@@ -74,7 +74,7 @@ public class AgentTypePresets {
     /** 固定键序 + 零值键省略。 */
     private static ObjectNode presetConfig(ObjectNode c) {
         ObjectNode out = MAPPER.createObjectNode();
-        String spid = c.path("systemPromptId").asString("");
+        String spid = c.path("systemPromptId").asText("");
         if (!spid.isEmpty()) {
             out.put("systemPromptId", spid);
         }
@@ -97,7 +97,7 @@ public class AgentTypePresets {
             out.put("webSearchEnabled", true);
         }
         copyIfNonEmptyArray(c, "supportedFileTypes", out);
-        String mode = c.path("kbSelectionMode").asString("");
+        String mode = c.path("kbSelectionMode").asText("");
         if (!mode.isEmpty()) {
             out.put("kbSelectionMode", mode);
         }
@@ -121,7 +121,7 @@ public class AgentTypePresets {
             }
         }
         if (out.isEmpty()) {
-            m.properties().forEach(e -> out.set(e.getKey(), e.getValue().deepCopy()));
+            m.fields().forEachRemaining(e -> out.set(e.getKey(), e.getValue().deepCopy()));
         }
         return out;
     }

@@ -1,5 +1,6 @@
 package com.ragagent.mcp.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.model.ModelCatalogPort;
@@ -33,7 +34,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.JsonNode;
 
 /**
  * MCP 服务 HTTP 层。
@@ -189,7 +189,7 @@ public class McpServiceController {
         }
         // 从未同步 → 裸 JSON null（Spring 对 null body 会发空正文，故显式给 NullNode）
         return ResponseEntity.ok(snapshot == null
-                ? tools.jackson.databind.node.NullNode.getInstance() : snapshot);
+                ? com.fasterxml.jackson.databind.node.NullNode.getInstance() : snapshot);
     }
 
     /**

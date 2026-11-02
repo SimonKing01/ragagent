@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.auth.service.TenantService;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.storage.fileserve.ProviderFileStorePort;
@@ -20,8 +22,6 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * A3-3 尾批：租户感知文件存储门面（{@link TenantFileStorage}）与写面 provider 解析。

@@ -2,6 +2,7 @@ package com.ragagent.agenttools.knowledge;
 
 import static com.ragagent.agenttools.knowledge.KnowledgeSearchTool.nz;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agenttools.knowledge.KnowledgeSearchTool.RankResult;
 import com.ragagent.agenttools.knowledge.KnowledgeSearchTool.ResultWithMeta;
 import com.ragagent.agenttools.knowledge.KnowledgeSearchTool.SearchResultView;
@@ -11,7 +12,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import tools.jackson.databind.JsonNode;
 
 
 final class KnowledgeSearchRanking {
@@ -240,7 +240,7 @@ final class KnowledgeSearchRanking {
         JsonNode arr;
         try {
             arr = KnowledgeSearchTool.RecordingSupportHolder.MAPPER.readTree(result.imageInfo);
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (java.io.IOException e) {
             return nz(result.content);
         }
         if (arr == null || !arr.isArray() || arr.isEmpty()) {
@@ -248,11 +248,11 @@ final class KnowledgeSearchRanking {
         }
         List<String> imageTexts = new ArrayList<>();
         for (JsonNode img : arr) {
-            String caption = img.path("caption").asString("");
+            String caption = img.path("caption").asText("");
             if (!caption.isEmpty()) {
                 imageTexts.add("Image Caption: " + caption);
             }
-            String ocr = img.path("ocrText").asString("");
+            String ocr = img.path("ocrText").asText("");
             if (!ocr.isEmpty()) {
                 imageTexts.add("Image Text: " + ocr);
             }

@@ -1,5 +1,6 @@
 package com.ragagent.auth.domain;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.tenant.APIPrincipalConfig;
 import com.ragagent.platform.security.CryptoService;
 import com.ragagent.platform.web.JsonMappers;
@@ -11,7 +12,6 @@ import java.sql.Types;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedTypes;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@code tenants.api_principal_config}（jsonb）的 TypeHandler。

@@ -3,6 +3,9 @@ package com.ragagent.mcp.protocol;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.mcp.domain.McpService;
 import com.ragagent.mcp.domain.McpTransportType;
 import com.ragagent.platform.security.SsrfGuard;
@@ -21,9 +24,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 传统 HTTP+SSE 传输（MCP 2024-11-05）的端到端用例：
@@ -87,7 +87,7 @@ class McpSseTransportTest {
             ObjectNode envelope = MAPPER.createObjectNode();
             envelope.put("jsonrpc", "2.0");
             envelope.set("id", request.get("id"));
-            if (McpProtocol.METHOD_INITIALIZE.equals(request.path("method").asString(""))) {
+            if (McpProtocol.METHOD_INITIALIZE.equals(request.path("method").asText(""))) {
                 ObjectNode result = MAPPER.createObjectNode();
                 result.put("protocolVersion", McpProtocol.PROTOCOL_VERSION);
                 ObjectNode info = MAPPER.createObjectNode();
@@ -96,7 +96,7 @@ class McpSseTransportTest {
                 result.set("serverInfo", info);
                 result.put("instructions", "sse instructions");
                 envelope.set("result", result);
-            } else if (McpProtocol.METHOD_TOOLS_LIST.equals(request.path("method").asString(""))) {
+            } else if (McpProtocol.METHOD_TOOLS_LIST.equals(request.path("method").asText(""))) {
                 try {
                     envelope.set("result", MAPPER.readTree("{\"tools\":[{\"name\":\"t1\"}]}"));
                 } catch (Exception e) {

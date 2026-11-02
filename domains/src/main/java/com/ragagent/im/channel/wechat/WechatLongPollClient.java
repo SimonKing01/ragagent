@@ -1,5 +1,8 @@
 package com.ragagent.im.channel.wechat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.im.runtime.ImTypes;
 import com.ragagent.im.runtime.IncomingMessage;
 import com.ragagent.platform.web.JsonMappers;
@@ -15,9 +18,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 微信 iLink 机器人的 HTTP 长轮询收件。
@@ -167,9 +167,9 @@ public class WechatLongPollClient {
         }
         if (ret != 0 && errCode != 0) {
             throw new IllegalStateException("getupdates error: ret=" + ret + " errcode=" + errCode
-                    + " msg=" + result.path("errmsg").asString(""));
+                    + " msg=" + result.path("errmsg").asText(""));
         }
-        String newCursor = result.path("get_updates_buf").asString("");
+        String newCursor = result.path("get_updates_buf").asText("");
         if (!newCursor.isEmpty()) {
             cursor = newCursor;
         }
@@ -203,13 +203,13 @@ public class WechatLongPollClient {
         }
         JsonNode item = items.get(0);
         int type = item.path("type").asInt(0);
-        String contextToken = msg.path("context_token").asString("");
-        String fromUserId = msg.path("from_user_id").asString("");
-        String messageId = msg.path("message_id").asString("");
+        String contextToken = msg.path("context_token").asText("");
+        String fromUserId = msg.path("from_user_id").asText("");
+        String messageId = msg.path("message_id").asText("");
 
         switch (type) {
             case 1: {   // TEXT
-                String content = item.path("text_item").path("text").asString("").trim();
+                String content = item.path("text_item").path("text").asText("").trim();
                 if (content.isEmpty()) {
                     return null;
                 }
@@ -221,14 +221,14 @@ public class WechatLongPollClient {
             }
             case 2: {   // IMAGE
                 JsonNode media = item.path("image_item").path("media");
-                String encryptParam = media.path("encrypt_query_param").asString("");
+                String encryptParam = media.path("encrypt_query_param").asText("");
                 if (media.isMissingNode() || encryptParam.isEmpty()) {
                     return null;
                 }
                 // 图片优先用 image_item.aeskey（hex），否则 media.aes_key（base64）
-                String aesKey = item.path("image_item").path("aeskey").asString("");
+                String aesKey = item.path("image_item").path("aeskey").asText("");
                 if (aesKey.isEmpty()) {
-                    aesKey = media.path("aes_key").asString("");
+                    aesKey = media.path("aes_key").asText("");
                 }
                 IncomingMessage incoming = base(fromUserId, messageId);
                 incoming.messageType = ImTypes.MESSAGE_TYPE_IMAGE;
@@ -239,7 +239,7 @@ public class WechatLongPollClient {
                 return incoming;
             }
             case 3: {   // VOICE（语音转写）
-                String text = item.path("voice_item").path("text").asString("");
+                String text = item.path("voice_item").path("text").asText("");
                 if (text.isEmpty()) {
                     return null;
                 }
@@ -251,22 +251,22 @@ public class WechatLongPollClient {
             }
             case 4: {   // FILE
                 JsonNode media = item.path("file_item").path("media");
-                String encryptParam = media.path("encrypt_query_param").asString("");
+                String encryptParam = media.path("encrypt_query_param").asText("");
                 if (media.isMissingNode() || encryptParam.isEmpty()) {
                     return null;
                 }
-                String fileName = item.path("file_item").path("file_name").asString("");
+                String fileName = item.path("file_item").path("file_name").asText("");
                 if (fileName.isEmpty()) {
                     fileName = "file_" + messageId;
                 }
-                long fileSize = parseLongSafe(item.path("file_item").path("len").asString(""));
+                long fileSize = parseLongSafe(item.path("file_item").path("len").asText(""));
                 IncomingMessage incoming = base(fromUserId, messageId);
                 incoming.messageType = ImTypes.MESSAGE_TYPE_FILE;
                 incoming.fileKey = WechatAdapter.buildCdnDownloadUrl(encryptParam);
                 incoming.fileName = fileName;
                 incoming.fileSize = fileSize;
                 incoming.extra.put("context_token", contextToken);
-                incoming.extra.put("aes_key", media.path("aes_key").asString(""));
+                incoming.extra.put("aes_key", media.path("aes_key").asText(""));
                 return incoming;
             }
             default:

@@ -1,5 +1,6 @@
 package com.ragagent.session.rag.plugin;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.knowledge.DocumentChunkMetadata;
 import com.ragagent.contract.knowledge.GeneratedQuestion;
 import com.ragagent.contract.model.RankResult;
@@ -26,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.regex.Pattern;
-import tools.jackson.databind.JsonNode;
 
 /**
  * CHUNK_RERANK 阶段插件。

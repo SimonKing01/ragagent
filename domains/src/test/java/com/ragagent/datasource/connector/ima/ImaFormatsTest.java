@@ -94,7 +94,7 @@ class ImaFormatsTest {
         cfg.setClientId("cid");
         cfg.setApiKey("key");
         cfg.setBaseUrl("https://ima.example.com");
-        String json = com.ragagent.platform.web.JsonMappers.lenient().writeValueAsString(cfg);
+        String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(cfg);
         // 键名＝字段名 ⇒ 逐字节钉住；baseURL() 不产生额外属性（原来它被误当 camel 键的"多余物"）
         assertThat(json).isEqualTo("{\"clientId\":\"cid\",\"apiKey\":\"key\",\"baseUrl\":\"https://ima.example.com\"}");
         assertThat(json).doesNotContain("baseURL");

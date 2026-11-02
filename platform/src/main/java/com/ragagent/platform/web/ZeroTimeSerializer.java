@@ -1,13 +1,14 @@
 package com.ragagent.platform.web;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.ragagent.contract.json.ZeroTimes;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import tools.jackson.core.JsonGenerator;
-import tools.jackson.databind.SerializationContext;
-import tools.jackson.databind.ValueSerializer;
 
 /**
  * 落 jsonb / 作响应体的时间戳字段的序列化器。
@@ -34,7 +35,7 @@ import tools.jackson.databind.ValueSerializer;
  * {@code 0001-01-01T08:00:00+08:00}（<b>另一个</b>瞬时）仍按常规规则
  * 归一化到 JVM 默认时区，不会被当成零值。</p>
  */
-public class ZeroTimeSerializer extends ValueSerializer<OffsetDateTime> {
+public class ZeroTimeSerializer extends JsonSerializer<OffsetDateTime> {
 
     /** 零值时间的瞬时（year 1 元旦 UTC）——实现上提至 {@link ZeroTimes}，此处保留别名。 */
     public static final Instant ZERO_TIME_INSTANT = ZeroTimes.ZERO_INSTANT;
@@ -58,7 +59,8 @@ public class ZeroTimeSerializer extends ValueSerializer<OffsetDateTime> {
     }
 
     @Override
-    public void serialize(OffsetDateTime value, JsonGenerator gen, SerializationContext serializers) {
+    public void serialize(OffsetDateTime value, JsonGenerator gen, SerializerProvider serializers)
+            throws IOException {
         if (isZeroValue(value)) {
             gen.writeString(ZERO_TIME_LITERAL);
             return;

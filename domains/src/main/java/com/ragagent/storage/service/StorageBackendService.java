@@ -1,5 +1,6 @@
 package com.ragagent.storage.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.platform.security.SsrfGuard;
@@ -16,7 +17,6 @@ import java.net.Socket;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 存储后端管理的 HTTP 面方法：Create / Update / Delete / SetDefault / Test + Validate 链。
@@ -311,7 +311,7 @@ public class StorageBackendService {
     }
 
     /** 非空密钥 → "***"（掩码只作用于响应） */
-    public tools.jackson.databind.JsonNode maskedConfig(StorageBackend b) {
+    public com.fasterxml.jackson.databind.JsonNode maskedConfig(StorageBackend b) {
         try {
             StorageConfig c = configOf(b);
             if (c.accessKeyId != null && !c.accessKeyId.isEmpty()) {
@@ -452,7 +452,7 @@ public class StorageBackendService {
         return out.isEmpty() ? (rooted ? "/" : ".") : out;
     }
 
-    private tools.jackson.databind.JsonNode jsonNodeOf(StorageConfig c) {
+    private com.fasterxml.jackson.databind.JsonNode jsonNodeOf(StorageConfig c) {
         return MAPPER.valueToTree(c);
     }
 

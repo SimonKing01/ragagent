@@ -1,5 +1,6 @@
 package com.ragagent.mcp.domain;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.security.CryptoService;
 import com.ragagent.platform.web.JsonMappers;
 import java.sql.CallableStatement;
@@ -11,7 +12,6 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.MappedTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * auth_config 的 jsonb TypeHandler（写前加密、读时宽容解密）。

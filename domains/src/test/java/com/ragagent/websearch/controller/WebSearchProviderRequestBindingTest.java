@@ -2,9 +2,10 @@ package com.ragagent.websearch.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ragagent.platform.web.JsonMappers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 更新 provider 的请求契约钉。
@@ -18,7 +19,8 @@ import tools.jackson.databind.ObjectMapper;
  */
 class WebSearchProviderRequestBindingTest {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    /** 与生产 bind 同口径：未知键忽略而不是报错（Jackson 2 默认严格）。 */
+    private static final ObjectMapper MAPPER = JsonMappers.lenient();
 
     @Test
     @DisplayName("请求体：camel isDefault 生效；snake is_default 不再绑定")

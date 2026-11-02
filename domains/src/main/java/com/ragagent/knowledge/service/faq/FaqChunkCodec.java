@@ -1,5 +1,6 @@
 package com.ragagent.knowledge.service.faq;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.knowledge.FaqChunkMetadata;
 import com.ragagent.knowledge.domain.Chunk;
 import com.ragagent.knowledge.domain.KnowledgeBase;
@@ -7,7 +8,6 @@ import com.ragagent.knowledge.dto.faq.FaqEntry;
 import com.ragagent.platform.knowledge.FaqChunkMetadataCodec;
 import java.util.Map;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
 
 /**
  * FAQ 条目与 chunk 行之间的双向编解码：metadata JSON 的解析与写回（含 content_hash
@@ -113,7 +113,7 @@ public class FaqChunkCodec {
      */
     public String faqIndexMode(KnowledgeBase kb) {
         JsonNode cfg = kb.getFaqConfig();
-        String mode = cfg == null ? "" : cfg.path("indexMode").asString("");
+        String mode = cfg == null ? "" : cfg.path("indexMode").asText("");
         return mode.isEmpty() ? "question_answer" : mode;
     }
 
@@ -122,7 +122,7 @@ public class FaqChunkCodec {
      */
     public String faqQuestionIndexMode(KnowledgeBase kb) {
         JsonNode cfg = kb.getFaqConfig();
-        String mode = cfg == null ? "" : cfg.path("questionIndexMode").asString("");
+        String mode = cfg == null ? "" : cfg.path("questionIndexMode").asText("");
         return mode.isEmpty() ? "combined" : mode;
     }
 }

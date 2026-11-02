@@ -118,8 +118,8 @@ class RbacDeniedAuditTest {
         assertThat(row.getActorRole()).isEqualTo("viewer");
         assertThat(row.getRequestMethod()).isEqualTo("GET");
         assertThat(row.getRequestPath()).isEqualTo("/api/v1/tenants/{id}/audit-log");
-        assertThat(row.getDetails().get("requiredRole").asString()).isEqualTo("admin");
-        assertThat(row.getDetails().get("rawPath").asString())
+        assertThat(row.getDetails().get("requiredRole").asText()).isEqualTo("admin");
+        assertThat(row.getDetails().get("rawPath").asText())
                 .isEqualTo("/api/v1/tenants/10002/audit-log");
     }
 

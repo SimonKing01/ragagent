@@ -2,6 +2,8 @@ package com.ragagent.memory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.agent.fixtures.ContractJson;
 import com.ragagent.contract.memory.MemoryMessageCursor;
 import com.ragagent.fixtures.JsonRoundTrip;
@@ -23,7 +25,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * memory 实体 / jsonb 值的**逐字节 JSON 契约**测试。
@@ -54,7 +55,8 @@ class MemoryEntityJsonTest {
     private static final ObjectMapper MAPPER = JsonMappers.lenient();
 
     /** jsonb 读路径用的**裸**映射器——必须容忍未知属性（§9）。 */
-    private static final ObjectMapper JSONB = JsonMappers.lenient();
+    private static final ObjectMapper JSONB = JsonMappers.lenient()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private static String write(Object value) throws Exception {
         return MAPPER.writeValueAsString(value);

@@ -1,6 +1,8 @@
 package com.ragagent.config;
 
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.ragagent.auth.apikey.controller.filter.APIKeyAuthChannel;
 import com.ragagent.auth.apikey.controller.filter.APIKeyGateInterceptor;
 import com.ragagent.auth.apikey.controller.filter.APIKeyRouteAuthorizer;
@@ -17,10 +19,12 @@ import com.ragagent.platform.config.TenantProperties;
 import com.ragagent.platform.tracing.langfuse.LangfuseHttpInterceptor;
 import com.ragagent.platform.web.ApiResultInterceptor;
 import com.ragagent.platform.web.ContractJsonModule;
+import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.platform.web.RbacInterceptor;
 import com.ragagent.platform.web.RequestIdFilter;
 import com.ragagent.system.service.DeploymentCapabilitiesHolder;
 import java.util.List;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,17 +45,22 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     /**
-     * Spring MVC 的 Jackson 3 装配：契约 mixin + 保持既有线格式的宽松读/声明顺序。
+     * MVC 侧 mapper 与 {@link JsonMappers#lenient()} 同口径：契约 mixin、宽松读策略、
+     * 时间按 ISO-8601 而非 epoch 输出。
+     *
+     * <p>只挂 customizer 而不自建 {@code ObjectMapper} bean —— 保留 Boot 的默认装配
+     * （{@code ParameterNamesModule}、{@code spring.jackson.*}），避免 MVC 与业务注入
+     * 拿到两份行为不同的 mapper。</p>
      */
     @Bean
-    public org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer
-            jacksonCustomizer() {
+    public Jackson2ObjectMapperBuilderCustomizer contractJsonCustomizer() {
         return builder -> builder
-                .disable(tools.jackson.databind.DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
-                .disable(tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-                // 保留既有声明顺序（金片按字节锁）
-                .disable(tools.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-                .addModule(new ContractJsonModule());
+                .modulesToInstall(new ContractJsonModule())
+                .featuresToDisable(
+                        DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                        DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES,
+                        DeserializationFeature.FAIL_ON_TRAILING_TOKENS,
+                        SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     private final TenantProperties tenantProperties;

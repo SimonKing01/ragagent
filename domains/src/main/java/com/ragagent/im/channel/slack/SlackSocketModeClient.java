@@ -1,5 +1,7 @@
 package com.ragagent.im.channel.slack;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.runtime.IncomingMessage;
 import com.ragagent.im.runtime.SlackAdapterCore;
 import com.ragagent.platform.web.JsonMappers;
@@ -15,8 +17,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Slack Socket Mode 长连接。
@@ -112,21 +112,21 @@ public class SlackSocketModeClient {
                 ? MAPPER.createObjectNode() : MAPPER.readTree(raw);
         if (!node.path("ok").asBoolean(false)) {
             throw new IllegalStateException("apps.connections.open failed: "
-                    + node.path("error").asString("unknown_error"));
+                    + node.path("error").asText("unknown_error"));
         }
-        return node.path("url").asString("");
+        return node.path("url").asText("");
     }
 
     /** 处理一帧（Events 循环 + Ack + handleEvent）。 */
     private void handleFrame(String payload, WebSocket ws) {
         try {
             JsonNode node = MAPPER.readTree(payload);
-            String envelopeId = node.path("envelope_id").asString("");
+            String envelopeId = node.path("envelope_id").asText("");
             if (!envelopeId.isEmpty()) {
                 // 先 Ack 再处理
                 ws.sendText("{\"envelope_id\":\"" + envelopeId + "\"}", true).join();
             }
-            String type = node.path("type").asString("");
+            String type = node.path("type").asText("");
             if ("disconnect".equals(type)) {
                 ws.sendClose(WebSocket.NORMAL_CLOSURE, "disconnect").join();
                 return;

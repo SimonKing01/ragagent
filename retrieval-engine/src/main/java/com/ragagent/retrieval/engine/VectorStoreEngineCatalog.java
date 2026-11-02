@@ -1,5 +1,7 @@
 package com.ragagent.retrieval.engine;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.vectorstore.ConnectionConfig;
 import com.ragagent.contract.vectorstore.VectorStoreAddressField;
@@ -26,8 +28,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 向量店引擎目录：控制面规则（必填 / SSRF 地址）+ 连通性探测。
@@ -136,7 +136,7 @@ public class VectorStoreEngineCatalog implements VectorStoreEngineCatalogPort {
         try {
             JsonNode root = MAPPER.readTree(resp.body());
             JsonNode number = root.path("version").path("number");
-            return number.isMissingNode() ? "" : number.asString("");
+            return number.isMissingNode() ? "" : number.asText("");
         } catch (Exception e) {
             return ""; // connected but version unparseable
         }
@@ -235,7 +235,7 @@ public class VectorStoreEngineCatalog implements VectorStoreEngineCatalogPort {
             HttpResponse<String> resp = client.send(meta, HttpResponse.BodyHandlers.ofString());
             if (resp.statusCode() == 200) {
                 JsonNode version = MAPPER.readTree(resp.body()).path("version");
-                return version.isMissingNode() ? "" : version.asString("");
+                return version.isMissingNode() ? "" : version.asText("");
             }
         } catch (Exception e) {
             return ""; // connected but version unknown

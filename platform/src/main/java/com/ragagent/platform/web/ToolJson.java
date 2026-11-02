@@ -1,16 +1,16 @@
 package com.ragagent.platform.web;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.ObjectWriter;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.JsonNodeFactory;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 工具参数/输出的 JSON 编码（标准 Jackson 实现）。
@@ -31,7 +31,7 @@ public final class ToolJson {
     public static String compactJson(Object value) {
         try {
             return MAPPER.writeValueAsString(value);
-        } catch (JacksonException e) {
+        } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("JSON 序列化失败", e);
         }
     }
@@ -40,7 +40,7 @@ public final class ToolJson {
     public static String prettyJson(Object value) {
         try {
             return PRETTY.writeValueAsString(value);
-        } catch (JacksonException e) {
+        } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("JSON 序列化失败", e);
         }
     }
@@ -49,7 +49,7 @@ public final class ToolJson {
     public static String quoted(String s) {
         try {
             return MAPPER.writeValueAsString(s);
-        } catch (JacksonException e) {
+        } catch (JsonProcessingException e) {
             throw new IllegalStateException("String 序列化不应失败", e);
         }
     }

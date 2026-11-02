@@ -1,5 +1,6 @@
 package com.ragagent.mcp.tool;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.pipeline.McpToolingGateway;
 import com.ragagent.contract.pipeline.ToolRegistryPort;
 import com.ragagent.contract.tool.ToolDefinitions;
@@ -15,7 +16,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * MCP 目录的分页与安装：游标分页（绑定查询与可见行）、快照浅拷贝、
@@ -80,7 +80,7 @@ final class McpCatalogPagination {
             try {
                 byte[] decoded = McpJsonCodec.b64UrlDecode(args.cursor());
                 JsonNode cursorNode = JsonMappers.lenient().readTree(decoded);
-                String f = cursorNode.path("f").asString("");
+                String f = cursorNode.path("f").asText("");
                 int o = cursorNode.path("o").asInt(-1);
                 if (!f.equals(fingerprint) || o < 0) {
                     err = "invalid";

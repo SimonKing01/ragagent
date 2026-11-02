@@ -43,7 +43,7 @@ class YuqueFormatsTest {
         YuqueConfig cfg = new YuqueConfig();
         cfg.setApiToken("tok");
         cfg.setBaseUrl("https://company.yuque.com");
-        String json = new tools.jackson.databind.ObjectMapper().writeValueAsString(cfg);
+        String json = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(cfg);
         // 键名＝字段名 ⇒ 逐字节钉住；baseURL() 不产生额外属性（原来它被误当 camel 键的"多余物"）
         assertThat(json).isEqualTo("{\"apiToken\":\"tok\",\"baseUrl\":\"https://company.yuque.com\"}");
         assertThat(json).doesNotContain("baseURL");

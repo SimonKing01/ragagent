@@ -35,7 +35,7 @@ class VlmClientTest {
         AtomicReference<String> body = new AtomicReference<>();
         VlmClient.Transport transport = (u, apiKey, jsonBody) -> {
             url.set(u);
-            body.set(new tools.jackson.databind.ObjectMapper()
+            body.set(new com.fasterxml.jackson.databind.ObjectMapper()
                     .writeValueAsString(jsonBody));
             return "{\"choices\":[{\"message\":{\"role\":\"assistant\","
                     + "\"content\":\"图里是一张表格\"},\"finish_reason\":\"stop\"}]}";
@@ -60,7 +60,7 @@ class VlmClientTest {
     void reasoningModelShapesRequest() throws Exception {
         Map<String, String> bodyByUrl = new LinkedHashMap<>();
         VlmClient.Transport t = (u, apiKey, jsonBody) -> {
-            bodyByUrl.put(new tools.jackson.databind.ObjectMapper()
+            bodyByUrl.put(new com.fasterxml.jackson.databind.ObjectMapper()
                     .writeValueAsString(jsonBody), u);
             return "{\"choices\":[{\"message\":{\"content\":\"ok\"}}]}";
         };
@@ -118,7 +118,7 @@ class VlmClientTest {
         byte[] img = "fakepng".getBytes(StandardCharsets.UTF_8);
         AtomicReference<String> body = new AtomicReference<>();
         VlmClient.Transport t = (u, apiKey, jsonBody) -> {
-            body.set(new tools.jackson.databind.ObjectMapper()
+            body.set(new com.fasterxml.jackson.databind.ObjectMapper()
                     .writeValueAsString(jsonBody));
             return "{\"choices\":[{\"message\":{\"content\":\"x\"}}]}";
         };

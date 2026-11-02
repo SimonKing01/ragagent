@@ -1,5 +1,6 @@
 package com.ragagent.im.channel.feishu;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.ImTypes;
 import com.ragagent.im.runtime.IncomingMessage;
@@ -12,7 +13,6 @@ import java.time.Duration;
 import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 飞书媒体协作者：卡片 markdown 外链图下载→上传换 image_key（失败降级纯链接）、
@@ -126,9 +126,9 @@ final class FeishuMediaOps {
         int code = result.path("code").asInt(0);
         if (code != 0) {
             throw new IllegalStateException("upload image error: code=" + code + " msg="
-                    + result.path("msg").asString(""));
+                    + result.path("msg").asText(""));
         }
-        String imageKey = result.path("data").path("image_key").asString("");
+        String imageKey = result.path("data").path("image_key").asText("");
         if (imageKey.isEmpty()) {
             throw new IllegalStateException("upload image: empty image_key");
         }

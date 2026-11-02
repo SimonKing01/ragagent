@@ -1,5 +1,9 @@
 package com.ragagent.retrieval.engine.elasticsearch;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.retrieval.engine.EngineTypes;
@@ -19,10 +23,6 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Elasticsearch v8 检索引擎仓库（文档结构与双向转换也在本类）。
@@ -229,7 +229,7 @@ public class ElasticsearchV8RetrieveRepository
                 return;
             }
             JsonNode chunkId = indexNode.path("mappings").path("properties").path("chunk_id");
-            if (!chunkId.isMissingNode() && "keyword".equals(chunkId.path("type").asString())) {
+            if (!chunkId.isMissingNode() && "keyword".equals(chunkId.path("type").asText())) {
                 useKeywordSuffix = false;
                 log.info("[Elasticsearch] Detected keyword type for ID fields, querying without"
                         + " .keyword suffix");
@@ -366,13 +366,13 @@ public class ElasticsearchV8RetrieveRepository
     /** {@code _source} → 文档（字段缺失按零值）。 */
     static VectorEmbedding parseSource(JsonNode source) {
         VectorEmbedding doc = new VectorEmbedding();
-        doc.content = source.path("content").asString("");
-        doc.sourceId = source.path("source_id").asString("");
+        doc.content = source.path("content").asText("");
+        doc.sourceId = source.path("source_id").asText("");
         doc.sourceType = source.path("source_type").asInt(0);
-        doc.chunkId = source.path("chunk_id").asString("");
-        doc.knowledgeId = source.path("knowledge_id").asString("");
-        doc.knowledgeBaseId = source.path("knowledge_base_id").asString("");
-        doc.tagId = source.path("tag_id").asString("");
+        doc.chunkId = source.path("chunk_id").asText("");
+        doc.knowledgeId = source.path("knowledge_id").asText("");
+        doc.knowledgeBaseId = source.path("knowledge_base_id").asText("");
+        doc.tagId = source.path("tag_id").asText("");
         JsonNode vector = source.path("embedding");
         if (vector.isArray() && !vector.isEmpty()) {
             float[] floats = new float[vector.size()];

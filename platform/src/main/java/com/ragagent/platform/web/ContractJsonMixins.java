@@ -58,8 +58,8 @@ import java.util.Map;
 /**
  * 契约载荷的 mixin 映射表（纯 JDK 类型，不绑定 Jackson 版本）。
  *
- * <p>Jackson 2 的 {@link ContractJsonModule} 与 Boot 4 过渡期 Jackson 3 模块
- * 共用这张表，避免两套 mapper 的键名/省略策略漂移。</p>
+ * <p>{@link ContractJsonModule} 注册这张表，所有读写契约载荷的 mapper 共用同一份映射，
+ * 避免各 mapper 的键名/省略策略漂移。</p>
  */
 public final class ContractJsonMixins {
 

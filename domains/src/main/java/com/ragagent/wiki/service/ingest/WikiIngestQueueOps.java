@@ -1,5 +1,6 @@
 package com.ragagent.wiki.service.ingest;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.wiki.domain.TaskPendingOp;
 import com.ragagent.wiki.domain.ingest.WikiIngestConstants;
 import com.ragagent.wiki.domain.ingest.WikiPendingOp;
@@ -11,7 +12,6 @@ import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * wiki 摄取的队列消费面：按 FIFO 窥视/原子认领待办 op（last-write-wins 去重）、

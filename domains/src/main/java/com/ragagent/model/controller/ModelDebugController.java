@@ -1,5 +1,7 @@
 package com.ragagent.model.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.model.AsrTranscriber;
@@ -41,8 +43,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 模型调试端点（POST /api/v1/models/{id}/debug）。
@@ -502,11 +502,11 @@ public class ModelDebugController {
         Boolean thinking = null;
         JsonNode v;
         if ((v = node.get("systemPrompt")) != null && !v.isNull()) {
-            if (!v.isString()) {
+            if (!v.isTextual()) {
                 throw new BizException(AppError.badRequest(
                         "invalid options: systemPrompt must be a string"));
             }
-            systemPrompt = v.asString();
+            systemPrompt = v.asText();
         }
         if ((v = node.get("temperature")) != null && !v.isNull()) {
             if (!v.isNumber()) {
@@ -560,10 +560,10 @@ public class ModelDebugController {
         }
         List<String> documents = new ArrayList<>(node.size());
         for (JsonNode item : node) {
-            if (!item.isString()) {
+            if (!item.isTextual()) {
                 throw new BizException(AppError.badRequest("documents must be a JSON string array"));
             }
-            documents.add(item.asString());
+            documents.add(item.asText());
         }
         return documents;
     }

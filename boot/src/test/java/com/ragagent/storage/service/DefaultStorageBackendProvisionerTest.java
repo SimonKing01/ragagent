@@ -2,6 +2,8 @@ package com.ragagent.storage.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.TestSchema;
 import com.ragagent.contract.storage.StorageBackendProvisioner;
 import com.ragagent.platform.storage.config.StorageRuntimeEnv;
@@ -13,8 +15,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 存储后端默认装配：env → provider 环境变量族 → 落库 config 的形状钉子。
@@ -70,17 +70,17 @@ class DefaultStorageBackendProvisionerTest {
                 "SELECT config FROM storage_backends WHERE id = ?", String.class, id);
         JsonNode config = MAPPER.readTree(configText);
 
-        assertThat(config.path("endpoint").asString()).isEqualTo("https://s3.example.com");
-        assertThat(config.path("region").asString()).isEqualTo("ap-east-1");
+        assertThat(config.path("endpoint").asText()).isEqualTo("https://s3.example.com");
+        assertThat(config.path("region").asText()).isEqualTo("ap-east-1");
         // 非凭据字段原样落库（camel）
-        assertThat(config.path("bucketName").asString()).isEqualTo("b0-bucket");
-        assertThat(config.path("pathPrefix").asString()).isEqualTo("b3/");
+        assertThat(config.path("bucketName").asText()).isEqualTo("b0-bucket");
+        assertThat(config.path("pathPrefix").asText()).isEqualTo("b3/");
         // S3_USE_SSL 未设置 → 缺省真；S3_FORCE_PATH_STYLE="true" → 显式写出
         assertThat(config.path("useSsl").asBoolean()).isTrue();
         assertThat(config.path("forcePathStyle").asBoolean()).isTrue();
         // 凭据必须**加密落库**：此前供给器直接 toString() 写库，私钥是明文
-        assertThat(config.path("accessKeyId").asString()).startsWith("enc:v1:");
-        assertThat(config.path("secretAccessKey").asString()).startsWith("enc:v1:");
+        assertThat(config.path("accessKeyId").asText()).startsWith("enc:v1:");
+        assertThat(config.path("secretAccessKey").asText()).startsWith("enc:v1:");
 
         // 消费者层断言：走唯一读写口解回来必须是明文（与 StorageBackendService.configOf 同路）
         StorageBackend row = new StorageBackend();

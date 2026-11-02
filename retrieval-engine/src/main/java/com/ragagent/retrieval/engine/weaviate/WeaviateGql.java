@@ -1,12 +1,12 @@
 package com.ragagent.retrieval.engine.weaviate;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.web.ToolJson;
 import com.ragagent.retrieval.engine.weaviate.WeaviateRestClient.Json;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Weaviate GraphQL 查询串构造——逐字节对齐既有客户端的 wire 形态

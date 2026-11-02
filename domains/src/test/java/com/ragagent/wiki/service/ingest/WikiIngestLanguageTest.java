@@ -2,6 +2,7 @@ package com.ragagent.wiki.service.ingest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.text.Whitespace;
 import com.ragagent.contract.wiki.SlugUpdate;
 import com.ragagent.contract.wiki.WikiLanguageSupport;
@@ -17,7 +18,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 语言持久化与 prompt 渲染的测试。

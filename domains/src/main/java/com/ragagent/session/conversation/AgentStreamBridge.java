@@ -271,13 +271,13 @@ public final class AgentStreamBridge {
 
     // ── 审批 / OAuth ─────────────────────────────────────────────────────────
 
-    private static final tools.jackson.databind.ObjectMapper CAST_MAPPER =
+    private static final com.fasterxml.jackson.databind.ObjectMapper CAST_MAPPER =
             JsonMappers.lenient();
 
     private static Map<String, Object> toolApprovalDataToMap(Object v) {
         try {
             Map<String, Object> m = CAST_MAPPER.convertValue(v,
-                    new tools.jackson.core.type.TypeReference<Map<String, Object>>() {});
+                    new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
             return m == null ? new LinkedHashMap<>() : m;
         } catch (RuntimeException e) {
             return new LinkedHashMap<>();

@@ -32,7 +32,7 @@ final class QaModelSelection {
         String summaryModelId = req.summaryModelId == null ? "" : req.summaryModelId.trim();
         String configuredAgentModelId = "";
         if (req.agentConfig != null) {
-            configuredAgentModelId = req.agentConfig.path("modelId").asString("").trim();
+            configuredAgentModelId = req.agentConfig.path("modelId").asText("").trim();
             if (configuredAgentModelId.isEmpty()
                     && !"builtin-wiki-fixer".equals(req.agentRow.id())) {
                 throw new RuntimeException("chat model is not configured: please set model_id on agent "

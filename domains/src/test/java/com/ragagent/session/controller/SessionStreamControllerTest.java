@@ -11,6 +11,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.auth.dto.TenantRowView;
 import com.ragagent.auth.service.TenantService;
 import com.ragagent.contract.apikey.APIKeyScopeContext;
@@ -40,7 +41,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.mock.web.MockHttpServletResponse;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@code continue-stream} 端点的行为契约。

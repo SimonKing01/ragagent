@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.event.payload.MCPOAuthRequiredData;
 import com.ragagent.contract.event.payload.MCPOAuthResolvedData;
 import com.ragagent.contract.event.payload.ToolApprovalRequiredData;
@@ -13,8 +15,6 @@ import com.ragagent.contract.event.payload.ToolApprovalResolvedData;
 import com.ragagent.contract.model.ResponseType;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 审批 Redis 内部线的契约测试：JSON 键 = Java 字段名（camelCase，无逐字段注解）。
@@ -45,21 +45,21 @@ class ApprovalWireFormatTest {
                 "desc", Map.of("a", 1), "{\"a\":1}", 60, 1700000000L, "tc1", "r1");
 
         JsonNode node = parse(ApprovalJson.write(data));
-        assertEquals("p1", node.get("pendingId").asString());
+        assertEquals("p1", node.get("pendingId").asText());
         assertEquals(7, node.get("tenantId").asLong());
-        assertEquals("s1", node.get("sessionId").asString());
-        assertEquals("m1", node.get("assistantMessageId").asString());
-        assertEquals("svc", node.get("serviceId").asString());
-        assertEquals("svcname", node.get("serviceName").asString());
-        assertEquals("tool", node.get("mcpToolName").asString());
-        assertEquals("mcp_tool", node.get("registeredToolName").asString());
-        assertEquals("desc", node.get("description").asString());
+        assertEquals("s1", node.get("sessionId").asText());
+        assertEquals("m1", node.get("assistantMessageId").asText());
+        assertEquals("svc", node.get("serviceId").asText());
+        assertEquals("svcname", node.get("serviceName").asText());
+        assertEquals("tool", node.get("mcpToolName").asText());
+        assertEquals("mcp_tool", node.get("registeredToolName").asText());
+        assertEquals("desc", node.get("description").asText());
         assertEquals(1, node.get("args").get("a").asInt());
-        assertEquals("{\"a\":1}", node.get("argsJson").asString());
+        assertEquals("{\"a\":1}", node.get("argsJson").asText());
         assertEquals(60, node.get("timeoutSeconds").asInt());
         assertEquals(1700000000L, node.get("requestedAtUnix").asLong());
-        assertEquals("tc1", node.get("toolCallId").asString());
-        assertEquals("r1", node.get("requestId").asString());
+        assertEquals("tc1", node.get("toolCallId").asText());
+        assertEquals("r1", node.get("requestId").asText());
 
         // 空值省略：args/argsJson/request_id（ApprovalJson 的序列化规则，payload 与旧 Notice 同）
         String minimal = ApprovalJson.write(new ToolApprovalRequiredData(
@@ -74,9 +74,9 @@ class ApprovalWireFormatTest {
     void toolApprovalResolvedWireFormat() {
         JsonNode node = parse(ApprovalJson.write(
                 new ToolApprovalResolvedData("p1", false, "no", true, false)));
-        assertEquals("p1", node.get("pendingId").asString());
+        assertEquals("p1", node.get("pendingId").asText());
         assertFalse(node.get("approved").asBoolean());
-        assertEquals("no", node.get("reason").asString());
+        assertEquals("no", node.get("reason").asText());
         assertTrue(node.get("timedOut").asBoolean());
         // canceled=false → 键缺席（payload 契约：false 省略，与到达前端的形态一致）
         assertFalse(node.has("canceled"));
@@ -90,14 +90,14 @@ class ApprovalWireFormatTest {
     void oauthPayloadsWireFormat() {
         JsonNode required = parse(ApprovalJson.write(new MCPOAuthRequiredData(
                 "p1", 7, "s1", "m1", "svc", "svcname", "tool", 30, 1700000000L, "tc1", "r1")));
-        assertEquals("p1", required.get("pendingId").asString());
+        assertEquals("p1", required.get("pendingId").asText());
         assertTrue(required.has("mcpToolName"));
         assertTrue(required.has("toolCallId"));
         assertTrue(required.has("timeoutSeconds"));
 
         JsonNode resolved = parse(ApprovalJson.write(
                 new MCPOAuthResolvedData("p1", "svc", true, "ok", false, false)));
-        assertEquals("svc", resolved.get("serviceId").asString());
+        assertEquals("svc", resolved.get("serviceId").asText());
         assertTrue(resolved.get("authorized").asBoolean());
     }
 
@@ -109,14 +109,14 @@ class ApprovalWireFormatTest {
 
         JsonNode node = parse(payload);
         assertEquals(7, node.get("tenantId").asLong());
-        assertEquals("u1", node.get("userId").asString());
-        assertEquals("p1", node.get("pendingId").asString());
+        assertEquals("u1", node.get("userId").asText());
+        assertEquals("p1", node.get("pendingId").asText());
         assertTrue(node.get("approved").asBoolean());
         assertTrue(node.get("modifiedArgs").isObject(), "modifiedArgs 必须内联成 JSON 对象");
         assertEquals(1, node.get("modifiedArgs").get("a").asInt());
-        assertEquals("reply-chan", node.get("replyChannel").asString());
-        assertEquals("origin-1", node.get("originId").asString());
-        assertEquals("nonce-1", node.get("requestNonce").asString());
+        assertEquals("reply-chan", node.get("replyChannel").asText());
+        assertEquals("origin-1", node.get("originId").asText());
+        assertEquals("nonce-1", node.get("requestNonce").asText());
         // timedOut / canceled 为 false → 键缺席
         assertFalse(node.has("timedOut"));
         assertFalse(node.has("canceled"));
@@ -140,10 +140,10 @@ class ApprovalWireFormatTest {
     void resolveAckWireFormat() {
         JsonNode node = parse(ApprovalJson.write(
                 ResolveAck.of("p1", ResolveAck.STATUS_ALREADY_RESOLVED, "B", "nonce")));
-        assertEquals("p1", node.get("pendingId").asString());
-        assertEquals("already_resolved", node.get("status").asString());
-        assertEquals("B", node.get("originId").asString());
-        assertEquals("nonce", node.get("requestNonce").asString());
+        assertEquals("p1", node.get("pendingId").asText());
+        assertEquals("already_resolved", node.get("status").asText());
+        assertEquals("B", node.get("originId").asText());
+        assertEquals("nonce", node.get("requestNonce").asText());
 
         // 非法 JSON 不应抛异常，只返回 null
         assertNull(ApprovalJson.read("{not json", ResolveAck.class));

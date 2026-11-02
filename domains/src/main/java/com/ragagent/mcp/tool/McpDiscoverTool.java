@@ -1,5 +1,6 @@
 package com.ragagent.mcp.tool;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.tool.BaseTool;
 import com.ragagent.contract.tool.ToolRequest;
 import com.ragagent.contract.tool.ToolResult;
@@ -7,7 +8,6 @@ import com.ragagent.platform.tool.ToolSchemas;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * discover_mcp_tools：暴露授权目录与精确工具定义。描述与来源摘要伴随 direct 工具
@@ -199,11 +199,11 @@ public class McpDiscoverTool extends BaseTool {
             return null;
         }
         return new McpCatalog.McpDiscoveryArgs(
-                raw.path("mode").asString(""),
-                raw.path("serverId").asString(""),
-                raw.path("toolName").asString(""),
-                raw.path("query").asString(""),
-                raw.path("cursor").asString(""),
+                raw.path("mode").asText(""),
+                raw.path("serverId").asText(""),
+                raw.path("toolName").asText(""),
+                raw.path("query").asText(""),
+                raw.path("cursor").asText(""),
                 raw.path("limit").asInt(0),
                 raw.path("refresh").asBoolean(false));
     }

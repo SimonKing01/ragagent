@@ -1,5 +1,9 @@
 package com.ragagent.retrieval.engine.milvus;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.platform.web.JsonMappers;
 import java.io.IOException;
@@ -10,10 +14,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Milvus REST v2 传输层（{@code /v2/vectordb/…}）——本仓自持 REST v2（零新依赖）。
@@ -109,7 +109,7 @@ public final class MilvusRestClient {
         try {
             builder.POST(HttpRequest.BodyPublishers.ofString(
                     Json.mapper().writeValueAsString(body), StandardCharsets.UTF_8));
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             throw new IllegalStateException("marshal milvus request body: " + e.getMessage(), e);
         }
         HttpResponse<byte[]> resp;
@@ -129,13 +129,13 @@ public final class MilvusRestClient {
         JsonNode root;
         try {
             root = Json.mapper().readTree(raw);
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             throw new IllegalStateException(
                     "decode milvus response for " + path + ": " + raw, e);
         }
         int code = root.path("code").asInt(0);
         if (code != 0) {
-            throw new MilvusApiException(code, root.path("message").asString(""), path);
+            throw new MilvusApiException(code, root.path("message").asText(""), path);
         }
         return root.get("data");
     }
@@ -171,7 +171,7 @@ public final class MilvusRestClient {
         List<String> names = new ArrayList<>();
         if (data != null && data.isArray()) {
             for (JsonNode node : data) {
-                names.add(node.asString(""));
+                names.add(node.asText(""));
             }
         }
         return names;

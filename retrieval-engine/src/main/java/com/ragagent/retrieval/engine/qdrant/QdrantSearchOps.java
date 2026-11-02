@@ -1,5 +1,8 @@
 package com.ragagent.retrieval.engine.qdrant;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.retrieval.engine.EngineTypes;
 import com.ragagent.retrieval.engine.EngineTypes.IndexWithScore;
 import com.ragagent.retrieval.engine.EngineTypes.RetrieveParams;
@@ -8,9 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Qdrant 引擎的检索簇：vector（/points/search，集合不存在返回空）与 keywords
@@ -185,14 +185,14 @@ final class QdrantSearchOps {
     static IndexWithScore fromPoint(JsonNode point, int matchType, double score) {
         JsonNode payload = point.path("payload");
         IndexWithScore out = new IndexWithScore();
-        out.id = point.path("id").asString("");
-        out.sourceId = payload.path(QdrantRetrieveRepository.FIELD_SOURCE_ID).asString("");
+        out.id = point.path("id").asText("");
+        out.sourceId = payload.path(QdrantRetrieveRepository.FIELD_SOURCE_ID).asText("");
         out.sourceType = payload.path(QdrantRetrieveRepository.FIELD_SOURCE_TYPE).asInt(0);
-        out.chunkId = payload.path(QdrantRetrieveRepository.FIELD_CHUNK_ID).asString("");
-        out.knowledgeId = payload.path(QdrantRetrieveRepository.FIELD_KNOWLEDGE_ID).asString("");
-        out.knowledgeBaseId = payload.path(QdrantRetrieveRepository.FIELD_KNOWLEDGE_BASE_ID).asString("");
-        out.tagId = payload.path(QdrantRetrieveRepository.FIELD_TAG_ID).asString("");
-        out.content = payload.path(QdrantRetrieveRepository.FIELD_CONTENT).asString("");
+        out.chunkId = payload.path(QdrantRetrieveRepository.FIELD_CHUNK_ID).asText("");
+        out.knowledgeId = payload.path(QdrantRetrieveRepository.FIELD_KNOWLEDGE_ID).asText("");
+        out.knowledgeBaseId = payload.path(QdrantRetrieveRepository.FIELD_KNOWLEDGE_BASE_ID).asText("");
+        out.tagId = payload.path(QdrantRetrieveRepository.FIELD_TAG_ID).asText("");
+        out.content = payload.path(QdrantRetrieveRepository.FIELD_CONTENT).asText("");
         out.score = score;
         out.matchType = matchType;
         return out;

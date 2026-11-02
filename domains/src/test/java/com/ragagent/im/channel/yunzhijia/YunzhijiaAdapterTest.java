@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.domain.ImChannelEntity;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.CallbackExchange;
@@ -27,7 +28,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 云之家适配器行为测试：
@@ -327,17 +327,17 @@ class YunzhijiaAdapterTest {
         Captured send = captured.get(0);
         assertEquals("POST", send.method());
         assertEquals("/send", send.path());
-        tools.jackson.databind.JsonNode body = MAPPER.readTree(send.body());
+        com.fasterxml.jackson.databind.JsonNode body = MAPPER.readTree(send.body());
         assertEquals(2, body.path("msgtype").asInt());
-        assertEquals("**答案**", body.path("content").asString());
-        assertEquals("markdown", body.path("param").path("formatType").asString());
+        assertEquals("**答案**", body.path("content").asText());
+        assertEquals("markdown", body.path("param").path("formatType").asText());
         assertEquals(3, body.path("paramType").asInt());
-        assertEquals("m1", body.path("param").path("replyMsgId").asString());
+        assertEquals("m1", body.path("param").path("replyMsgId").asText());
         assertTrue(body.path("param").path("isReference").asBoolean());
-        assertEquals("原问题", body.path("param").path("replySummary").asString());
-        assertEquals("张三", body.path("param").path("replyPersonName").asString());
-        assertEquals("openIds", body.path("notifyParams").get(0).path("type").asString());
-        assertEquals("op1", body.path("notifyParams").get(0).path("values").get(0).asString());
+        assertEquals("原问题", body.path("param").path("replySummary").asText());
+        assertEquals("张三", body.path("param").path("replyPersonName").asText());
+        assertEquals("openIds", body.path("notifyParams").get(0).path("type").asText());
+        assertEquals("op1", body.path("notifyParams").get(0).path("values").get(0).asText());
 
         // group_type=3 → 不带 notifyParams
         captured.clear();

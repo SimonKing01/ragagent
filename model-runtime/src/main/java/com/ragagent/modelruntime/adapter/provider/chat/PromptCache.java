@@ -1,5 +1,9 @@
 package com.ragagent.modelruntime.adapter.provider.chat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.model.CacheRetention;
 import com.ragagent.contract.model.ChatMessage;
 import com.ragagent.contract.model.ChatOptions;
@@ -10,10 +14,6 @@ import com.ragagent.platform.prompt.PromptFingerprints;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.List;
 import org.springframework.http.HttpHeaders;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * prompt 缓存路由与账目归一化。
@@ -402,8 +402,8 @@ public final class PromptCache {
         if (content == null || content.isNull()) {
             return false;
         }
-        if (content.isString()) {
-            String text = content.stringValue();
+        if (content.isTextual()) {
+            String text = content.textValue();
             if (text.isEmpty()) {
                 return false;
             }
@@ -473,7 +473,7 @@ public final class PromptCache {
     }
 
     private static String textOrEmpty(JsonNode node) {
-        return node != null && node.isString() ? node.stringValue() : "";
+        return node != null && node.isTextual() ? node.textValue() : "";
     }
 
 }

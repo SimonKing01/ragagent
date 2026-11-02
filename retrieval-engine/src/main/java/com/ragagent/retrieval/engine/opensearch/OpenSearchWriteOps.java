@@ -1,5 +1,6 @@
 package com.ragagent.retrieval.engine.opensearch;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.retrieval.engine.EngineTypes.IndexInfo;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -9,7 +10,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * OpenSearch 引擎的写入/删除/批量更新/拷贝/迁移簇与文档投影、批量响应检视：
@@ -254,13 +254,13 @@ final class OpenSearchWriteOps {
         for (JsonNode h : hits) {
             JsonNode source = h.path("_source");
             Map<String, Object> row = new HashMap<>();
-            row.put("content", source.path("content").asString(""));
-            row.put("source_id", source.path("source_id").asString(""));
+            row.put("content", source.path("content").asText(""));
+            row.put("source_id", source.path("source_id").asText(""));
             row.put("source_type", source.path("source_type").asInt(0));
-            row.put("chunk_id", source.path("chunk_id").asString(""));
-            row.put("knowledge_id", source.path("knowledge_id").asString(""));
-            row.put("knowledge_base_id", source.path("knowledge_base_id").asString(""));
-            row.put("tag_id", source.path("tag_id").asString(""));
+            row.put("chunk_id", source.path("chunk_id").asText(""));
+            row.put("knowledge_id", source.path("knowledge_id").asText(""));
+            row.put("knowledge_base_id", source.path("knowledge_base_id").asText(""));
+            row.put("tag_id", source.path("tag_id").asText(""));
             row.put("is_enabled", source.path("is_enabled").asBoolean(false));
             row.put("is_recommended", source.path("is_recommended").asBoolean(false));
             row.put("embedding", OpenSearchRetrieveRepository.MAPPER.convertValue(source.path("embedding"), List.class));
@@ -470,7 +470,7 @@ final class OpenSearchWriteOps {
         List<String> msgs = new ArrayList<>();
         for (JsonNode item : root.path("items")) {
             // bulk item 形如 {"index": {...}}（单键）
-            var it = item.properties().iterator();
+            var it = item.fields();
             if (!it.hasNext()) {
                 continue;
             }
@@ -482,11 +482,11 @@ final class OpenSearchWriteOps {
             }
             total++;
             log.debug("[OpenSearch] bulk item err: op={} id={} type={} reason={}",
-                    opName, op.path("_id").asString(""), err.path("type").asString(""),
-                    err.path("reason").asString(""));
+                    opName, op.path("_id").asText(""), err.path("type").asText(""),
+                    err.path("reason").asText(""));
             if (msgs.size() < 5) {
-                msgs.add("[" + opName + " " + op.path("_id").asString("") + "] "
-                        + err.path("type").asString(""));
+                msgs.add("[" + opName + " " + op.path("_id").asText("") + "] "
+                        + err.path("type").asText(""));
             }
         }
         if (total == 0) {
@@ -537,11 +537,11 @@ final class OpenSearchWriteOps {
         List<String> msgs = new ArrayList<>();
         for (JsonNode f : failures) {
             log.debug("[OpenSearch] by-query failure: id={} type={} reason={}",
-                    f.path("id").asString(""), f.path("cause").path("type").asString(""),
-                    f.path("cause").path("reason").asString(""));
+                    f.path("id").asText(""), f.path("cause").path("type").asText(""),
+                    f.path("cause").path("reason").asText(""));
             if (msgs.size() < 5) {
-                msgs.add("[" + f.path("id").asString("") + "] "
-                        + f.path("cause").path("type").asString(""));
+                msgs.add("[" + f.path("id").asText("") + "] "
+                        + f.path("cause").path("type").asText(""));
             }
         }
         throw new OpenSearchDriverException(

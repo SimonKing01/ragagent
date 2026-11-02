@@ -1,5 +1,8 @@
 package com.ragagent.im.channel.feishu;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.im.runtime.IncomingMessage;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.platform.web.JsonMappers;
@@ -21,9 +24,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 飞书 / Lark 长连接（websocket）客户端（协议对齐官方 oapi-sdk-go/v3 的 ws 模块）。
@@ -295,12 +295,12 @@ public class FeishuLongConnClient {
     String parseEndpointResponse(byte[] raw) throws Exception {
         JsonNode node = MAPPER.readTree(raw == null ? new byte[0] : raw);
         int code = node.path("code").asInt(0);
-        String msg = node.path("msg").asString("");
+        String msg = node.path("msg").asText("");
         if (code != 0) {
             throw new IllegalStateException("ws endpoint error: code=" + code
                     + (msg.isEmpty() ? "" : " msg=" + msg));
         }
-        String url = node.path("data").path("URL").asString("");
+        String url = node.path("data").path("URL").asText("");
         if (url.isEmpty()) {
             throw new IllegalStateException("ws endpoint is null");
         }

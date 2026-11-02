@@ -1,5 +1,7 @@
 package com.ragagent.im.channel.wechat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.platform.web.JsonMappers;
 import java.net.URI;
@@ -12,8 +14,6 @@ import java.time.Duration;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 微信扫码登录（iLink 接入）。
@@ -93,12 +93,12 @@ public class WechatQRCodeService {
                     + ": " + new String(body, StandardCharsets.UTF_8));
         }
         JsonNode result = MAPPER.readTree(body);
-        String qrcode = result.path("qrcode").asString("");
+        String qrcode = result.path("qrcode").asText("");
         if (qrcode.isEmpty()) {
             throw new IllegalStateException("empty qrcode in response: "
                     + new String(body, StandardCharsets.UTF_8));
         }
-        return new QRCodeResult(result.path("qrcode_img_content").asString(""), qrcode);
+        return new QRCodeResult(result.path("qrcode_img_content").asText(""), qrcode);
     }
 
     /** 轮询扫码状态；超时 → wait（不报错）。 */
@@ -125,11 +125,11 @@ public class WechatQRCodeService {
         }
         JsonNode result = MAPPER.readTree(body);
         return new LoginResult(
-                result.path("status").asString(""),
-                result.path("bot_token").asString(""),
-                result.path("ilink_bot_id").asString(""),
-                result.path("ilink_user_id").asString(""),
-                result.path("baseurl").asString(""));
+                result.path("status").asText(""),
+                result.path("bot_token").asText(""),
+                result.path("ilink_bot_id").asText(""),
+                result.path("ilink_user_id").asText(""),
+                result.path("baseurl").asText(""));
     }
 
     private HttpResponse<byte[]> send(String url, Duration timeout, String clientVersion)

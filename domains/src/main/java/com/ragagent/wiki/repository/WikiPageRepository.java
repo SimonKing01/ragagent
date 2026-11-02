@@ -1,5 +1,6 @@
 package com.ragagent.wiki.repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.wiki.WikiIndexEntry;
 import com.ragagent.contract.wiki.WikiPageNotFoundException;
 import com.ragagent.platform.persistence.DatabaseDialects;
@@ -28,7 +29,6 @@ import java.util.Set;
 import javax.sql.DataSource;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * wiki 页面 / 修订 / 问题仓储。

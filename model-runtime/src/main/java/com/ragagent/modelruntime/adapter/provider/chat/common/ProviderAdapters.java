@@ -1,5 +1,7 @@
 package com.ragagent.modelruntime.adapter.provider.chat.common;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.model.ChatOptions;
 import com.ragagent.llm.provider.AliyunProvider;
 import com.ragagent.llm.provider.MoonshotProvider;
@@ -10,8 +12,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import org.springframework.http.HttpHeaders;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 13 个 OpenAI 兼容厂商适配器 + 有序注册表。

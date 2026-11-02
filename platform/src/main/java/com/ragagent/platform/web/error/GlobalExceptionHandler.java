@@ -81,7 +81,7 @@ public class GlobalExceptionHandler {
             org.springframework.web.method.annotation.HandlerMethodValidationException ex,
             HttpServletRequest req) {
         java.util.List<String> lines = new java.util.ArrayList<>();
-        ex.getParameterValidationResults().forEach(r ->
+        ex.getAllValidationResults().forEach(r ->
                 r.getResolvableErrors().forEach(err -> {
                     String msg = translateMessage(err.getDefaultMessage());
                     lines.add(msg.matches("^[a-z][A-Za-z0-9_]*: .*") ? msg : extractField(err) + ": " + msg);
@@ -117,15 +117,9 @@ public class GlobalExceptionHandler {
         Throwable cause = ex.getCause();
         if (ex.getMessage() != null && ex.getMessage().contains("Required request body")) {
             details = "请求体不能为空";
-        } else if (cause instanceof tools.jackson.databind.exc.MismatchedInputException mie
+        } else if (cause instanceof com.fasterxml.jackson.databind.exc.MismatchedInputException mie
                 && !mie.getPath().isEmpty()) {
-            String field = mie.getPath().get(mie.getPath().size() - 1).getPropertyName();
-            if (field != null) {
-                details = field + ": 类型不正确";
-            }
-        } else if (cause instanceof tools.jackson.databind.exc.MismatchedInputException mie
-                && !mie.getPath().isEmpty()) {
-            String field = mie.getPath().get(mie.getPath().size() - 1).getPropertyName();
+            String field = mie.getPath().get(mie.getPath().size() - 1).getFieldName();
             if (field != null) {
                 details = field + ": 类型不正确";
             }

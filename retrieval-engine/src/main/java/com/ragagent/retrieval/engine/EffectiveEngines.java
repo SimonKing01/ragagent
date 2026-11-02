@@ -1,10 +1,10 @@
 package com.ragagent.retrieval.engine;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 有效引擎解析——租户显式配置与 RETRIEVE_DRIVER 派生默认共用的映射表与派发规则。
@@ -69,8 +69,8 @@ public final class EffectiveEngines {
             List<RetrieverEngineParams> out = new ArrayList<>();
             for (JsonNode n : retrieverEngines.get("engines")) {
                 out.add(new RetrieverEngineParams(
-                        n.path("retriever_type").asString(""),
-                        n.path("retriever_engine_type").asString("")));
+                        n.path("retriever_type").asText(""),
+                        n.path("retriever_engine_type").asText("")));
             }
             return out;
         }

@@ -104,11 +104,11 @@ public class TemporaryDocumentController {
             }
             if (isAudioExtension(ext)) {
                 if (!cfg.path("audioUploadEnabled").asBoolean(false)
-                        || cfg.path("asrModelId").asString("").isEmpty()) {
+                        || cfg.path("asrModelId").asText("").isEmpty()) {
                     throw new BizException(AppError.badRequest(
                             "audio upload is not enabled or no ASR model is configured"));
                 }
-                options = options.withAsrModelId(cfg.path("asrModelId").asString(""));
+                options = options.withAsrModelId(cfg.path("asrModelId").asText(""));
             }
             if (options.parserEngine().isEmpty() || "auto".equals(options.parserEngine())) {
                 String engine = ParserEngineRules.resolve(
@@ -118,8 +118,8 @@ public class TemporaryDocumentController {
                 }
             }
             if (cfg.path("imageUploadEnabled").asBoolean(false)
-                    && !cfg.path("vlmModelId").asString("").isEmpty()) {
-                options = options.withVlm(cfg.path("vlmModelId").asString(""),
+                    && !cfg.path("vlmModelId").asText("").isEmpty()) {
+                options = options.withVlm(cfg.path("vlmModelId").asText(""),
                         cfg.path("attachmentImageUnderstanding").asBoolean(false),
                         cfg.path("attachmentOcrMaxPages").asInt(0));
             }
@@ -295,12 +295,12 @@ public class TemporaryDocumentController {
         return false;
     }
 
-    private static List<String> stringListOf(tools.jackson.databind.JsonNode arr) {
+    private static List<String> stringListOf(com.fasterxml.jackson.databind.JsonNode arr) {
         List<String> out = new java.util.ArrayList<>();
         if (arr != null && arr.isArray()) {
-            for (tools.jackson.databind.JsonNode n : arr) {
-                if (n.isString()) {
-                    out.add(n.asString());
+            for (com.fasterxml.jackson.databind.JsonNode n : arr) {
+                if (n.isTextual()) {
+                    out.add(n.asText());
                 }
             }
         }

@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.knowledge.domain.ExtractChunkPayload;
 import com.ragagent.knowledge.domain.QuestionBatchPayload;
 import com.ragagent.knowledge.service.chunk.ChunkExtractService;
@@ -20,7 +21,6 @@ import java.util.function.BooleanSupplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * knowledge 两个 Redis 队列的语义：执行与终态清理、重试到预算耗尽后放弃、

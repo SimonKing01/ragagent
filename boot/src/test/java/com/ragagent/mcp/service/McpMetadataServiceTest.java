@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.TestObjectProviders;
 import com.ragagent.TestSchema;
 import com.ragagent.contract.error.BizException;
@@ -39,9 +42,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * MCP 元数据刷新的服务层契约。
@@ -343,7 +343,7 @@ class McpMetadataServiceTest {
             try {
                 byte[] raw = exchange.getRequestBody().readAllBytes();
                 JsonNode request = JSON.readTree(raw);
-                String method = request.path("method").asString("");
+                String method = request.path("method").asText("");
                 JsonNode id = request.get("id");
                 switch (method) {
                     case "initialize" -> {

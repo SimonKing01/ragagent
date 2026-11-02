@@ -1,10 +1,10 @@
 package com.ragagent.agent.prompt;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.prompt.PromptSource;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * agent 系统提示词模板的选取与装载。
@@ -90,12 +90,12 @@ public final class AgentPromptTemplates {
             var out = new java.util.ArrayList<PromptTemplate>();
             for (JsonNode t : list) {
                 out.add(new PromptTemplate(
-                        t.path("id").asString(""),
-                        t.path("name").asString(""),
-                        t.path("description").asString(""),
-                        t.path("content").asString(""),
+                        t.path("id").asText(""),
+                        t.path("name").asText(""),
+                        t.path("description").asText(""),
+                        t.path("content").asText(""),
                         t.path("default").asBoolean(false),
-                        t.path("mode").asString("")));
+                        t.path("mode").asText("")));
             }
             return out;
         } catch (Exception e) {

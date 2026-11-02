@@ -1,5 +1,7 @@
 package com.ragagent.mcp.protocol;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,8 +19,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 传统 HTTP+SSE 传输（MCP 的 HTTP with SSE；对照 mcp-go
@@ -253,7 +253,7 @@ public final class SseTransport implements McpTransport {
         if (target == null) {
             throw new McpException(McpErrorCode.CONNECTION_CLOSED, "endpoint not received");
         }
-        tools.jackson.databind.node.ObjectNode node = MAPPER.createObjectNode();
+        com.fasterxml.jackson.databind.node.ObjectNode node = MAPPER.createObjectNode();
         node.put("jsonrpc", JsonRpcRequest.JSONRPC_VERSION);
         node.put("method", method);
         if (params != null) {

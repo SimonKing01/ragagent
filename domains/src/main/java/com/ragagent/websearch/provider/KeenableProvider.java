@@ -1,5 +1,6 @@
 package com.ragagent.websearch.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.websearch.WebSearchResult;
 import com.ragagent.platform.web.ProviderJson;
 import com.ragagent.websearch.config.WebSearchProviderParams;
@@ -7,7 +8,6 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * Keenable 搜索 provider。
@@ -76,16 +76,16 @@ public final class KeenableProvider implements WebSearchProvider {
             if (maxResults > 0 && results.size() >= maxResults) {
                 break;
             }
-            String description = item.path("description").asString("");
-            String snippet = item.path("snippet").asString("");
+            String description = item.path("description").asText("");
+            String snippet = item.path("snippet").asText("");
             String effectiveSnippet = description.isEmpty() ? snippet : description;
             WebSearchResult result = new WebSearchResult();
-            result.setTitle(item.path("title").asString(""));
-            result.setUrl(item.path("url").asString(""));
+            result.setTitle(item.path("title").asText(""));
+            result.setUrl(item.path("url").asText(""));
             result.setSnippet(effectiveSnippet);
             result.setContent(snippet);
             result.setSource("keenable");
-            String publishedAt = item.path("published_at").asString("");
+            String publishedAt = item.path("published_at").asText("");
             if (includeDate && !publishedAt.isEmpty()) {
                 OffsetDateTime t = BingProvider.parseRfc3339(publishedAt);
                 if (t != null) {

@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.domain.ImChannelEntity;
 import com.ragagent.im.runtime.ImTypes;
 import com.ragagent.im.runtime.IncomingMessage;
@@ -14,8 +16,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 钉钉 Stream 模式（W5γ3.8）协议级测试：接入点请求/响应校验、三类订阅、帧分流
@@ -52,19 +52,19 @@ class DingtalkStreamClientTest {
         DingtalkStreamClient c = client(new ArrayList<>());
         String body = c.buildEndpointRequest();
         JsonNode node = MAPPER.readTree(body);
-        assertEquals("cli_1", node.path("clientId").asString());
-        assertEquals("sec_1", node.path("clientSecret").asString());
-        assertEquals("weknora-java", node.path("ua").asString());
+        assertEquals("cli_1", node.path("clientId").asText());
+        assertEquals("sec_1", node.path("clientSecret").asText());
+        assertEquals("weknora-java", node.path("ua").asText());
         assertNotNull(node.get("localIp"));
         assertNotNull(node.get("extras"));
         JsonNode subs = node.path("subscriptions");
         assertEquals(3, subs.size());
-        assertEquals("SYSTEM", subs.get(0).path("type").asString());
-        assertEquals("ping", subs.get(0).path("topic").asString());
-        assertEquals("SYSTEM", subs.get(1).path("type").asString());
-        assertEquals("disconnect", subs.get(1).path("topic").asString());
-        assertEquals("CALLBACK", subs.get(2).path("type").asString());
-        assertEquals("/v1.0/im/bot/messages/get", subs.get(2).path("topic").asString());
+        assertEquals("SYSTEM", subs.get(0).path("type").asText());
+        assertEquals("ping", subs.get(0).path("topic").asText());
+        assertEquals("SYSTEM", subs.get(1).path("type").asText());
+        assertEquals("disconnect", subs.get(1).path("topic").asText());
+        assertEquals("CALLBACK", subs.get(2).path("type").asText());
+        assertEquals("/v1.0/im/bot/messages/get", subs.get(2).path("topic").asText());
 
         var endpoint = c.parseEndpointResponse(
                 "{\"endpoint\":\"wss://gw.example/ws\",\"ticket\":\"tk-1\"}"
@@ -93,10 +93,10 @@ class DingtalkStreamClientTest {
         assertEquals(1, sink.acks.size());
         JsonNode pong = MAPPER.readTree(sink.acks.get(0));
         assertEquals(200, pong.path("code").asInt());
-        assertEquals("ok", pong.path("message").asString());
-        assertEquals("PINGDATA", pong.path("data").asString());
-        assertEquals("mid-1", pong.path("headers").path("messageId").asString());
-        assertEquals("application/json", pong.path("headers").path("contentType").asString());
+        assertEquals("ok", pong.path("message").asText());
+        assertEquals("PINGDATA", pong.path("data").asText());
+        assertEquals("mid-1", pong.path("headers").path("messageId").asText());
+        assertEquals("application/json", pong.path("headers").path("contentType").asText());
 
         c.dispatch("{\"type\":\"SYSTEM\",\"headers\":{\"topic\":\"something\","
                 + "\"messageId\":\"mid-2\"},\"data\":\"\"}");
@@ -139,7 +139,7 @@ class DingtalkStreamClientTest {
         assertEquals("https://hook/x", msg.extra.get("session_webhook"));
         JsonNode ack = MAPPER.readTree(sink.acks.get(0));
         assertEquals(200, ack.path("code").asInt());
-        assertEquals("mid-3", ack.path("headers").path("messageId").asString());
+        assertEquals("mid-3", ack.path("headers").path("messageId").asText());
 
         // 处理器抛错 → 500 + message 带错误
         DingtalkStreamClient failing = new DingtalkStreamClient("cli", "sec", null, null, "ch",
@@ -154,7 +154,7 @@ class DingtalkStreamClientTest {
                 + "\"data\":\"{\\\"msgtype\\\":\\\"text\\\",\\\"text\\\":{\\\"content\\\":\\\"x\\\"}}\"}");
         JsonNode failAck = MAPPER.readTree(failSink.acks.get(0));
         assertEquals(500, failAck.path("code").asInt());
-        assertTrue(failAck.path("message").asString().contains("boom"));
+        assertTrue(failAck.path("message").asText().contains("boom"));
 
         // CALLBACK 但 topic 不认识 → 404
         c.dispatch("{\"type\":\"CALLBACK\",\"headers\":{\"topic\":\"/v1.0/other\","
@@ -195,10 +195,10 @@ class DingtalkStreamClientTest {
                 "{\"type\":\"SYSTEM\",\"headers\":{\"messageId\":\"m-7\"},\"data\":\"\"}");
         JsonNode ack = MAPPER.readTree(DingtalkStreamClient.buildAck(frame, 404, null, null));
         assertEquals(404, ack.path("code").asInt());
-        assertEquals("", ack.path("message").asString());
-        assertEquals("", ack.path("data").asString());
-        assertEquals("m-7", ack.path("headers").path("messageId").asString());
-        assertEquals("application/json", ack.path("headers").path("contentType").asString());
+        assertEquals("", ack.path("message").asText());
+        assertEquals("", ack.path("data").asText());
+        assertEquals("m-7", ack.path("headers").path("messageId").asText());
+        assertEquals("application/json", ack.path("headers").path("contentType").asText());
     }
 
     @Test

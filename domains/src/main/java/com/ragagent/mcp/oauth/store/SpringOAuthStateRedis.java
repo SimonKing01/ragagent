@@ -3,7 +3,7 @@ package com.ragagent.mcp.oauth.store;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
-import org.springframework.data.redis.connection.SetCondition;
+import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
@@ -45,8 +45,8 @@ public class SpringOAuthStateRedis implements OAuthStateRedis {
             for (Map.Entry<String, String> e : entries.entrySet()) {
                 connection.stringCommands().set(
                         bytes(e.getKey()), bytes(e.getValue()),
-                        SetCondition.upsert(),
-                        Expiration.from(java.time.Duration.ofSeconds(seconds)));
+                        Expiration.from(java.time.Duration.ofSeconds(seconds)),
+                        RedisStringCommands.SetOption.UPSERT);
             }
             return null;
         });

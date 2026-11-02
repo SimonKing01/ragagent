@@ -1,5 +1,7 @@
 package com.ragagent.wiki.domain;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -9,8 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * wiki 各表的 {@code jsonb} 字符串数组列（category_path / source_refs / chunk_refs /

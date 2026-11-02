@@ -1,5 +1,7 @@
 package com.ragagent.knowledge.index;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.knowledge.DocumentChunkMetadata;
@@ -32,8 +34,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * chunk 向量行的重建执行体（走查批：把「路由在、执行体占位」的两处

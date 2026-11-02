@@ -1,9 +1,9 @@
 package com.ragagent.embedding;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.platform.web.ProviderJson;
 import java.util.Arrays;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * embedding 响应的唯一校验口径。

@@ -1,12 +1,13 @@
 package com.ragagent.datasource.connector.yuque;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.platform.web.ZeroTimeSerializer;
 import java.time.OffsetDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 语雀的增量同步状态。装进
@@ -24,7 +25,8 @@ import tools.jackson.databind.ObjectMapper;
 public class YuqueCursor {
 
     /** 容忍未知属性（游标承载历史数据）。 */
-    private static final ObjectMapper MAPPER = JsonMappers.lenient();
+    private static final ObjectMapper MAPPER = JsonMappers.lenient()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private OffsetDateTime lastSyncTime = ZeroTimeSerializer.ZERO_DATE_TIME;
 

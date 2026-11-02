@@ -1,6 +1,9 @@
 package com.ragagent.datasource.connector.gitlab;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.ragagent.contract.text.Whitespace;
 import com.ragagent.datasource.domain.DataSourceConfig;
 import com.ragagent.datasource.domain.DataSourceConstants;
@@ -14,14 +17,11 @@ import com.ragagent.platform.web.JsonMappers;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.SerializationFeature;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * GitLab 数据源连接器。
@@ -65,7 +65,8 @@ public class GitLabConnector implements StreamingConnector {
      * 的 JSON 字符串——它落
      * {@code data_sources.last_sync_cursor} 这个 jsonb 列，字节必须与既有数据一致。</p>
      */
-    private static final ObjectMapper RAW_MAPPER = JsonMapper.builder().disable(tools.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY).enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS).build();
+    private static final ObjectMapper RAW_MAPPER = new ObjectMapper()
+            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
     /** 仅用于读回 cursor。 */
     private static final ObjectMapper READ_MAPPER = JsonMappers.lenient();
@@ -536,7 +537,7 @@ public class GitLabConnector implements StreamingConnector {
         String raw;
         try {
             raw = RAW_MAPPER.writeValueAsString(Map.of("projects", projects));
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
             // 值全是 String，这里不可达
             raw = "";
         }
@@ -567,11 +568,13 @@ public class GitLabConnector implements StreamingConnector {
         if (projects == null || !projects.isObject()) {
             return out;
         }
-        for (var entry : projects.properties()) {
-            if (!entry.getValue().isString()) {
+        Iterator<Map.Entry<String, JsonNode>> fields = projects.fields();
+        while (fields.hasNext()) {
+            Map.Entry<String, JsonNode> entry = fields.next();
+            if (!entry.getValue().isTextual()) {
                 break;
             }
-            out.put(entry.getKey(), entry.getValue().stringValue());
+            out.put(entry.getKey(), entry.getValue().textValue());
         }
         return out;
     }

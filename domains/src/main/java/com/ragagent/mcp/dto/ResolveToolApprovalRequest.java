@@ -1,6 +1,6 @@
 package com.ragagent.mcp.dto;
 
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * 处理待审批工具调用的请求体。

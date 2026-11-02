@@ -8,6 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.ragagent.mcp.domain.McpAdvancedConfig;
 import com.ragagent.mcp.domain.McpAuthConfig;
 import com.ragagent.mcp.domain.McpAuthType;
@@ -22,9 +25,6 @@ import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * DTO 层的核心保证是**结构性的**：序列化后的响应体在任何情况下都不得出现
@@ -36,7 +36,7 @@ import tools.jackson.databind.json.JsonMapper;
  */
 class McpServiceResponseTest {
 
-    private static final ObjectMapper JSON = JsonMapper.builder().disable(tools.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY).findAndAddModules().build();
+    private static final ObjectMapper JSON = JsonMapper.builder().findAndAddModules().build();
 
     @AfterEach
     void clearContext() {

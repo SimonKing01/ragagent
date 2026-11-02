@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.stream.EmbeddedRedis;
 import com.ragagent.wiki.domain.TaskDeadLetter;
 import com.ragagent.wiki.domain.ingest.WikiIngestPayload;
@@ -22,7 +23,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.ObjectProvider;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * {@link RedisWikiIngestTaskQueue} 的真 Redis 语义：执行与 TaskID 释放、

@@ -3,6 +3,8 @@ package com.ragagent.modelruntime.adapter.provider.vlm;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.model.VlmConfig;
 import com.ragagent.llm.ollama.OllamaService;
 import com.sun.net.httpserver.HttpServer;
@@ -16,8 +18,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Ollama 界面的 VLM：
@@ -76,14 +76,14 @@ class VlmOllamaTest {
 
         assertThat(result).isEqualTo("图里有一只猫");
         JsonNode request = MAPPER.readTree(chatBodies.get(0));
-        assertThat(request.path("model").asString()).isEqualTo("llava");
+        assertThat(request.path("model").asText()).isEqualTo("llava");
         assertThat(request.has("stream")).isTrue();
         assertThat(request.path("stream").asBoolean()).isFalse(); // stream=false
         JsonNode message = request.path("messages").get(0);
-        assertThat(message.path("role").asString()).isEqualTo("user");
-        assertThat(message.path("content").asString()).isEqualTo("这张图里有什么？");
+        assertThat(message.path("role").asText()).isEqualTo("user");
+        assertThat(message.path("content").asText()).isEqualTo("这张图里有什么？");
         // images 是 byte[][]，每个元素序列化为 JSON base64 串（Jackson 同款）
-        assertThat(message.path("images").get(0).asString())
+        assertThat(message.path("images").get(0).asText())
                 .isEqualTo(Base64.getEncoder().encodeToString(new byte[] {1, 2, 3}));
         assertThat(request.path("options").path("temperature").asDouble()).isEqualTo(0.1);
         assertThat(request.path("messages")).hasSize(1);

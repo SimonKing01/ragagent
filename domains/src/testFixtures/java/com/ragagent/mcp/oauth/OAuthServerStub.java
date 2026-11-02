@@ -1,5 +1,6 @@
 package com.ragagent.mcp.oauth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
@@ -13,7 +14,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 极简 OAuth 授权服务器桩。

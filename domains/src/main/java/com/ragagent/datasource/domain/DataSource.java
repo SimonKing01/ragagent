@@ -4,11 +4,11 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.platform.persistence.PgJsonTypeHandler;
 import com.ragagent.platform.security.CryptoService;
 import com.ragagent.platform.web.ZeroTimeSerializer;
 import java.time.OffsetDateTime;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 一个配置好的外部数据源（表 {@code data_sources}）。

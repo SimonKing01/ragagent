@@ -1,5 +1,6 @@
 package com.ragagent.knowledge.service.access;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.apikey.TenantAPIKeyScope;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.tenant.TenantRole;
@@ -15,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
 
 /**
  * chunk 路由的 KB 访问/所有权守卫。
@@ -266,14 +266,14 @@ public class ChunkAccessGuard {
         }
         JsonNode opNode = raw.get("operation");
         JsonNode phaseNode = raw.get("phase");
-        if (opNode != null && !opNode.isNull() && !opNode.isString()) {
+        if (opNode != null && !opNode.isNull() && !opNode.isTextual()) {
             throw new IllegalStateException("malformed knowledge transfer state");
         }
-        if (phaseNode != null && !phaseNode.isNull() && !phaseNode.isString()) {
+        if (phaseNode != null && !phaseNode.isNull() && !phaseNode.isTextual()) {
             throw new IllegalStateException("malformed knowledge transfer state");
         }
-        String operation = opNode == null || opNode.isNull() ? "" : opNode.asString();
-        String phase = phaseNode == null || phaseNode.isNull() ? "" : phaseNode.asString();
+        String operation = opNode == null || opNode.isNull() ? "" : opNode.asText();
+        String phase = phaseNode == null || phaseNode.isNull() ? "" : phaseNode.asText();
         if ("move".equals(operation) && "moving".equals(phase)) {
             throw BizException.conflict("knowledge has an unfinished move; retry the move first");
         }

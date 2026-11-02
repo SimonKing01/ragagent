@@ -1,5 +1,8 @@
 package com.ragagent.retrieval.engine.weaviate;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.retrieval.engine.EngineTypes.IndexInfo;
 import com.ragagent.retrieval.engine.weaviate.WeaviateRestClient.Json;
 import java.util.ArrayList;
@@ -9,9 +12,6 @@ import java.util.TreeMap;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Weaviate 引擎的写入/删除/批量更新/拷贝簇：对象体构造（id=chunkID）与 REST 批量创建、
@@ -139,7 +139,7 @@ final class WeaviateWriteOps {
             if (errors.isObject() && errors.hasNonNull("error")) {
                 JsonNode first = errors.path("error").isArray()
                         ? errors.path("error").path(0) : errors.path("error");
-                log.warn("[Weaviate] {} object error: {}", op, first.path("message").asString(""));
+                log.warn("[Weaviate] {} object error: {}", op, first.path("message").asText(""));
             }
         }
     }
@@ -271,27 +271,27 @@ final class WeaviateWriteOps {
                 JsonNode vectors = additional.path("vectors").path(WeaviateRetrieveRepository.FIELD_EMBEDDING);
                 if (!vectors.isArray() || vectors.isEmpty()) {
                     log.debug("[Weaviate] No vectors found for source point with chunk {}, skipping",
-                            item.path(WeaviateRetrieveRepository.FIELD_CHUNK_ID).asString(""));
+                            item.path(WeaviateRetrieveRepository.FIELD_CHUNK_ID).asText(""));
                     continue;
                 }
-                String sourceChunkId = item.path(WeaviateRetrieveRepository.FIELD_CHUNK_ID).asString("");
-                String sourceKnowledgeId = item.path(WeaviateRetrieveRepository.FIELD_KNOWLEDGE_ID).asString("");
+                String sourceChunkId = item.path(WeaviateRetrieveRepository.FIELD_CHUNK_ID).asText("");
+                String sourceKnowledgeId = item.path(WeaviateRetrieveRepository.FIELD_KNOWLEDGE_ID).asText("");
                 String targetChunkId = sourceToTargetChunkIdMap.get(sourceChunkId);
                 String targetKnowledgeId = sourceToTargetKbIdMap == null ? null
                         : sourceToTargetKbIdMap.get(sourceKnowledgeId);
                 if (targetChunkId == null || targetKnowledgeId == null) {
                     continue;
                 }
-                String originalSourceId = item.path(WeaviateRetrieveRepository.FIELD_SOURCE_ID).asString("");
+                String originalSourceId = item.path(WeaviateRetrieveRepository.FIELD_SOURCE_ID).asText("");
                 WeaviateVectorEmbedding row = new WeaviateVectorEmbedding();
-                row.content = item.path(WeaviateRetrieveRepository.FIELD_CONTENT).asString("");
+                row.content = item.path(WeaviateRetrieveRepository.FIELD_CONTENT).asText("");
                 row.sourceId = WeaviateRetrieveRepository.translateSourceId(originalSourceId, sourceChunkId,
                         targetChunkId);
                 row.sourceType = item.path(WeaviateRetrieveRepository.FIELD_SOURCE_TYPE).asInt(0);
                 row.chunkId = targetChunkId;
                 row.knowledgeId = targetKnowledgeId;
                 row.knowledgeBaseId = targetKnowledgeBaseId;
-                row.tagId = item.path(WeaviateRetrieveRepository.FIELD_TAG_ID).asString("");
+                row.tagId = item.path(WeaviateRetrieveRepository.FIELD_TAG_ID).asText("");
                 row.isEnabled = true; // 拷贝一律置 true（不沿用源值）
                 row.embedding = new float[vectors.size()];
                 for (int i = 0; i < vectors.size(); i++) {

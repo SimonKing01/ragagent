@@ -1,13 +1,13 @@
 package com.ragagent.platform.audit;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.audit.AuditOutcome;
 import com.ragagent.contract.audit.AuditWritePort;
 import com.ragagent.platform.access.TenantContext;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.Map;
 import java.util.TreeMap;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 业务活动审计的统一写入器：租户兜底、操作者提取、details 字母序与 best-effort 语义

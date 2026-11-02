@@ -1,5 +1,7 @@
 package com.ragagent.session.support;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.agent.AgentStep;
 import com.ragagent.contract.agent.AgentToolCall;
 import com.ragagent.contract.session.MessageImage;
@@ -7,8 +9,6 @@ import com.ragagent.platform.storage.support.Rewriter;
 import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.session.domain.message.Message;
 import java.util.List;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 消息历史响应的存储引用重写。

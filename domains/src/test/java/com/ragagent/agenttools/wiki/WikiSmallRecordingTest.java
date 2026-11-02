@@ -2,6 +2,7 @@ package com.ragagent.agenttools.wiki;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenB;
 import com.ragagent.contract.agent.SearchAuth;
@@ -12,7 +13,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * wiki 小件（wiki_support 行为 + write/replace/delete/rename/flag/read_issue/update_issue）
@@ -204,8 +204,8 @@ class WikiSmallRecordingTest {
 
     private static void assertToolResult(String label, ToolResult result, JsonNode r) {
         assertThat(result.isSuccess()).as("%s success", label).isEqualTo(r.get("success").asBoolean());
-        assertThat(result.getOutput()).as("%s output", label).isEqualTo(r.get("output").asString());
-        String wantError = r.hasNonNull("error") ? r.get("error").asString() : "";
+        assertThat(result.getOutput()).as("%s output", label).isEqualTo(r.get("output").asText());
+        String wantError = r.hasNonNull("error") ? r.get("error").asText() : "";
         if (!wantError.isEmpty()) {
             assertThat(result.getError()).as("%s error", label).isEqualTo(wantError);
         }
@@ -231,7 +231,7 @@ class WikiSmallRecordingTest {
         };
         for (String name : cases) {
             JsonNode r = rec(name);
-            String in = r.get("in").asString();
+            String in = r.get("in").asText();
             String out;
             String error = "";
             try {
@@ -240,8 +240,8 @@ class WikiSmallRecordingTest {
                 out = "";
                 error = e.getMessage();
             }
-            assertThat(error).as("%s error", name).isEqualTo(r.get("error").asString());
-            assertThat(out).as("%s out", name).isEqualTo(r.get("out").asString());
+            assertThat(error).as("%s error", name).isEqualTo(r.get("error").asText());
+            assertThat(out).as("%s out", name).isEqualTo(r.get("out").asText());
         }
     }
 
@@ -252,8 +252,8 @@ class WikiSmallRecordingTest {
         WikiRouteResolver routes = new WikiRouteResolver();
         ResolvedPage hit = WikiRouteResolver.resolveUniqueWikiPage(wiki, "entity/a", List.of("kb1"), routes);
         JsonNode r = rec("wiki_support_resolve_unique_hit");
-        assertThat(hit.kbId()).isEqualTo(r.get("kb").asString());
-        assertThat(hit.page().title()).isEqualTo(r.get("title").asString());
+        assertThat(hit.kbId()).isEqualTo(r.get("kb").asText());
+        assertThat(hit.page().title()).isEqualTo(r.get("title").asText());
 
         // ambiguous（录制在探针里以 Contains 断言记录语义：直接复演错误文案）
         assertThatThrownByWiki(() -> WikiRouteResolver.resolveUniqueWikiPage(
@@ -262,39 +262,39 @@ class WikiSmallRecordingTest {
 
         JsonNode missing = rec("wiki_support_resolve_unique_missing");
         assertThatThrownByWiki(() -> WikiRouteResolver.resolveUniqueWikiPage(
-                resolveWikiSeed(), "missing/x", List.of("kb1"), new WikiRouteResolver()), missing.get("error").asString());
+                resolveWikiSeed(), "missing/x", List.of("kb1"), new WikiRouteResolver()), missing.get("error").asText());
 
         JsonNode mismatch = rec("wiki_support_resolve_unique_kb_mismatch");
         assertThatThrownByWiki(() -> WikiRouteResolver.resolveUniqueWikiPage(
-                resolveWikiSeed(), "bad/kb", List.of("kb3"), new WikiRouteResolver()), mismatch.get("error").asString());
+                resolveWikiSeed(), "bad/kb", List.of("kb3"), new WikiRouteResolver()), mismatch.get("error").asText());
 
         FakeWiki errWiki = resolveWikiSeed();
         errWiki.getErr.put(FakeWiki.key("kb1", "missing/x"), new RuntimeException("db down"));
         JsonNode svcErr = rec("wiki_support_resolve_unique_service_err");
         assertThatThrownByWiki(() -> WikiRouteResolver.resolveUniqueWikiPage(
-                errWiki, "missing/x", List.of("kb1"), new WikiRouteResolver()), svcErr.get("error").asString());
+                errWiki, "missing/x", List.of("kb1"), new WikiRouteResolver()), svcErr.get("error").asText());
 
         // create_kb_provenance：remember("new/page","kb2") → kb2
         WikiRouteResolver r1 = new WikiRouteResolver();
         r1.remember("new/page", "kb2");
         JsonNode prov = rec("wiki_support_create_kb_provenance");
         assertThat(WikiRouteResolver.resolveWikiCreateKb("new/page", List.of("kb1", "kb2"), r1, null))
-                .isEqualTo(prov.get("out").asString());
+                .isEqualTo(prov.get("out").asText());
 
         WikiRouteResolver r2 = new WikiRouteResolver();
         r2.remember("new/page", "kb1");
         r2.remember("new/page", "kb2");
         JsonNode conflict = rec("wiki_support_create_kb_conflict");
         assertThatThrownByWiki(() -> WikiRouteResolver.resolveWikiCreateKb("new/page", List.of("kb1", "kb2"), r2, null),
-                conflict.get("error").asString());
+                conflict.get("error").asText());
 
         JsonNode single = rec("wiki_support_create_kb_single_scope");
         assertThat(WikiRouteResolver.resolveWikiCreateKb("new/page", List.of("kb1"), new WikiRouteResolver(), null))
-                .isEqualTo(single.get("out").asString());
+                .isEqualTo(single.get("out").asText());
 
         JsonNode multi = rec("wiki_support_create_kb_multi_scope");
         assertThatThrownByWiki(() -> WikiRouteResolver.resolveWikiCreateKb(
-                "new/page", List.of("kb1", "kb2"), new WikiRouteResolver(), null), multi.get("error").asString());
+                "new/page", List.of("kb1", "kb2"), new WikiRouteResolver(), null), multi.get("error").asText());
     }
 
     private static FakeWiki resolveWikiSeed() {
@@ -327,16 +327,16 @@ class WikiSmallRecordingTest {
 
         IssueView hit = WikiRouteResolver.resolveWikiIssue(wiki, "i2", List.of("kb1", "kb3"));
         JsonNode r = rec("wiki_support_resolve_issue_hit");
-        assertThat(hit.id()).isEqualTo(r.get("issueId").asString());
-        assertThat(hit.slug()).isEqualTo(r.get("slug").asString());
+        assertThat(hit.id()).isEqualTo(r.get("issueId").asText());
+        assertThat(hit.slug()).isEqualTo(r.get("slug").asText());
 
         JsonNode ambiguous = rec("wiki_support_resolve_issue_ambiguous");
         assertThatThrownByWiki(() -> WikiRouteResolver.resolveWikiIssue(wiki, "i1", List.of("kb1", "kb2")),
-                ambiguous.get("error").asString());
+                ambiguous.get("error").asText());
 
         JsonNode miss = rec("wiki_support_resolve_issue_missing");
         assertThatThrownByWiki(() -> WikiRouteResolver.resolveWikiIssue(wiki, "i9", List.of("kb1")),
-                miss.get("error").asString());
+                miss.get("error").asText());
 
         assertThat(WikiSlugs.isSummaryNamespace("summary/abc")).isTrue();
         assertThat(WikiSlugs.isSummaryNamespace("entity/abc")).isFalse();
@@ -351,7 +351,7 @@ class WikiSmallRecordingTest {
         wiki2.repair.put("正文 [[garbled-uuid]] 结尾", new RepairResult("正文 [[entity/a]] 结尾", true));
         var write1 = new WikiWritePageTool(wiki2, List.of("kb1"), null, new WikiRouteResolver());
         JsonNode r = rec("wiki_write_page_create");
-        ToolResult result = write1.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+        ToolResult result = write1.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
         assertToolResult("create", result, r);
 
         // update（页已存在；无 aliases/source_refs）
@@ -362,7 +362,7 @@ class WikiSmallRecordingTest {
         wiki2.pages.put(FakeWiki.key("kb1", "entity/exist"), exist);
         var write2 = new WikiWritePageTool(wiki2, List.of("kb1", "kb2"), null, new WikiRouteResolver());
         r = rec("wiki_write_page_update");
-        result = write2.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+        result = write2.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
         assertToolResult("update", result, r);
 
         // summary 拒绝 ×2 / 缺字段 / 多 KB 无解
@@ -370,7 +370,7 @@ class WikiSmallRecordingTest {
                 "wiki_write_page_reject_summary_ns", "wiki_write_page_reject_summary_type",
                 "wiki_write_page_missing_fields", "wiki_write_page_create_multi_kb_unresolved"}) {
             r = rec(name);
-            result = write2.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+            result = write2.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
             assertToolResult(name, result, r);
         }
 
@@ -380,13 +380,13 @@ class WikiSmallRecordingTest {
         kn.byId.put("d2", new SearchAuth.KnowledgeView("d2", "kb1", "", ""));
         var write3 = new WikiWritePageTool(wiki2, List.of("kb1", "kb2"), kn, new WikiRouteResolver());
         r = rec("wiki_write_page_source_refs_enrich");
-        result = write3.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+        result = write3.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
         assertToolResult("source_refs_enrich", result, r);
         PageView persisted = wiki2.pages.get(FakeWiki.key("kb1", "entity/refed"));
         assertThat(persisted.sourceRefs()).containsExactly("d1|源文档一", "d2", "d1|已有");
 
         r = rec("wiki_write_page_source_refs_dangling");
-        result = write3.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+        result = write3.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
         assertToolResult("source_refs_dangling", result, r);
     }
 
@@ -417,7 +417,7 @@ class WikiSmallRecordingTest {
                 "wiki_replace_text_multi_replace", "wiki_replace_text_not_found",
                 "wiki_replace_text_page_missing", "wiki_replace_text_preview_truncate"}) {
             JsonNode r = rec(name);
-            ToolResult result = tool.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+            ToolResult result = tool.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
             assertToolResult(name, result, r);
         }
     }
@@ -434,11 +434,11 @@ class WikiSmallRecordingTest {
         var del = new WikiDeletePageTool(wiki4, List.of("kb1"), new WikiRouteResolver());
 
         JsonNode r = rec("wiki_delete_page_with_inlinks");
-        ToolResult result = del.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+        ToolResult result = del.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
         assertToolResult("with_inlinks", result, r);
 
         r = rec("wiki_delete_page_page_missing");
-        result = del.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+        result = del.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
         assertToolResult("page_missing", result, r);
 
         // 入链更新失败 → 回滚错误聚合
@@ -450,7 +450,7 @@ class WikiSmallRecordingTest {
         wiki5.updateErr.put(FakeWiki.key("kb1", "entity/in1"), new RuntimeException("write conflict"));
         var del5 = new WikiDeletePageTool(wiki5, List.of("kb1"), new WikiRouteResolver());
         r = rec("wiki_delete_page_inlink_update_fail");
-        result = del5.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+        result = del5.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
         assertToolResult("inlink_update_fail", result, r);
     }
 
@@ -466,11 +466,11 @@ class WikiSmallRecordingTest {
         var ren = new WikiRenamePageTool(wiki6, List.of("kb1"), new WikiRouteResolver());
 
         JsonNode r = rec("wiki_rename_page_cascade");
-        ToolResult result = ren.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+        ToolResult result = ren.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
         assertToolResult("cascade", result, r);
 
         r = rec("wiki_rename_page_same_slug");
-        result = ren.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+        result = ren.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
         assertToolResult("same_slug", result, r);
     }
 
@@ -484,7 +484,7 @@ class WikiSmallRecordingTest {
 
         for (String name : new String[]{"wiki_flag_issue_plain", "wiki_flag_issue_bad_slug"}) {
             JsonNode r = rec(name);
-            ToolResult result = flag.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+            ToolResult result = flag.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
             assertToolResult(name, result, r);
         }
     }
@@ -499,14 +499,14 @@ class WikiSmallRecordingTest {
                 "wiki_read_issue_by_id", "wiki_read_issue_by_slug",
                 "wiki_read_issue_by_slug_empty", "wiki_read_issue_neither", "wiki_read_issue_id_out_of_scope"}) {
             JsonNode r = rec(name);
-            ToolResult result = read.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+            ToolResult result = read.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
             assertToolResult(name, result, r);
         }
 
         var upd = new WikiUpdateIssueTool(wiki8, List.of("kb1"));
         for (String name : new String[]{"wiki_update_issue_ok", "wiki_update_issue_out_of_scope", "wiki_update_issue_missing_status"}) {
             JsonNode r = rec(name);
-            ToolResult result = upd.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asString())));
+            ToolResult result = upd.execute(ToolRequest.of(RecordingSupport.readTree(r.get("args").asText())));
             assertToolResult(name, result, r);
         }
     }

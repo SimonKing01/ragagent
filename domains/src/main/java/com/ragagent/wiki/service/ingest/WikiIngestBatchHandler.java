@@ -1,5 +1,7 @@
 package com.ragagent.wiki.service.ingest;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.audit.WikiActivityAudit;
 import com.ragagent.contract.knowledge.ChunkView;
 import com.ragagent.contract.knowledge.KnowledgeBaseLookup;
@@ -36,8 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * wiki 生成管线的批次执行体：Map（逐文档抽取/摘要/引用）→ Reduce（逐 slug 落页）→
@@ -196,8 +196,8 @@ public class WikiIngestBatchHandler implements WikiIngestTaskHandler {
         if (node == null || node.isNull()) {
             return null;
         }
-        return node.isString()
-                ? WikiConfig.fromJson(node.asString())
+        return node.isTextual()
+                ? WikiConfig.fromJson(node.asText())
                 : WikiConfig.fromJson(node.toString());
     }
 

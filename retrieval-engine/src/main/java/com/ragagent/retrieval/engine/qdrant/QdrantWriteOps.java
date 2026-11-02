@@ -1,5 +1,8 @@
 package com.ragagent.retrieval.engine.qdrant;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.retrieval.engine.EngineTypes.IndexInfo;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -9,9 +12,6 @@ import java.util.TreeMap;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Qdrant 引擎的写入/删除/批量更新/拷贝簇：点构造（新 UUID 点 ID + payload 清洗）、
@@ -314,9 +314,9 @@ final class QdrantWriteOps {
             List<ObjectNode> targetPoints = new ArrayList<>();
             for (JsonNode point : points) {
                 JsonNode payload = point.path("payload");
-                String sourceChunkId = payload.path(QdrantRetrieveRepository.FIELD_CHUNK_ID).asString("");
-                String sourceKnowledgeId = payload.path(QdrantRetrieveRepository.FIELD_KNOWLEDGE_ID).asString("");
-                String originalSourceId = payload.path(QdrantRetrieveRepository.FIELD_SOURCE_ID).asString("");
+                String sourceChunkId = payload.path(QdrantRetrieveRepository.FIELD_CHUNK_ID).asText("");
+                String sourceKnowledgeId = payload.path(QdrantRetrieveRepository.FIELD_KNOWLEDGE_ID).asText("");
+                String originalSourceId = payload.path(QdrantRetrieveRepository.FIELD_SOURCE_ID).asText("");
                 if (!sourceToTargetChunkIdMap.containsKey(sourceChunkId)) {
                     log.debug("[Qdrant] Source chunk {} not found in target mapping, skipping",
                             sourceChunkId);
@@ -341,13 +341,13 @@ final class QdrantWriteOps {
                     continue;
                 }
                 QdrantVectorEmbedding target = new QdrantVectorEmbedding();
-                target.content = payload.path(QdrantRetrieveRepository.FIELD_CONTENT).asString("");
+                target.content = payload.path(QdrantRetrieveRepository.FIELD_CONTENT).asText("");
                 target.sourceId = targetSourceId;
                 target.sourceType = payload.path(QdrantRetrieveRepository.FIELD_SOURCE_TYPE).asInt(0);
                 target.chunkId = targetChunkId;
                 target.knowledgeId = targetKnowledgeId;
                 target.knowledgeBaseId = targetKnowledgeBaseId;
-                target.tagId = payload.path(QdrantRetrieveRepository.FIELD_TAG_ID).asString("");
+                target.tagId = payload.path(QdrantRetrieveRepository.FIELD_TAG_ID).asText("");
                 target.isEnabled = isEnabled;
                 target.embedding = new float[vectorNode.size()];
                 for (int i = 0; i < vectorNode.size(); i++) {
@@ -369,7 +369,7 @@ final class QdrantWriteOps {
                 log.info("[Qdrant] Successfully copied batch, batch size: {}, total copied: {}",
                         targetPoints.size(), totalCopied);
             }
-            offset = points.get(pointsCount - 1).path("id").asString();
+            offset = points.get(pointsCount - 1).path("id").asText();
             if (pointsCount < QdrantRetrieveRepository.COPY_PAGE_SIZE) {
                 break;
             }

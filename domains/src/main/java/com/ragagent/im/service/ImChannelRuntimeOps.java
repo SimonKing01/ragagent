@@ -1,5 +1,6 @@
 package com.ragagent.im.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.im.domain.ImChannelEntity;
 import com.ragagent.im.repository.ImChannelRepository;
 import com.ragagent.im.runtime.AdapterInterfaces.Adapter;
@@ -18,7 +19,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 渠道运行时：adapter 工厂注册表、渠道生命周期（起停 / 重载 / 按库重建 / 配置广播），
@@ -288,8 +288,8 @@ final class ImChannelRuntimeOps {
                         log.debug("[IM] Ignore invalid channel config event", e);
                         continue;
                     }
-                    String channelId = event.path("channel_id").asString("");
-                    String source = event.path("source_instance").asString("");
+                    String channelId = event.path("channel_id").asText("");
+                    String source = event.path("source_instance").asText("");
                     if (channelId.isEmpty() || instanceId.equals(source)) {
                         continue;
                     }

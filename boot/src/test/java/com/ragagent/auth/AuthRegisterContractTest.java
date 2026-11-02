@@ -23,8 +23,8 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
@@ -348,7 +348,7 @@ class AuthRegisterContractTest {
         MvcResult me = mockMvc.perform(get("/api/v1/auth/me")
                 .header("Authorization", bearer)).andReturn();
         // PR4：键序归一后邻接正则不可靠 → Jackson 直取
-        var __root = new tools.jackson.databind.ObjectMapper().readTree(raw(me));
+        var __root = new com.fasterxml.jackson.databind.ObjectMapper().readTree(raw(me));
         // 统一外壳下先下钻 data（旧形态无壳也通）
         if (__root.isObject() && __root.has("code") && __root.has("data")) {
             __root = __root.get("data");
@@ -382,8 +382,8 @@ class AuthRegisterContractTest {
         return req.contentType(MediaType.APPLICATION_JSON).content(body);
     }
 
-    private static final tools.jackson.databind.ObjectMapper RAW_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper RAW_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String raw(MvcResult r) throws Exception {
         // PR4 语义比较：与 golden 同侧归一（非 JSON 文本原样）
@@ -391,8 +391,8 @@ class AuthRegisterContractTest {
                 r.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
     }
 
-    private static final tools.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String golden(String name) throws Exception {
         // PR4 语义比较：键序/HTML 转义归一后返回（非 JSON 文本原样），断言侧不变

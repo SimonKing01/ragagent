@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.ragagent.mcp.domain.McpService;
 import com.ragagent.mcp.domain.McpTool;
 import java.time.Instant;
@@ -17,9 +20,6 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.StringNode;
 
 /**
  * MCP 工具列表（tools/list）的分页、错误与边界语义测试。
@@ -147,7 +147,7 @@ class McpToolListingTest {
         @DisplayName("第二页不是合法 tools 响应 → 报错")
         void secondPageInvalid() {
             runCase("not-json", new JsonRpcResponse("2.0", MAPPER.getNodeFactory().numberNode(1),
-                    StringNode.valueOf("not-json"), null));
+                    TextNode.valueOf("not-json"), null));
         }
     }
 

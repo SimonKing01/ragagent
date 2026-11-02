@@ -2,12 +2,12 @@ package com.ragagent.agent.tool;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.ContractJson;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenA;
 import com.ragagent.platform.web.ToolJson;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * ParamCaster 的录制判定表（29 条）。
@@ -53,9 +53,9 @@ class ParamCasterRecordingTest {
     void decisionTableMatchesAgentPromptGolden() throws Exception {
         for (String name : CASES) {
             JsonNode r = RecordingSupport.rec(field(name));
-            String args = r.get("args").asString();
-            String schemaJson = r.get("schema").asString();
-            String want = r.get("out").asString();
+            String args = r.get("args").asText();
+            String schemaJson = r.get("schema").asText();
+            String want = r.get("out").asText();
 
             JsonNode argsNode = RecordingSupport.readTree(args);
             JsonNode schemaNode = schemaJson.isEmpty() ? null : RecordingSupport.readTree(schemaJson);
@@ -63,7 +63,7 @@ class ParamCasterRecordingTest {
             // ToolJson 的数字形态与录制侧不同（1 vs 1.0）——语义比较吸收形态差异
             assertThat(ContractJson.deep(
                     RecordingSupport.normalizeNumberText(ToolJson.write(got))))
-                    .as("castParams %s", r.get("id").asString())
+                    .as("castParams %s", r.get("id").asText())
                     .isEqualTo(ContractJson.deep(
                             RecordingSupport.normalizeNumberText(want)));
         }

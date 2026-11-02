@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.TestSchema;
 import com.ragagent.auth.domain.Tenant;
 import com.ragagent.auth.domain.TenantMember;
@@ -27,13 +29,11 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 四个 API Key 管理端点的 HTTP 契约测试。
@@ -162,20 +162,20 @@ class TenantAPIKeyControllerTest {
                 "knowledgeBaseIds", "capabilities", "lastUsedAt", "expiresAt",
                 "createdAt", "token");
 
-        assertThat(data.get("scopeType").asString()).isEqualTo("tenant");
-        assertThat(data.get("name").asString()).isEqualTo("integration");
+        assertThat(data.get("scopeType").asText()).isEqualTo("tenant");
+        assertThat(data.get("name").asText()).isEqualTo("integration");
         assertThat(data.get("fullAccess").asBoolean()).isFalse();
         // scoped Key 未指定 KB → 空数组（不是 null）
         assertThat(data.get("knowledgeBaseIds").isArray()).isTrue();
         assertThat(data.get("knowledgeBaseIds")).isEmpty();
         // 能力去重且顺序保留首次出现
         assertThat(toList(data.get("capabilities"))).containsExactly("retrieve", "chat");
-        assertThat(data.get("createdAt").isString()).isTrue();
+        assertThat(data.get("createdAt").isTextual()).isTrue();
 
         // 明文 token 只在创建时返回一次，且与 api_key 一致
-        String tokenPlain = data.get("token").asString();
+        String tokenPlain = data.get("token").asText();
         assertThat(tokenPlain).startsWith("sk-");
-        assertThat(data.get("apiKey").asString()).isEqualTo(tokenPlain);
+        assertThat(data.get("apiKey").asText()).isEqualTo(tokenPlain);
         assertThat(data.get("id").asLong()).isPositive();
     }
 
@@ -254,7 +254,7 @@ class TenantAPIKeyControllerTest {
         assertThat(fieldNames(data)).containsExactly(
                 "id", "scopeType", "name", "apiKey", "fullAccess",
                 "knowledgeBaseIds", "capabilities", "lastUsedAt", "expiresAt", "createdAt", "token");
-        assertThat(data.get("expiresAt").asString()).startsWith("20");
+        assertThat(data.get("expiresAt").asText()).startsWith("20");
     }
 
     @Test
@@ -322,7 +322,7 @@ class TenantAPIKeyControllerTest {
                 "id", "scopeType", "name", "apiKey", "fullAccess",
                 "knowledgeBaseIds", "capabilities", "lastUsedAt", "expiresAt", "createdAt");
         assertThat(String.valueOf(first.get("id").asLong())).isEqualTo(createdId);
-        assertThat(first.get("name").asString()).isEqualTo("listed");
+        assertThat(first.get("name").asText()).isEqualTo("listed");
     }
 
     @Test
@@ -354,7 +354,7 @@ class TenantAPIKeyControllerTest {
         assertThat(fieldNames(data)).containsExactly(
                 "id", "scopeType", "name", "apiKey", "fullAccess",
                 "knowledgeBaseIds", "capabilities", "lastUsedAt", "expiresAt", "createdAt");
-        assertThat(data.get("name").asString()).isEqualTo("after"); // trim
+        assertThat(data.get("name").asText()).isEqualTo("after"); // trim
         assertThat(toList(data.get("capabilities"))).containsExactly("chat");
         assertThat(toList(data.get("knowledgeBaseIds"))).containsExactly("kb-1");
     }
@@ -480,7 +480,7 @@ class TenantAPIKeyControllerTest {
                                 + "\"capabilities\":[\"" + capability + "\"]}"))
                 .andExpect(status().isCreated())
                 .andReturn();
-        return payload(result.getResponse().getContentAsString()).get("id").asString();
+        return payload(result.getResponse().getContentAsString()).get("id").asText();
     }
 
     /** 统一外壳下取 data 当载荷（旧形态无壳时原样 ✓）。 */
@@ -498,13 +498,13 @@ class TenantAPIKeyControllerTest {
 
     private static List<String> fieldNames(JsonNode node) {
         List<String> names = new ArrayList<>();
-        node.propertyNames().forEach(names::add);
+        node.fieldNames().forEachRemaining(names::add);
         return names;
     }
 
     private static List<String> toList(JsonNode array) {
         List<String> out = new ArrayList<>();
-        array.forEach(n -> out.add(n.asString()));
+        array.forEach(n -> out.add(n.asText()));
         return out;
     }
 }

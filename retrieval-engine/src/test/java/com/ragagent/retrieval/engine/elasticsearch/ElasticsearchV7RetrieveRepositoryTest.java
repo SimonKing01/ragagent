@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.retrieval.engine.EngineTypes.IndexInfo;
 import com.ragagent.retrieval.engine.EngineTypes.RetrieveParams;
 import com.ragagent.retrieval.engine.EngineTypes.RetrieveResult;
@@ -21,8 +23,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Elasticsearch v7 检索引擎仓库。
@@ -154,7 +154,7 @@ class ElasticsearchV7RetrieveRepositoryTest {
         assertTrue(create.path().matches("/" + INDEX
                         + "/_create/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"),
                 "显式 UUID 文档 ID：" + create.path());
-        assertEquals("s1", MAPPER.readTree(create.body()).path("source_id").asString());
+        assertEquals("s1", MAPPER.readTree(create.body()).path("source_id").asText());
 
         IndexInfo noVector = new IndexInfo();
         noVector.chunkId = "cX";
@@ -217,7 +217,7 @@ class ElasticsearchV7RetrieveRepositoryTest {
                 .filter(c -> c.path().endsWith("/_delete_by_query")).findFirst().orElseThrow()
                 .body());
         assertEquals("c1", body.path("query").path("terms").path("chunk_id.keyword").get(0)
-                .asString());
+                .asText());
 
         captured.clear();
         r.deleteByChunkIdList(List.of(), 0, "");
@@ -259,9 +259,9 @@ class ElasticsearchV7RetrieveRepositoryTest {
                 .filter(c -> c.path().endsWith("/_search")).findFirst().orElseThrow().body());
         JsonNode bool = body.path("query").path("bool");
         assertEquals("你好", bool.path("must").get(0).path("match").path("content").path("query")
-                .asString());
+                .asText());
         assertEquals("kb1", bool.path("filter").get(0).path("bool").path("must").get(0)
-                .path("terms").path("knowledge_base_id").get(0).asString());
+                .path("terms").path("knowledge_base_id").get(0).asText());
 
         RetrieveParams vector = new RetrieveParams();
         vector.retrieverType = "vector";
@@ -299,7 +299,7 @@ class ElasticsearchV7RetrieveRepositoryTest {
                 .filter(c -> c.path().endsWith("/_search")).findFirst().orElseThrow().body());
         JsonNode scriptScore = body.path("query").path("script_score");
         assertEquals("cosineSimilarity(params.query_vector,'embedding')",
-                scriptScore.path("script").path("source").asString(), "v7 的源串无空格（v8 有）");
+                scriptScore.path("script").path("source").asText(), "v7 的源串无空格（v8 有）");
         assertEquals(0.25, scriptScore.path("min_score").asDouble(), 1e-9);
         assertEquals(7, body.path("size").asInt());
         assertTrue(body.path("_source").isMissingNode(), "v7 不带 _source 排除（v8 带）");
@@ -316,8 +316,8 @@ class ElasticsearchV7RetrieveRepositoryTest {
                 .filter(c -> c.path().endsWith("/_update_by_query")).findFirst().orElseThrow()
                 .body());
         assertTrue(body.path("query").path("bool").isMissingNode(), "v7 不套 bool（v8 套）");
-        assertEquals("c1", body.path("query").path("terms").path("chunk_id").get(0).asString());
-        assertEquals("painless", body.path("script").path("lang").asString());
+        assertEquals("c1", body.path("query").path("terms").path("chunk_id").get(0).asText());
+        assertEquals("painless", body.path("script").path("lang").asText());
 
         responder = req -> Resp.json(500, "{\"error\":\"boom\"}");
         assertEquals("elasticsearch update_by_query failed with status: 500",
@@ -358,18 +358,18 @@ class ElasticsearchV7RetrieveRepositoryTest {
         assertEquals(0, search.path("from").asInt());
         assertEquals(500, search.path("size").asInt());
         assertEquals("kb-old", search.path("query").path("bool").path("must").get(0)
-                .path("terms").path("knowledge_base_id").get(0).asString());
+                .path("terms").path("knowledge_base_id").get(0).asText());
 
         String[] lines = captured.stream().filter(c -> c.path().endsWith("/_bulk"))
                 .findFirst().orElseThrow().body().split("\n");
         assertEquals(4, lines.length);
         JsonNode doc1 = MAPPER.readTree(lines[1]);
-        assertEquals("c-new1", doc1.path("chunk_id").asString());
-        assertEquals("c-new1", doc1.path("source_id").asString());
+        assertEquals("c-new1", doc1.path("chunk_id").asText());
+        assertEquals("c-new1", doc1.path("source_id").asText());
         assertEquals(2, doc1.path("embedding").size(), "普通块带自己的向量（Go 会丢）");
         assertEquals(0.25, doc1.path("embedding").get(0).asDouble(), 1e-6);
         JsonNode doc2 = MAPPER.readTree(lines[3]);
-        assertEquals("c-new1-q9", doc2.path("source_id").asString(), "生成问题保留 questionID 段");
+        assertEquals("c-new1-q9", doc2.path("source_id").asText(), "生成问题保留 questionID 段");
         assertEquals(1, doc2.path("embedding").size(), "生成问题也带自己的向量（Go 取不到）");
         assertEquals(0.7, doc2.path("embedding").get(0).asDouble(), 1e-6);
     }
@@ -400,9 +400,9 @@ class ElasticsearchV7RetrieveRepositoryTest {
                 "refresh=true：" + call.query());
         JsonNode body = MAPPER.readTree(call.body());
         assertEquals("kb-src", body.path("query").path("bool").path("filter").get(0)
-                .path("term").path("knowledge_base_id").asString(), "v7 用 singular term");
-        assertEquals("kb-tgt", body.path("script").path("params").path("target").asString());
-        assertEquals("painless", body.path("script").path("lang").asString(), "v7 带 lang（v8 不带）");
+                .path("term").path("knowledge_base_id").asText(), "v7 用 singular term");
+        assertEquals("kb-tgt", body.path("script").path("params").path("target").asText());
+        assertEquals("painless", body.path("script").path("lang").asText(), "v7 带 lang（v8 不带）");
 
         complete[0] = false;
         assertEquals("move indices was incomplete",

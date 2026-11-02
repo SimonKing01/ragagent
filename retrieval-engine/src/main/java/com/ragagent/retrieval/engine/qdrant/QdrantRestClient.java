@@ -1,5 +1,8 @@
 package com.ragagent.retrieval.engine.qdrant;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.security.SsrfGuard;
 import com.ragagent.platform.web.JsonMappers;
 import java.io.IOException;
@@ -8,9 +11,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Qdrant REST 传输层——本仓自持 HTTP/JSON（语义逐条对照 gRPC 客户端调用点）。
@@ -91,7 +91,7 @@ public final class QdrantRestClient {
                 builder.method(method, HttpRequest.BodyPublishers.ofString(
                         MAPPER.writeValueAsString(body), StandardCharsets.UTF_8));
             }
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             throw new IllegalStateException("marshal qdrant request body: " + e.getMessage(), e);
         }
         HttpResponse<byte[]> resp;
@@ -116,7 +116,7 @@ public final class QdrantRestClient {
         try {
             JsonNode root = MAPPER.readTree(raw);
             return root.has("result") ? root.get("result") : null;
-        } catch (tools.jackson.core.JacksonException e) {
+        } catch (IOException e) {
             throw new IllegalStateException("decode qdrant response for " + path + ": "
                     + e.getMessage() + " (raw=" + raw + ")", e);
         }

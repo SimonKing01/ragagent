@@ -1,5 +1,6 @@
 package com.ragagent.memory.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.memory.MemoryConfig;
 import com.ragagent.contract.memory.MemoryKinds;
 import com.ragagent.contract.model.ChatMessage;
@@ -26,7 +27,6 @@ import java.util.function.BiPredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 整仓回顾：把同一个主体近重复的记忆折成一条，并把搁置太久的任务降级。
@@ -521,7 +521,7 @@ public class MemoryConsolidationService {
         try {
             JsonNode parsed = MemoryTopicResolver.readTree(content.substring(start, end + 1));
             JsonNode statement = parsed.get("statement");
-            return new ConsolidationCall(statement == null ? "" : statement.asString(""), false);
+            return new ConsolidationCall(statement == null ? "" : statement.asText(""), false);
         } catch (Exception e) {
             return new ConsolidationCall("", false);
         }

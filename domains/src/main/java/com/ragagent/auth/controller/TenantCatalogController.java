@@ -1,5 +1,6 @@
 package com.ragagent.auth.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.auth.apikey.service.ApiKeyAdminAdapter;
 import com.ragagent.auth.dto.TenantRowView;
 import com.ragagent.auth.service.TenantMemberService;
@@ -22,7 +23,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 跨空间租户目录 + KV 配置分发器（五条路由）：

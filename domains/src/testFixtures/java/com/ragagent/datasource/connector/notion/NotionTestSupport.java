@@ -1,5 +1,6 @@
 package com.ragagent.datasource.connector.notion;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.datasource.domain.DataSourceConfig;
 import com.ragagent.datasource.domain.DataSourceConstants;
 import com.ragagent.datasource.domain.FetchedItem;
@@ -10,7 +11,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
 
 /**
  * Notion 测试的公共夹具。

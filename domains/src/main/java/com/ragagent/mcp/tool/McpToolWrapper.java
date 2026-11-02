@@ -126,7 +126,7 @@ public class McpToolWrapper implements AgentTool {
             return MCP_JSON.valueToTree(mcpTool.getInputSchema());
         }
         // 没给 schema 时返回缺省 schema
-        tools.jackson.databind.node.ObjectNode schema = MCP_JSON.createObjectNode();
+        com.fasterxml.jackson.databind.node.ObjectNode schema = MCP_JSON.createObjectNode();
         schema.put("type", "object");
         schema.set("properties", MCP_JSON.createObjectNode());
         return schema;
@@ -492,6 +492,6 @@ public class McpToolWrapper implements AgentTool {
         return ToolJson.quoted(s);
     }
 
-    private static final tools.jackson.databind.ObjectMapper MCP_JSON = JsonMappers.lenient();
+    private static final com.fasterxml.jackson.databind.ObjectMapper MCP_JSON = JsonMappers.lenient();
 
 }

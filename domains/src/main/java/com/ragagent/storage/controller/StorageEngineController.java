@@ -1,5 +1,6 @@
 package com.ragagent.storage.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.storage.StorageConnectivityPort;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 存储引擎能力面：状态清单 + 连通性检测。
@@ -55,7 +55,7 @@ public class StorageEngineController {
         if (body == null) {
             throw new BizException(AppError.badRequest("请求参数不合法").withDetails("请求体格式不正确"));
         }
-        String provider = body.path("provider").asString("");
+        String provider = body.path("provider").asText("");
         if (!storageProbe.isAllowed(provider)) {
             throw new BizException(AppError.forbidden("该存储引擎已被禁用"));
         }

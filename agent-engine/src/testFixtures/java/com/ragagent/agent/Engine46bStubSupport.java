@@ -1,5 +1,6 @@
 package com.ragagent.agent;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.tool.ToolRegistry;
 import com.ragagent.contract.agent.SteerSink;
 import com.ragagent.contract.event.EventBusInterface;
@@ -23,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 引擎录制回放的替身与掩码工具（脚本化 chat / 计数工具 / steer sink 与掩码）。
@@ -355,8 +355,8 @@ final class Engine46bStubSupport {
     /** JsonNode/JSON → Map（工具 args 解析用；LinkedHashMap 保持插入序）。 */
     static Map<String, Object> argsMap(String json) {
         try {
-            return new tools.jackson.databind.ObjectMapper().readValue(json,
-                    new tools.jackson.databind.ObjectMapper().getTypeFactory()
+            return new com.fasterxml.jackson.databind.ObjectMapper().readValue(json,
+                    new com.fasterxml.jackson.databind.ObjectMapper().getTypeFactory()
                             .constructMapType(java.util.LinkedHashMap.class, String.class, Object.class));
         } catch (Exception e) {
             throw new IllegalStateException(e);

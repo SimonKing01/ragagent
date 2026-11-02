@@ -3,6 +3,8 @@ package com.ragagent.knowledge.repository;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.ragagent.contract.pagination.PageResult;
 import com.ragagent.knowledge.domain.Knowledge;
 import com.ragagent.knowledge.dto.KnowledgeSearchScope;
@@ -16,8 +18,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.JsonNodeFactory;
 
 /**
  * knowledge 行级读写（由 {@code service.KnowledgeService} 的直连 mapper 抽出；对应方案

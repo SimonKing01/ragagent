@@ -1,5 +1,8 @@
 package com.ragagent.knowledge.service.management;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.apikey.TenantAPIKeyScope;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
@@ -39,9 +42,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * （覆盖 CRUD + pin + move-targets + 计数回填；
@@ -206,8 +206,8 @@ public class KnowledgeBaseService
         var storageView = tenantConfigLookup.storageView(tenantId());
         JsonNode storageEngine = storageView == null ? null
                 : JsonMappers.toJsonNode(storageView.storageEngineConfig());
-        if (storageEngine != null && storageEngine.path("defaultProvider").isString()) {
-            provider = storageEngine.path("defaultProvider").asString().toLowerCase().trim();
+        if (storageEngine != null && storageEngine.path("defaultProvider").isTextual()) {
+            provider = storageEngine.path("defaultProvider").asText().toLowerCase().trim();
         }
         if (provider.isEmpty() || !isStorageAllowed(provider)) {
             provider = firstAllowedStorage();

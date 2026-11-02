@@ -1,5 +1,7 @@
 package com.ragagent.audit.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.audit.domain.AuditLog;
 import com.ragagent.contract.audit.AuditAction;
 import com.ragagent.contract.audit.AuditOutcome;
@@ -10,8 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * {@link WikiActivityAudit} 的生产实现——把 Wiki 的埋点真正落进 audit_logs。

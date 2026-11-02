@@ -1,5 +1,6 @@
 package com.ragagent.agent.tool;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.tool.BaseTool;
 import com.ragagent.contract.tool.ToolDefinitions;
 import com.ragagent.contract.tool.ToolRequest;
@@ -12,7 +13,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import tools.jackson.databind.JsonNode;
 
 /**
  * thinking / 顺序思维工具。
@@ -172,14 +172,14 @@ public class SequentialThinkingTool extends BaseTool {
         SequentialThinkingInput input;
         try {
             input = new SequentialThinkingInput(
-                    args.path("thought").asString(""),
+                    args.path("thought").asText(""),
                     args.path("nextThoughtNeeded").asBoolean(false),
                     args.path("thoughtNumber").asInt(0),
                     args.path("totalThoughts").asInt(0),
                     args.path("revision").asBoolean(false),
                     args.hasNonNull("revisesThought") ? args.get("revisesThought").asInt() : null,
                     args.hasNonNull("branchFromThought") ? args.get("branchFromThought").asInt() : null,
-                    args.path("branchId").asString(""),
+                    args.path("branchId").asText(""),
                     args.path("needsMoreThoughts").asBoolean(false));
         } catch (RuntimeException e) {
             // 解析失败文案固定 "Failed to parse args: "（内层消息因解析器而异——实现边界）

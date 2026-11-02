@@ -1,8 +1,8 @@
 package com.ragagent.modelruntime.adapter.provider.chat;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.llm.provider.OpenAIProvider;
 import com.ragagent.llm.provider.ProviderName;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 单次生成的补全预算。

@@ -2,6 +2,7 @@ package com.ragagent.agent.budget;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.model.ChatMessage;
 import com.ragagent.contract.model.ChatTool;
 import com.ragagent.contract.model.FunctionCall;
@@ -11,7 +12,6 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * token 估算的录制常量断言（期望值由录制程序对旧分词器跑出真值后逐字节抄入）。

@@ -2,10 +2,10 @@ package com.ragagent.agent.tool.runtime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenA;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * JsonRepair 的录制语料（31 条）。含历史用例全集 + 刻意探测的
@@ -52,13 +52,13 @@ class JsonRepairRecordingTest {
     void corpusMatchesAgentPromptGolden() {
         for (String name : CASES) {
             JsonNode r = RecordingSupport.rec(constant(name));
-            String in = r.get("in").asString();
-            String wantOut = r.get("out").asString();
-            String wantDetail = r.get("detail").asString();
+            String in = r.get("in").asText();
+            String wantOut = r.get("out").asText();
+            String wantDetail = r.get("detail").asText();
             boolean wantChanged = r.get("changed").asBoolean();
 
             assertThat(JsonRepair.repairJson(in))
-                    .as("repairJson %s (%s)", name, r.get("id").asString())
+                    .as("repairJson %s (%s)", name, r.get("id").asText())
                     .isEqualTo(wantOut);
             JsonRepair.RepairResult detail = JsonRepair.repairJsonDetail(in);
             assertThat(detail.repaired())

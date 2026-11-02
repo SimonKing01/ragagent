@@ -134,7 +134,7 @@ class MapperKnowledgeBridgeUrlIngestTest {
         assertThat(row.getSource()).isEmpty();
         assertThat(row.getFileName()).isEqualTo("a.txt");
         assertThat(row.getFilePath()).isEqualTo("kb-1/a.txt");
-        assertThat(JsonMappers.toJsonNode(row.getMetadata()).get("externalId").asString()).isEqualTo("e1");
+        assertThat(JsonMappers.toJsonNode(row.getMetadata()).get("externalId").asText()).isEqualTo("e1");
     }
 
     // ── 夹具 ────────────────────────────────────────────────────────────────

@@ -1,8 +1,10 @@
 package com.ragagent.agent.tool;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
+import java.util.Map;
 
 /**
  * 通用参数校验。
@@ -57,10 +59,10 @@ public final class ParamValidator {
         JsonNode reqRaw = schema.get("required");
         if (reqRaw != null && reqRaw.isArray()) {
             for (JsonNode r : reqRaw) {
-                if (!r.isString()) {
+                if (!r.isTextual()) {
                     continue;
                 }
-                String fieldName = r.stringValue();
+                String fieldName = r.textValue();
                 JsonNode val = args.get(fieldName);
                 if (val == null || val.isNull()) {
                     errs.add(new ValidationError(fieldName,
@@ -70,7 +72,9 @@ public final class ParamValidator {
         }
 
         // 逐个已提供参数按其 property schema 校验
-        for (var entry : args.properties()) {
+        Iterator<Map.Entry<String, JsonNode>> it = args.fields();
+        while (it.hasNext()) {
+            Map.Entry<String, JsonNode> entry = it.next();
             String key = entry.getKey();
             JsonNode val = entry.getValue();
             JsonNode propDef = properties.get(key);
@@ -94,7 +98,7 @@ public final class ParamValidator {
 
         List<ValidationError> errs = new ArrayList<>();
         JsonNode typeNode = prop.get("type");
-        String targetType = typeNode != null && typeNode.isString() ? typeNode.stringValue() : "";
+        String targetType = typeNode != null && typeNode.isTextual() ? typeNode.textValue() : "";
 
         // 类型检查
         if (!targetType.isEmpty() && !checkType(val, targetType)) {
@@ -129,8 +133,8 @@ public final class ParamValidator {
         }
 
         // 字符串长度按 UTF-8 字节计（CJK 多字节字符按字节计账）
-        if (targetType.equals("string") && val.isString()) {
-            String s = val.stringValue();
+        if (targetType.equals("string") && val.isTextual()) {
+            String s = val.textValue();
             int byteLen = s.getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
             double[] minLen = getFloat(prop, "minLength");
             if (minLen != null && byteLen < minLen[0]) {
@@ -150,7 +154,7 @@ public final class ParamValidator {
     /** 类型检查（integer = 数值且等于自身的整型化）。 */
     private static boolean checkType(JsonNode val, String targetType) {
         return switch (targetType) {
-            case "string" -> val.isString();
+            case "string" -> val.isTextual();
             case "number" -> val.isNumber();
             case "integer" -> {
                 if (!val.isNumber()) {
@@ -211,7 +215,7 @@ public final class ParamValidator {
         if (n.isNull()) {
             return "<nil>";
         }
-        return n.isString() ? n.stringValue() : n.toString();
+        return n.isTextual() ? n.textValue() : n.toString();
     }
 
     /** 浮点文本（'g' 最短形态：1 → "1"、0.5 → "0.5"）。 */

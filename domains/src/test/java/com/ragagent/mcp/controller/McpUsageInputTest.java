@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.mcp.domain.McpService;
 import com.ragagent.mcp.domain.McpTool;
@@ -13,8 +15,6 @@ import com.ragagent.mcp.dto.McpMetadata;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * MCP 使用说明投影的行为契约（{@code buildMCPUsageInput} / {@code mcpUsageExcerpt}）。
@@ -65,14 +65,14 @@ class McpUsageInputTest {
 
         JsonNode node = JSON.readTree(json);
         assertEquals(List.of("name", "server_name", "server_description", "server_instructions", "tools"),
-                List.copyOf(node.propertyNames()),
+                List.copyOf(iterableToList(node.fieldNames())),
                 "字段序 = Go 匿名 struct 声明序");
-        assertEquals("svc", node.get("name").asString());
-        assertEquals("srv", node.get("server_name").asString());
-        assertEquals("desc", node.get("server_description").asString());
-        assertEquals("instructions", node.get("server_instructions").asString());
+        assertEquals("svc", node.get("name").asText());
+        assertEquals("srv", node.get("server_name").asText());
+        assertEquals("desc", node.get("server_description").asText());
+        assertEquals("instructions", node.get("server_instructions").asText());
         assertEquals(1, node.get("tools").size());
-        assertEquals("t1", node.get("tools").get(0).get("name").asString());
+        assertEquals("t1", node.get("tools").get(0).get("name").asText());
         // 连接配置与凭据绝不出现在输入里
         assertFalse(json.contains("url"));
         assertFalse(json.contains("api_key"));
@@ -133,5 +133,11 @@ class McpUsageInputTest {
         JsonNode node = JSON.readTree(json);
         assertTrue(node.get("tools").size() <= 12, "字符预算必须挡住超量工具");
         assertEquals(20 - node.get("tools").size(), node.get("omitted_tools").asInt());
+    }
+
+    private static List<String> iterableToList(java.util.Iterator<String> it) {
+        List<String> out = new ArrayList<>();
+        it.forEachRemaining(out::add);
+        return out;
     }
 }

@@ -13,7 +13,7 @@ import com.ragagent.contract.json.JsonValues;
  *   <li>非对象 / 缺键 / null → {@code def}；</li>
  *   <li>{@code Boolean} → 原值；</li>
  *   <li>{@code String} 且为 {@code "true"}/{@code "false"}（忽略大小写）→ 解析值（对齐
- *       Jackson 的 {@code StringNode.asBoolean(def)}）；其余字符串 → {@code def}。</li>
+ *       Jackson 的 {@code TextNode.asBoolean(def)}）；其余字符串 → {@code def}。</li>
  * </ul>
  */
 public final class JsonValueSupport {

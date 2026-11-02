@@ -1,9 +1,10 @@
 package com.ragagent.datasource.domain;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.platform.access.TracingContext;
 import com.ragagent.platform.web.JsonMappers;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 一次数据源同步任务的载荷。
@@ -43,6 +44,9 @@ import tools.jackson.databind.ObjectMapper;
  *       本类型不落表。</li>
  * </ol>
  */
+// 键序显式钉住：分量上的 @JsonInclude 会让 Jackson 2 把该属性提前，不能依赖声明序。
+@JsonPropertyOrder({"initiator", "trigger", "dataSourceId", "tenantId", "syncLogId",
+        "forceFull", "maxItems", "tracing"})
 public record DataSourceSyncPayload(
         /**
          * 发起人。恒输出——{@code null} 归一成空发起人，
@@ -61,10 +65,10 @@ public record DataSourceSyncPayload(
         int maxItems,
         /**
          * 观测载体（嵌套键 {@code tracing}，五个 {@code lf_*} 组件收在里面）。
-         * 空载体经 {@code EmptyOmitFilter} 整键省略。
+         * 空载体经 {@code EmptyOmitFilter} 整键省略（过滤器挂在 {@link #tracing()} 访问器上：
+         * record 分量上的 {@code Include.CUSTOM} 在 Jackson 2 里不生效）。
          */
-        @JsonInclude(value = JsonInclude.Include.CUSTOM,
-                valueFilter = TracingContext.EmptyOmitFilter.class) TracingContext tracing) {
+        TracingContext tracing) {
 
     private static final ObjectMapper MAPPER = JsonMappers.lenient();
 
@@ -95,7 +99,9 @@ public record DataSourceSyncPayload(
                 forceFull, maxItems, tc.isEmpty() ? null : tc);
     }
 
-    /** 追踪载体的结构视图（worker 侧续接用）。 */
+    /** 追踪载体的结构视图（worker 侧续接用）。空载体在此归一，序列化侧由过滤器整键省略。 */
+    @JsonInclude(value = JsonInclude.Include.CUSTOM,
+            valueFilter = TracingContext.EmptyOmitFilter.class)
     public TracingContext tracing() {
         return tracing == null ? TracingContext.EMPTY : tracing;
     }

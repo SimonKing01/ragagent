@@ -1,8 +1,8 @@
 package com.ragagent.rerank;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.model.RankResult;
 import com.ragagent.platform.web.ProviderJson;
-import tools.jackson.databind.JsonNode;
 
 /**
  * {@link RankResult} 的 JSON 编解码（契约面持纯形状，解析/序列化留实现侧）。
@@ -24,10 +24,10 @@ public final class RankResultCodec {
         RankResult r = new RankResult();
         r.setIndex(node.path("index").asInt());
         JsonNode doc = node.path("document");
-        if (doc.isString()) {
-            r.getDocument().setText(doc.asString());
+        if (doc.isTextual()) {
+            r.getDocument().setText(doc.asText());
         } else if (doc.isObject()) {
-            r.getDocument().setText(doc.path("text").asString(""));
+            r.getDocument().setText(doc.path("text").asText(""));
         } else if (doc.isMissingNode() || doc.isNull()) {
             // 字段缺失时 document 保持零值 ""
         }

@@ -1,5 +1,9 @@
 package com.ragagent.modelruntime.adapter.provider.chat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.model.ChatMessage;
 import com.ragagent.contract.model.ChatOptions;
 import com.ragagent.contract.model.ChatTool;
@@ -11,10 +15,6 @@ import com.ragagent.llm.domain.ProviderMetadataMaps;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.NullNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 出站组装协作者（自 {@link RemoteApiChat} 拆出）：
@@ -221,8 +221,8 @@ final class RemoteApiRequestOps {
             lastMessage.put("content", hint);
             return;
         }
-        if (content.isString()) {
-            lastMessage.put("content", content.asString() + hint);
+        if (content.isTextual()) {
+            lastMessage.put("content", content.asText() + hint);
             return;
         }
         if (content instanceof ArrayNode arr) {

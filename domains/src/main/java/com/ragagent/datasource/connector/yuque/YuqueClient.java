@@ -1,5 +1,7 @@
 package com.ragagent.datasource.connector.yuque;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.datasource.connector.yuque.YuqueApiTypes.ApiErrorBody;
 import com.ragagent.datasource.connector.yuque.YuqueApiTypes.V2Doc;
 import com.ragagent.datasource.connector.yuque.YuqueApiTypes.V2DocDetail;
@@ -24,7 +26,6 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 语雀 Open API v2 客户端。
@@ -56,7 +57,8 @@ public class YuqueClient {
     public static final int DEFAULT_PAGE_SIZE = 100;
     public static final String USER_AGENT = "WeKnora-Yuque-Connector/1.0";
 
-    private static final ObjectMapper MAPPER = JsonMappers.lenient();
+    private static final ObjectMapper MAPPER = JsonMappers.lenient()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private final String baseUrl;
     private final String token;
@@ -249,7 +251,7 @@ public class YuqueClient {
                 T value = MAPPER.readValue(raw, resultType);
                 // 响应体是字面量 null 时按"空对象"处理，不让下游拿到 null。
                 return value != null ? value : newInstance(resultType);
-            } catch (RuntimeException e) {
+            } catch (java.io.IOException | RuntimeException e) {
                 throw new ConnectorException("decode response: " + e.getMessage(), e);
             }
         }
@@ -261,7 +263,7 @@ public class YuqueClient {
         try {
             byte[] raw = resp.body() == null ? new byte[0] : resp.body();
             return MAPPER.readValue(raw, ApiErrorBody.class);
-        } catch (RuntimeException e) {
+        } catch (java.io.IOException | RuntimeException e) {
             return null;
         }
     }

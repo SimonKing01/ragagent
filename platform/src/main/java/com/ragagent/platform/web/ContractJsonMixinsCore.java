@@ -3,7 +3,6 @@ package com.ragagent.platform.web;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.ragagent.contract.model.PromptCacheStatus;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +25,6 @@ public final class ContractJsonMixinsCore {
     }
 
     /** TokenUsage 的 mixin（注解逐条对位，行为与搬迁前一致）。 */
-    @JsonPropertyOrder({"prompt_tokens", "completion_tokens", "total_tokens", "cached_tokens",
-            "cache_read_tokens", "cache_write_tokens", "cache_miss_tokens", "cache_reported", "cache_status"})
     public abstract static class TokenUsageMixin {
         @JsonProperty("prompt_tokens")
         private int promptTokens;

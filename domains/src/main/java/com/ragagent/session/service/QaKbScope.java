@@ -1,5 +1,6 @@
 package com.ragagent.session.service;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.agent.AgentLookup;
 import com.ragagent.contract.apikey.APIKeyScopeContext;
 import com.ragagent.contract.apikey.TenantAPIKeyScope;
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * {@code SessionQaResolution} 的**KB 范围簇**：从 agent 配置推导可用知识库集合、
@@ -34,7 +34,7 @@ final class QaKbScope {
         if (agentCfg == null) {
             return new ArrayList<>();
         }
-        String mode = agentCfg.path("kbSelectionMode").asString("");
+        String mode = agentCfg.path("kbSelectionMode").asText("");
         switch (mode) {
             case "all" -> {
                 // 能力过滤（DeriveKBFilterForAgent）：取 tool 能力面判定，非 wiki/rerank 工具

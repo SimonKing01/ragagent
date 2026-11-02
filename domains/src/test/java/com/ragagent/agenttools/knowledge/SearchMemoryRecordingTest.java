@@ -2,13 +2,13 @@ package com.ragagent.agenttools.knowledge;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenB;
 import com.ragagent.contract.tool.ToolRequest;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * SearchMemoryTool 的录制回放（6 条：hits/limit_clamp/limit_zero/disabled/empty/blank_query）。
@@ -29,32 +29,32 @@ class SearchMemoryRecordingTest {
     void executionsMatchAgentPromptGolden() {
         for (String name : CASES) {
             JsonNode r = RecordingSupport.rec(field(name));
-            JsonNode args = RecordingSupport.readTree(r.get("args").asString());
-            CapturingStub stub = new CapturingStub(stubFor(r.get("id").asString()));
+            JsonNode args = RecordingSupport.readTree(r.get("args").asText());
+            CapturingStub stub = new CapturingStub(stubFor(r.get("id").asText()));
             var result = new SearchMemoryTool(stub).execute(ToolRequest.of(args));
 
             assertThat(result.isSuccess())
-                    .as("search_memory %s success", r.get("id").asString())
+                    .as("search_memory %s success", r.get("id").asText())
                     .isEqualTo(r.get("success").asBoolean());
             assertThat(result.getOutput())
-                    .as("search_memory %s output", r.get("id").asString())
-                    .isEqualTo(r.get("output").asString());
-            if (r.hasNonNull("error") && !r.get("error").asString().isEmpty()) {
+                    .as("search_memory %s output", r.get("id").asText())
+                    .isEqualTo(r.get("output").asText());
+            if (r.hasNonNull("error") && !r.get("error").asText().isEmpty()) {
                 assertThat(result.getError())
-                        .as("search_memory %s error", r.get("id").asString())
-                        .isEqualTo(r.get("error").asString());
+                        .as("search_memory %s error", r.get("id").asText())
+                        .isEqualTo(r.get("error").asText());
             }
             JsonNode wantData = r.get("data");
             if (wantData == null || wantData.isNull()) {
-                assertThat(result.getData()).as("search_memory %s data", r.get("id").asString()).isNull();
+                assertThat(result.getData()).as("search_memory %s data", r.get("id").asText()).isNull();
             } else {
                 assertThat(RecordingSupport.canonicalJson(RecordingSupport.PLAIN.valueToTree(result.getData())))
-                        .as("search_memory %s data", r.get("id").asString())
+                        .as("search_memory %s data", r.get("id").asText())
                         .isEqualTo(RecordingSupport.canonicalJson(wantData));
             }
             if (r.has("limit")) {
                 assertThat(stub.gotLimit)
-                        .as("search_memory %s limit", r.get("id").asString())
+                        .as("search_memory %s limit", r.get("id").asText())
                         .isEqualTo(r.get("limit").asInt());
             }
         }

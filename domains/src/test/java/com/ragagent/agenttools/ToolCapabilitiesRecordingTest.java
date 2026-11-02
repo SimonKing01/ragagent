@@ -2,6 +2,7 @@ package com.ragagent.agenttools;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenA;
 import com.ragagent.contract.tool.ToolCapabilities;
@@ -11,7 +12,6 @@ import com.ragagent.contract.tool.ToolCapabilities.KbFilter;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * ToolCapabilities 的录制判定（12 组：{@code deriveKbFilter*}
@@ -40,24 +40,24 @@ class ToolCapabilitiesRecordingTest {
         for (String name : CASES) {
             JsonNode r = RecordingSupport.rec(field(name));
             List<String> tools = new ArrayList<>();
-            r.get("tools").forEach(n -> tools.add(n.asString()));
-            String mode = r.get("mode").asString();
+            r.get("tools").forEach(n -> tools.add(n.asText()));
+            String mode = r.get("mode").asText();
             KbCaps caps = capsOf(r);
 
             assertThat(capSet(ToolCapabilities.deriveKbFilterFromTools(tools)))
-                    .as("deriveKbFilterFromTools %s", r.get("id").asString())
+                    .as("deriveKbFilterFromTools %s", r.get("id").asText())
                     .containsExactlyInAnyOrderElementsOf(capList(r.get("filter")));
             assertThat(capSet(ToolCapabilities.deriveKbFilterForAgent(mode, tools)))
-                    .as("deriveKbFilterForAgent %s", r.get("id").asString())
+                    .as("deriveKbFilterForAgent %s", r.get("id").asText())
                     .containsExactlyInAnyOrderElementsOf(capList(r.get("agentFilter")));
             assertThat(ToolCapabilities.kbSatisfiesToolRequirements(caps, tools))
-                    .as("kbSatisfiesToolRequirements %s", r.get("id").asString())
+                    .as("kbSatisfiesToolRequirements %s", r.get("id").asText())
                     .isEqualTo(r.get("satTools").asBoolean());
             assertThat(ToolCapabilities.kbSatisfiesAgentRequirements(caps, mode, tools))
-                    .as("kbSatisfiesAgentRequirements %s", r.get("id").asString())
+                    .as("kbSatisfiesAgentRequirements %s", r.get("id").asText())
                     .isEqualTo(r.get("satAgent").asBoolean());
             assertThat(ToolCapabilities.toolsConsumeFiles(tools))
-                    .as("toolsConsumeFiles %s", r.get("id").asString())
+                    .as("toolsConsumeFiles %s", r.get("id").asText())
                     .isEqualTo(r.get("consume").asBoolean());
         }
     }
@@ -65,7 +65,7 @@ class ToolCapabilitiesRecordingTest {
     private static KbCaps capsOf(JsonNode r) {
         // 探针里 caps 是按 case 编码的常量；从录制反推不可行，按 id 重建
         // （caps 只进布尔判定，录制值已含判定结果）。
-        return switch (r.get("id").asString()) {
+        return switch (r.get("id").asText()) {
             case "quick_answer" -> new KbCaps(true, false, false, false, false);
             case "quick_answer_wiki_only", "normal_mode_wiki_only" -> new KbCaps(false, false, true, false, false);
             default -> KbCaps.NONE;
@@ -74,7 +74,7 @@ class ToolCapabilitiesRecordingTest {
 
     private static List<String> capList(JsonNode arr) {
         List<String> out = new ArrayList<>();
-        arr.forEach(n -> out.add(n.asString()));
+        arr.forEach(n -> out.add(n.asText()));
         return out;
     }
 

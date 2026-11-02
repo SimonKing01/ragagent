@@ -2,12 +2,13 @@ package com.ragagent.datasource.connector.notion;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.io.IOException;
 import java.util.List;
-import tools.jackson.core.JsonParser;
-import tools.jackson.databind.DeserializationContext;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ValueDeserializer;
-import tools.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Notion 的一个内容块。
@@ -67,19 +68,20 @@ public final class NotionBlock {
     }
 
     /** 自定义反序列化器（见类注释）。 */
-    public static final class Deserializer extends ValueDeserializer<NotionBlock> {
+    public static final class Deserializer extends JsonDeserializer<NotionBlock> {
 
         @Override
-        public NotionBlock deserialize(JsonParser parser, DeserializationContext context) {
+        public NotionBlock deserialize(JsonParser parser, DeserializationContext context)
+                throws IOException {
             JsonNode node = parser.readValueAsTree();
             NotionBlock block = new NotionBlock();
             if (node == null || !node.isObject()) {
                 return block;
             }
             JsonNode idNode = node.get("id");
-            block.id = idNode != null && idNode.isString() ? idNode.stringValue() : null;
+            block.id = idNode != null && idNode.isTextual() ? idNode.textValue() : null;
             JsonNode typeNode = node.get("type");
-            block.type = typeNode != null && typeNode.isString() ? typeNode.stringValue() : null;
+            block.type = typeNode != null && typeNode.isTextual() ? typeNode.textValue() : null;
             JsonNode hasChildrenNode = node.get("has_children");
             block.hasChildren = hasChildrenNode != null && hasChildrenNode.asBoolean(false);
 

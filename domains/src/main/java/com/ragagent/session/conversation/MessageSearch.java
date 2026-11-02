@@ -1,5 +1,6 @@
 package com.ragagent.session.conversation;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.model.ModelRuntime;
 import com.ragagent.contract.model.RankResult;
 import com.ragagent.contract.model.Reranker;
@@ -25,7 +26,6 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
 
 
 /**
@@ -197,8 +197,8 @@ final class MessageSearch {
         }
         ChatHistoryConfig cfg = new ChatHistoryConfig();
         cfg.setEnabled(node.path("enabled").asBoolean(false));
-        cfg.setEmbeddingModelId(node.path("embeddingModelId").asString(""));
-        cfg.setKnowledgeBaseId(node.path("knowledgeBaseId").asString(""));
+        cfg.setEmbeddingModelId(node.path("embeddingModelId").asText(""));
+        cfg.setKnowledgeBaseId(node.path("knowledgeBaseId").asText(""));
         // 三要素判定：enabled + embeddingModelId + knowledgeBaseId
         if (cfg.isEnabled() && !cfg.getEmbeddingModelId().isEmpty()
                 && !cfg.getKnowledgeBaseId().isEmpty()) {
@@ -225,7 +225,7 @@ final class MessageSearch {
         rc.setVectorThreshold(node.path("vectorThreshold").asDouble(0));
         rc.setRerankTopK(node.path("rerankTopK").asInt(0));
         rc.setRerankThreshold(node.path("rerankThreshold").asDouble(0));
-        rc.setRerankModelId(node.path("rerankModelId").asString(""));
+        rc.setRerankModelId(node.path("rerankModelId").asText(""));
         return rc;
     }
 

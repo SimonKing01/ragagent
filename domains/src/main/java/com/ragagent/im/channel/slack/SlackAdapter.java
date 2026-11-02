@@ -1,5 +1,7 @@
 package com.ragagent.im.channel.slack;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.CallbackExchange;
 import com.ragagent.im.runtime.ImAdapterVerify;
@@ -21,8 +23,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Slack 适配器。
@@ -158,7 +158,7 @@ public class SlackAdapter implements AdapterInterfaces.Adapter,
             body.put("thread_ts", incoming.messageId);
         }
         JsonNode result = callApi("chat.postMessage", body, "slack start stream");
-        String ts = result.path("ts").asString("");
+        String ts = result.path("ts").asText("");
         String streamId = channel + ":" + ts;
         STREAMS.put(streamId, new StreamState(channel, ts));
         log.info("[Slack] Streaming started: stream_id={}", streamId);
@@ -229,7 +229,7 @@ public class SlackAdapter implements AdapterInterfaces.Adapter,
         String downloadUrl = msg.extra == null ? "" : msg.extra.getOrDefault("url_private_download", "");
         if (downloadUrl.isEmpty()) {
             JsonNode file = callApi("files.info", Map.of("file", msg.fileKey), "get file info");
-            downloadUrl = file.path("file").path("url_private_download").asString("");
+            downloadUrl = file.path("file").path("url_private_download").asText("");
         }
         if (downloadUrl.isEmpty()) {
             throw new IllegalStateException("no download URL available for file " + msg.fileKey);
@@ -264,7 +264,7 @@ public class SlackAdapter implements AdapterInterfaces.Adapter,
                 ? MAPPER.createObjectNode() : MAPPER.readTree(raw);
         if (!apiResp.path("ok").asBoolean(false)) {
             throw new IllegalStateException(wrap + ": slack API error: "
-                    + apiResp.path("error").asString("unknown_error"));
+                    + apiResp.path("error").asText("unknown_error"));
         }
         return apiResp;
     }

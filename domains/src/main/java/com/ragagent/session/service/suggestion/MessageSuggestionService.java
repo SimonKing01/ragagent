@@ -1,5 +1,6 @@
 package com.ragagent.session.service.suggestion;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agentmanagement.service.AgentSuggestedQuestions;
 import com.ragagent.agentmanagement.service.CustomAgentService;
 import com.ragagent.contract.apikey.APIKeyScopeContext;
@@ -31,7 +32,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 追问建议服务。
@@ -512,8 +512,8 @@ public class MessageSuggestionService {
             return out;
         }
         for (JsonNode n : arr) {
-            out.add(new Object[] {n.path("question").asString(""),
-                    n.path("source").asString(""), n.path("knowledgeBaseId").asString("")});
+            out.add(new Object[] {n.path("question").asText(""),
+                    n.path("source").asText(""), n.path("knowledgeBaseId").asText("")});
         }
         return out;
     }

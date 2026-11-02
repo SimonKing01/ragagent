@@ -1,5 +1,6 @@
 package com.ragagent.websearch.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.websearch.WebSearchResult;
 import com.ragagent.platform.web.ProviderJson;
 import java.net.URI;
@@ -11,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import tools.jackson.databind.JsonNode;
 
 /**
  * DuckDuckGo 搜索 provider。
@@ -164,11 +164,11 @@ public final class DuckDuckGoProvider implements WebSearchProvider {
             throw new SearchHttp.SearchHttpException("failed to decode API response");
         }
         List<WebSearchResult> results = new ArrayList<>(maxResults);
-        String abstractText = apiResponse.path("AbstractText").asString("");
-        String abstractUrl = apiResponse.path("AbstractURL").asString("");
+        String abstractText = apiResponse.path("AbstractText").asText("");
+        String abstractUrl = apiResponse.path("AbstractURL").asText("");
         if (!abstractText.isEmpty() && !abstractUrl.isEmpty()) {
             WebSearchResult r = new WebSearchResult();
-            r.setTitle(apiResponse.path("Heading").asString(""));
+            r.setTitle(apiResponse.path("Heading").asText(""));
             r.setUrl(abstractUrl);
             r.setSnippet(abstractText);
             r.setSource("duckduckgo");
@@ -178,8 +178,8 @@ public final class DuckDuckGoProvider implements WebSearchProvider {
             if (results.size() >= maxResults) {
                 break;
             }
-            String text = topic.path("Text").asString("");
-            String firstUrl = topic.path("FirstURL").asString("");
+            String text = topic.path("Text").asText("");
+            String firstUrl = topic.path("FirstURL").asText("");
             if (!text.isEmpty() && !firstUrl.isEmpty()) {
                 WebSearchResult r = new WebSearchResult();
                 r.setTitle(extractTitle(text));
@@ -193,8 +193,8 @@ public final class DuckDuckGoProvider implements WebSearchProvider {
             if (results.size() >= maxResults) {
                 break;
             }
-            String text = r2.path("Text").asString("");
-            String firstUrl = r2.path("FirstURL").asString("");
+            String text = r2.path("Text").asText("");
+            String firstUrl = r2.path("FirstURL").asText("");
             if (!text.isEmpty() && !firstUrl.isEmpty()) {
                 WebSearchResult r = new WebSearchResult();
                 r.setTitle(extractTitle(text));

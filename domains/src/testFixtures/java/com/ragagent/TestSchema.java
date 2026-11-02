@@ -906,8 +906,8 @@ public final class TestSchema {
             return 0;
         }
         try {
-            tools.jackson.databind.JsonNode node =
-                    new tools.jackson.databind.ObjectMapper().readTree(json);
+            com.fasterxml.jackson.databind.JsonNode node =
+                    new com.fasterxml.jackson.databind.ObjectMapper().readTree(json);
             return node.isArray() ? node.size() : 0;
         } catch (Exception e) {
             throw new IllegalArgumentException("json_array_length: invalid JSON", e);

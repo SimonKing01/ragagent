@@ -24,8 +24,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -224,8 +224,8 @@ class W5cFileProxyContractTest {
                             .contentType("application/json")
                             .content("{\"email\":\"" + email + "\",\"password\":\"Passw0rd!\"}"))
                     .andReturn();
-            return new tools.jackson.databind.ObjectMapper()
-                    .readTree(result.getResponse().getContentAsString()).path("data").get("token").asString();
+            return new com.fasterxml.jackson.databind.ObjectMapper()
+                    .readTree(result.getResponse().getContentAsString()).path("data").get("token").asText();
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
@@ -341,8 +341,8 @@ class W5cFileProxyContractTest {
                             .header("Authorization", owner)
                             .contentType("application/json").content(body))
                     .andReturn();
-            return new tools.jackson.databind.ObjectMapper()
-                    .readTree(r.getResponse().getContentAsString()).path("data").path("token").asString();
+            return new com.fasterxml.jackson.databind.ObjectMapper()
+                    .readTree(r.getResponse().getContentAsString()).path("data").path("token").asText();
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

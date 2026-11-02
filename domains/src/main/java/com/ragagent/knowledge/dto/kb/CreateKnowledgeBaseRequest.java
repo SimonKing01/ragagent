@@ -1,5 +1,6 @@
 package com.ragagent.knowledge.dto.kb;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.knowledge.config.AsrConfigView;
 import com.ragagent.contract.knowledge.config.ChunkingConfigView;
 import com.ragagent.contract.knowledge.config.ImageProcessingConfigView;
@@ -7,7 +8,6 @@ import com.ragagent.contract.knowledge.config.IndexingStrategyView;
 import com.ragagent.knowledge.domain.KnowledgeBase;
 import com.ragagent.knowledge.domain.KnowledgeBaseVlmConfig;
 import com.ragagent.knowledge.support.KnowledgeBaseConfigMaps;
-import tools.jackson.databind.JsonNode;
 
 public record CreateKnowledgeBaseRequest(
         String name,

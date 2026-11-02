@@ -1,7 +1,7 @@
 package com.ragagent.modelcontext;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.platform.fixtures.GoldenResources;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 4.6a 录制常量（由 Go 录制输出生成，<b>禁止手改</b>）。
@@ -20,7 +20,7 @@ public final class ModelContextGolden {
     /** 解析一条录制记录。 */
     public static JsonNode rec(String json) {
         try {
-            return new tools.jackson.databind.ObjectMapper().readTree(json);
+            return new com.fasterxml.jackson.databind.ObjectMapper().readTree(json);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

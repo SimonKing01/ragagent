@@ -7,6 +7,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.ragagent.RagAgentApplication;
 import com.ragagent.contract.storage.StorageEnvLookup;
 import com.ragagent.contract.wiki.WikiLanguageSupport;
@@ -46,8 +48,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 
 /**
  * 全仓架构规则（把几轮重构攒下的约定固化成 CI 红条）。
@@ -652,7 +652,6 @@ class ArchitectureRulesTest {
             "com.ragagent.platform.event.EventJson",
             "com.ragagent.datasource.connector.gitlab.GitLabConnector",
             "com.ragagent.datasource.connector.notion.NotionJson",
-            "com.ragagent.datasource.connector.rss.RssConfig",
             "com.ragagent.modelcontext.ModelJsonValues");
 
     @Test

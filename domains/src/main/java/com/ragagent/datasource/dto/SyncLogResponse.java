@@ -1,8 +1,8 @@
 package com.ragagent.datasource.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.datasource.domain.SyncLog;
 import java.time.OffsetDateTime;
-import tools.jackson.databind.JsonNode;
 
 /** 同步日志响应：字段名/顺序对齐实体既有 JSON。 */
 public record SyncLogResponse(

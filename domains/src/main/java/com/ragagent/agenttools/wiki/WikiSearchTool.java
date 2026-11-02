@@ -1,5 +1,6 @@
 package com.ragagent.agenttools.wiki;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.agent.SearchAuth.KnowledgeTagsFetcher;
 import com.ragagent.contract.tool.BaseTool;
 import com.ragagent.contract.tool.ToolDefinitions;
@@ -13,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import tools.jackson.databind.JsonNode;
 
 /**
  * wiki_search 工具。
@@ -92,7 +92,7 @@ public class WikiSearchTool extends BaseTool {
         }
 
         // knowledge_base_id 参数限制 scope
-        String restrictKb = args.path("knowledgeBaseId").asString("");
+        String restrictKb = args.path("knowledgeBaseId").asText("");
         List<WikiScope> effectiveScopes = scopes;
         if (!restrictKb.isEmpty()) {
             List<WikiScope> filtered = new ArrayList<>();

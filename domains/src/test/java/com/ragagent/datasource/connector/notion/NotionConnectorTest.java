@@ -841,9 +841,9 @@ class NotionConnectorTest {
             List<NotionBlock> blocks = new ArrayList<>(List.of(fileBlock, parent));
             NotionConnector.resolveFileUploads(client, blocks);
 
-            assertThat(blocks.get(0).rawContent.get("file").get("url").asString())
+            assertThat(blocks.get(0).rawContent.get("file").get("url").asText())
                     .isEqualTo("https://s3.example.com/resolved.png");
-            assertThat(blocks.get(1).children.get(0).rawContent.get("file").get("url").asString())
+            assertThat(blocks.get(1).children.get(0).rawContent.get("file").get("url").asText())
                     .isEqualTo("https://s3.example.com/resolved.pdf");
 
             // 解析后的 markdown 里应当是真实地址
@@ -866,7 +866,7 @@ class NotionConnectorTest {
 
             NotionConnector.resolveFileUploads(client, blocks);
             // 失败时保留原 RawContent（跳过该项）
-            assertThat(blocks.get(0).rawContent.get("file_upload").get("id").asString())
+            assertThat(blocks.get(0).rawContent.get("file_upload").get("id").asText())
                     .isEqualTo("fu-1");
         }
     }

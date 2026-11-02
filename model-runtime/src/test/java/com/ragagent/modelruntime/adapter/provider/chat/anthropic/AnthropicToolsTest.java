@@ -3,6 +3,8 @@ package com.ragagent.modelruntime.adapter.provider.chat.anthropic;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.model.ChatConfig;
 import com.ragagent.contract.model.ChatMessage;
 import com.ragagent.contract.model.ChatOptions;
@@ -21,8 +23,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * Anthropic 工具调用的三条用例。
@@ -32,8 +32,8 @@ import tools.jackson.databind.ObjectMapper;
  */
 class AnthropicToolsTest {
 
-    private static final ObjectMapper MAPPER = tools.jackson.databind.json.JsonMapper.builder()
-            .disable(tools.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+    private static final ObjectMapper MAPPER = com.fasterxml.jackson.databind.json.JsonMapper.builder()
+            .disable(com.fasterxml.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
             .build();
 
     private static AnthropicChat model() {

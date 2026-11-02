@@ -1,6 +1,6 @@
 package com.ragagent.mcp.protocol;
 
-import tools.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * JSON-RPC 2.0 错误对象。
@@ -28,7 +28,7 @@ public record JsonRpcError(int code, String message, JsonNode data) {
 
     public static JsonRpcError from(JsonNode node) {
         int code = node.path("code").asInt(0);
-        String message = node.path("message").asString("");
+        String message = node.path("message").asText("");
         JsonNode data = node.has("data") ? node.get("data") : null;
         return new JsonRpcError(code, message, data);
     }

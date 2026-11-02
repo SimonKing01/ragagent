@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.mcp.domain.McpAuthConfig;
 import com.ragagent.mcp.domain.McpAuthType;
 import com.ragagent.mcp.domain.McpResource;
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 协议行为的端到端用例（内嵌 MCP 服务端桩）：initialize 握手 + session 回传 +
@@ -153,7 +153,7 @@ class McpClientProtocolTest {
                 assertEquals(1, tools.size());
                 assertEquals("a", tools.get(0).getName());
                 assertEquals("d", tools.get(0).getDescription());
-                assertTrue(((tools.jackson.databind.JsonNode) tools.get(0).getInputSchema()).has("oneOf"));
+                assertTrue(((com.fasterxml.jackson.databind.JsonNode) tools.get(0).getInputSchema()).has("oneOf"));
             }
         }
 
@@ -162,8 +162,8 @@ class McpClientProtocolTest {
         void callTool() throws Exception {
             try (McpServerStub server = new McpServerStub()) {
                 server.responders.put(McpProtocol.METHOD_TOOLS_CALL, (request, path) -> {
-                    assertEquals("echo", request.path("params").path("name").asString(""));
-                    assertEquals("hi", request.path("params").path("arguments").path("msg").asString(""));
+                    assertEquals("echo", request.path("params").path("name").asText(""));
+                    assertEquals("hi", request.path("params").path("arguments").path("msg").asText(""));
                     try {
                         return McpServerStub.MAPPER.readTree("""
                                 {"content":[
@@ -204,7 +204,7 @@ class McpClientProtocolTest {
                     }
                 });
                 server.responders.put(McpProtocol.METHOD_RESOURCES_READ, (request, path) -> {
-                    assertEquals("r://a", request.path("params").path("uri").asString(""));
+                    assertEquals("r://a", request.path("params").path("uri").asText(""));
                     try {
                         return McpServerStub.MAPPER.readTree(
                                 "{\"contents\":[{\"uri\":\"r://a\",\"mimeType\":\"text/plain\",\"text\":\"body\"},"

@@ -1,5 +1,6 @@
 package com.ragagent.websearch.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.websearch.WebSearchResult;
 import com.ragagent.platform.web.ProviderJson;
 import com.ragagent.websearch.config.WebSearchProviderParams;
@@ -11,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import tools.jackson.databind.JsonNode;
 
 /**
  * Baidu AI 搜索 provider。
@@ -91,16 +91,16 @@ public final class BaiduProvider implements WebSearchProvider {
         int code = respData.path("code").asInt(0);
         if (code != 0) {
             throw new SearchHttp.SearchHttpException("baidu API error (code " + code + "): "
-                    + respData.path("message").asString(""));
+                    + respData.path("message").asText(""));
         }
         List<WebSearchResult> results = new ArrayList<>();
         for (JsonNode ref : respData.path("references")) {
             WebSearchResult result = new WebSearchResult();
-            result.setTitle(ref.path("title").asString(""));
-            result.setUrl(ref.path("url").asString(""));
-            result.setContent(ref.path("content").asString(""));
+            result.setTitle(ref.path("title").asText(""));
+            result.setUrl(ref.path("url").asText(""));
+            result.setContent(ref.path("content").asText(""));
             result.setSource("baidu");
-            String date = ref.path("date").asString("");
+            String date = ref.path("date").asText("");
             if (includeDate && !date.isEmpty()) {
                 OffsetDateTime t = parseBaiduDate(date);
                 if (t != null) {

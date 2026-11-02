@@ -1,5 +1,8 @@
 package com.ragagent.datasource.connector.ima;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.datasource.connector.ima.ImaApiTypes.ApiEnvelope;
 import com.ragagent.datasource.connector.ima.ImaApiTypes.GetAddableKnowledgeBaseListResp;
 import com.ragagent.datasource.connector.ima.ImaApiTypes.GetDocContentResp;
@@ -22,8 +25,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * IMA OpenAPI 客户端。
@@ -71,7 +72,8 @@ public class ImaClient {
     /** 笔记自成一个命名空间：wiki 端点只给 notebook_id，正文要到这里读。 */
     public static final String NOTE_BASE_PATH = "/openapi/note/v1";
 
-    private static final ObjectMapper MAPPER = JsonMappers.lenient();
+    private static final ObjectMapper MAPPER = JsonMappers.lenient()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private final String baseUrl;
     private final String clientId;
@@ -254,7 +256,7 @@ public class ImaClient {
         if (req != null) {
             try {
                 body = MAPPER.writeValueAsBytes(req);
-            } catch (tools.jackson.core.JacksonException e) {
+            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
                 throw new ConnectorException("marshal request: " + e.getMessage(), e);
             }
         } else {
@@ -332,7 +334,7 @@ public class ImaClient {
             try {
                 byte[] raw = resp.body() == null ? new byte[0] : resp.body();
                 env = MAPPER.readValue(raw, ApiEnvelope.class);
-            } catch (RuntimeException e) {
+            } catch (java.io.IOException | RuntimeException e) {
                 throw new ConnectorException("decode envelope: " + e.getMessage(), e);
             }
 

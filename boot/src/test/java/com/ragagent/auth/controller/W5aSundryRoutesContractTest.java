@@ -13,8 +13,8 @@ import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
@@ -384,8 +384,8 @@ class W5aSundryRoutesContractTest {
     }
 
     private static String jsonPath(MvcResult r, String path) throws Exception {
-        tools.jackson.databind.JsonNode node =
-                new tools.jackson.databind.ObjectMapper().readTree(raw(r));
+        com.fasterxml.jackson.databind.JsonNode node =
+                new com.fasterxml.jackson.databind.ObjectMapper().readTree(raw(r));
         // 统一外壳（有 code+data）时先下钻 data；未迁移端点（旧形态）保持原样。
         // 路径本身以 data 开头时**不下钻**——旧壳 {data,…} 与新壳 {…,data:…} 都有 data 键，语义已对齐 ✓
         if (!path.startsWith("data") && node.isObject() && node.has("code") && node.has("data")) {
@@ -398,11 +398,11 @@ class W5aSundryRoutesContractTest {
                 node = node.get(seg);
             }
         }
-        return node.asString();
+        return node.asText();
     }
 
-    private static final tools.jackson.databind.ObjectMapper RAW_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper RAW_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String raw(MvcResult r) throws Exception {
         // PR4 语义比较：与 golden 同侧归一（非 JSON 文本原样）
@@ -410,8 +410,8 @@ class W5aSundryRoutesContractTest {
                 r.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
     }
 
-    private static final tools.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
-            new tools.jackson.databind.ObjectMapper();
+    private static final com.fasterxml.jackson.databind.ObjectMapper GOLDEN_SEMANTIC_MAPPER =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     private static String golden(String name) throws Exception {
         // PR4 语义比较：键序/HTML 转义归一后返回（非 JSON 文本原样），断言侧不变

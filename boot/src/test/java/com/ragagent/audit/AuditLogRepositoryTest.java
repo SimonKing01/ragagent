@@ -2,6 +2,8 @@ package com.ragagent.audit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.TestSchema;
 import com.ragagent.audit.domain.AuditLog;
 import com.ragagent.audit.dto.AuditLogQuery;
@@ -16,11 +18,9 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.jdbc.core.JdbcTemplate;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * audit_logs 仓储语义测试（H2）——补齐 mock 测不出来的 SQL 行为部分。
@@ -236,12 +236,12 @@ class AuditLogRepositoryTest {
 
         AuditLog back = repo.list(7, AuditLogQuery.empty()).get(0);
         assertThat(back.getDetails()).isNotNull();
-        assertThat(back.getDetails().get("requiredRole").asString()).isEqualTo("admin");
-        assertThat(back.getDetails().get("rawPath").asString())
+        assertThat(back.getDetails().get("requiredRole").asText()).isEqualTo("admin");
+        assertThat(back.getDetails().get("rawPath").asText())
                 .isEqualTo("/api/v1/tenants/10002/audit-log");
         // 规范化后的键序：rawPath(8) 短于 requiredRole(13)
         List<String> names = new ArrayList<>();
-        back.getDetails().propertyNames().forEach(names::add);
+        back.getDetails().fieldNames().forEachRemaining(names::add);
         assertThat(names).containsExactly("rawPath", "requiredRole");
     }
 

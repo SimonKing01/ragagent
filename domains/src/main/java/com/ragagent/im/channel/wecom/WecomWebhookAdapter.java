@@ -1,5 +1,7 @@
 package com.ragagent.im.channel.wecom;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.CallbackExchange;
 import com.ragagent.im.runtime.FeishuWecomCrypt;
@@ -25,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 企业微信自建应用 webhook 适配器。
@@ -278,7 +278,7 @@ public class WecomWebhookAdapter implements AdapterInterfaces.Adapter,
         int errCode = result.path("errcode").asInt(0);
         if (errCode != 0) {
             throw new IllegalStateException("appchat api error: code=" + errCode + " msg="
-                    + result.path("errmsg").asString(""));
+                    + result.path("errmsg").asText(""));
         }
     }
 
@@ -294,7 +294,7 @@ public class WecomWebhookAdapter implements AdapterInterfaces.Adapter,
         int errCode = result.path("errcode").asInt(0);
         if (errCode != 0) {
             throw new IllegalStateException("wecom api error: code=" + errCode + " msg="
-                    + result.path("errmsg").asString(""));
+                    + result.path("errmsg").asText(""));
         }
     }
 
@@ -311,9 +311,9 @@ public class WecomWebhookAdapter implements AdapterInterfaces.Adapter,
         int errCode = result.path("errcode").asInt(0);
         if (errCode != 0) {
             throw new IllegalStateException("get token error: code=" + errCode + " msg="
-                    + result.path("errmsg").asString(""));
+                    + result.path("errmsg").asText(""));
         }
-        String accessToken = result.path("access_token").asString("");
+        String accessToken = result.path("access_token").asText("");
         long expiresIn = result.path("expires_in").asLong(0);
         synchronized (tokenLock) {
             tokenCache = accessToken;

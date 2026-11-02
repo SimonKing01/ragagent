@@ -1,5 +1,7 @@
 package com.ragagent.im.channel.dingtalk;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.CallbackExchange;
 import com.ragagent.im.runtime.ImAdapterVerify;
@@ -11,8 +13,6 @@ import com.ragagent.platform.web.JsonMappers;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 钉钉适配器（薄壳）：验签 + 三个接口的转发。

@@ -2,6 +2,9 @@ package com.ragagent.storage.fileserve;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.security.CryptoService;
 import com.ragagent.platform.storage.config.StorageRuntimeEnv;
 import com.ragagent.storage.config.StorageProviderEnv;
@@ -12,9 +15,6 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 存储 provider 配置的<b>两面一源</b>契约钉。
@@ -93,7 +93,7 @@ class StorageProjectionVocabularyTest {
     @DisplayName("落库面：类型化记录输出 camel 键集合（omitempty 语义）")
     void rowFaceIsCamelVocabulary() {
         for (Map.Entry<String, List<String>> e : ROW_FACE_KEYS.entrySet()) {
-            ObjectNode cfg = JsonMapper.builder().disable(tools.jackson.databind.MapperFeature.SORT_PROPERTIES_ALPHABETICALLY).build().createObjectNode();
+            ObjectNode cfg = JsonMapper.builder().build().createObjectNode();
             providerFamily(e.getKey()).writeConfig(cfg);
             assertThat(fieldNames(cfg)).as("%s：落库面键集合", e.getKey())
                     .containsExactlyInAnyOrderElementsOf(e.getValue());
@@ -157,12 +157,12 @@ class StorageProjectionVocabularyTest {
             }
         };
         JsonNode engine = StorageFileResolver.toStorageEngineConfig(row, crypto);
-        assertThat(engine.path("defaultProvider").asString()).isEqualTo(provider);
+        assertThat(engine.path("defaultProvider").asText()).isEqualTo(provider);
         return engine.path(provider);
     }
 
     private static List<String> fieldNames(JsonNode node) {
         return java.util.stream.StreamSupport.stream(
-                node.propertyNames().spliterator(), false).toList();
+                ((Iterable<String>) () -> node.fieldNames()).spliterator(), false).toList();
     }
 }

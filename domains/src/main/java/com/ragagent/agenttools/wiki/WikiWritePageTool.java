@@ -1,5 +1,6 @@
 package com.ragagent.agenttools.wiki;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.agent.SearchAuth;
 import com.ragagent.contract.agent.SearchAuth.KnowledgeScopeReader;
 import com.ragagent.contract.retrieval.SearchTarget.SearchTargets;
@@ -11,7 +12,6 @@ import com.ragagent.platform.tool.ToolSchemas;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * wiki_write_page 工具。
@@ -90,17 +90,17 @@ public class WikiWritePageTool extends BaseTool {
         if (kbIds == null || kbIds.isEmpty()) {
             return failure("No knowledge bases available for editing");
         }
-        String title = args.path("title").asString("");
-        String pageType = args.path("pageType").asString("");
-        String content = args.path("content").asString("");
-        String summary = args.path("summary").asString("");
+        String title = args.path("title").asText("");
+        String pageType = args.path("pageType").asText("");
+        String content = args.path("content").asText("");
+        String summary = args.path("summary").asText("");
         if (title.isEmpty() || pageType.isEmpty() || content.isEmpty() || summary.isEmpty()) {
             return failure("title, summary, content, and page_type are required for write action");
         }
 
         String slug;
         try {
-            slug = WikiSlugs.normalizeAndValidateWikiSlug(args.path("slug").asString(""));
+            slug = WikiSlugs.normalizeAndValidateWikiSlug(args.path("slug").asText(""));
         } catch (IllegalArgumentException e) {
             return failure(e.getMessage());
         }

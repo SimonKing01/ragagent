@@ -454,7 +454,7 @@ class ImaConnectorTest {
 
             var rootBody = f.lastRequestBody("get_knowledge_list");
             assertThat(rootBody).isNotNull();
-            assertThat(rootBody.get("knowledge_base_id").asString()).isEqualTo("kb1");  // ← 出网请求：Ima 契约
+            assertThat(rootBody.get("knowledge_base_id").asText()).isEqualTo("kb1");  // ← 出网请求：Ima 契约
             assertThat(rootBody.has("folder_id")).as("folder_id must be omitted for the root").isFalse();
             assertThat(rootBody.get("limit").asInt()).isEqualTo(ImaClient.DEFAULT_PAGE_SIZE);
         }
@@ -473,7 +473,7 @@ class ImaConnectorTest {
 
             // 最后一次 get_knowledge_list 是内层文件夹那次。
             var body = f.lastRequestBody("get_knowledge_list");
-            assertThat(body.get("folder_id").asString()).isEqualTo("f1");
+            assertThat(body.get("folder_id").asText()).isEqualTo("f1");
         }
     }
 

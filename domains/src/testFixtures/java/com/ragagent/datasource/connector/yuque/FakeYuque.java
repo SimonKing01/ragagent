@@ -1,5 +1,7 @@
 package com.ragagent.datasource.connector.yuque;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.datasource.domain.DataSourceConfig;
 import com.ragagent.datasource.domain.connector.ConnectorHttp;
 import com.ragagent.platform.security.SsrfGuard;
@@ -16,8 +18,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 语雀 Open API v2 的进程内替身，绑在 {@code 127.0.0.1} 的随机端口上。

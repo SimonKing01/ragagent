@@ -402,7 +402,7 @@ public final class FaqSnippet {
     /** chunk.metadata(JsonNode) → FaqChunkMetadata 的适配（isolated 以隔离 knowledge 域类型）。 */
     private static final class JsonNodeLikeAdapter {
         FaqChunkMetadata read(ChunkFacts c) {
-            tools.jackson.databind.JsonNode node = JsonMappers.toJsonNode(c.metadata());
+            com.fasterxml.jackson.databind.JsonNode node = JsonMappers.toJsonNode(c.metadata());
             if (node == null || node.isNull() || node.isMissingNode() || node.isEmpty()) {
                 return null;
             }

@@ -12,7 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  *
  * <p>背景：{@code AppEnvLookup} 由 {@code AppEnvLookupEnvironmentPostProcessor} 安装，而该 EPP
  * 只能由 {@code META-INF/spring.factories} 装载——写成
- * {@code META-INF/spring/org.springframework.boot.EnvironmentPostProcessor.imports} 会被
+ * {@code META-INF/spring/org.springframework.boot.env.EnvironmentPostProcessor.imports} 会被
  * <b>静默忽略</b>（不报错、不执行、读点回落到「未配置」）。单条注解/文件形态检查抓不住这种回归，
  * 因为它恰恰是"代码看着对、运行时不生效"。</p>
  *

@@ -1,5 +1,6 @@
 package com.ragagent.system.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.doc.DocReaderAdminPort;
 import com.ragagent.contract.doc.ParserEngineCatalogPort;
 import com.ragagent.contract.error.AppError;
@@ -24,7 +25,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.JsonNode;
 
 /**
  * /api/v1/system 组：读端（capabilities/info/parser-engines/storage-engine-status）Viewer+；
@@ -138,7 +138,7 @@ public class SystemController {
     public ResponseEntity<SystemDtos.ParserEnginesResponse> reconnectDocReader(
             @RequestBody(required = false) String rawBody) {
         JsonNode body = parseBody(rawBody);
-        String addr = body == null || !body.has("addr") ? null : body.path("addr").asString(null);
+        String addr = body == null || !body.has("addr") ? null : body.path("addr").asText(null);
         if (addr == null) {
             throw new BizException(AppError.badRequest("请提供 addr 参数"));
         }

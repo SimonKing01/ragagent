@@ -1,5 +1,6 @@
 package com.ragagent.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.audit.domain.AuditLog;
 import com.ragagent.audit.service.AuditLogService;
 import com.ragagent.contract.audit.AuditAction;
@@ -10,7 +11,6 @@ import com.ragagent.retrieval.engine.opensearch.OpenSearchRetrieveRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * OpenSearch 驱动审计事件的适配器——driver 自有 AuditSink 接口，依赖箭头单向；
@@ -48,7 +48,7 @@ public class OpenSearchAuditSinkAdapter implements OpenSearchRetrieveRepository.
                         .put("dst_alias", dstAlias).put("docs", docs));
     }
 
-    private void emit(String action, String target, tools.jackson.databind.JsonNode details) {
+    private void emit(String action, String target, com.fasterxml.jackson.databind.JsonNode details) {
         if (audit == null) {
             return;
         }

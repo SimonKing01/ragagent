@@ -1,10 +1,10 @@
 package com.ragagent.im.channel.dingtalk;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.im.runtime.ImTypes;
 import com.ragagent.im.runtime.IncomingMessage;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 钉钉回调解析：纯函数，无 HTTP / 无 Spring。
@@ -22,28 +22,28 @@ final class DingtalkCallbackParser {
     }
 
     static IncomingMessage parseCallbackMessage(JsonNode msg) {
-        String conversationType = msg.path("conversationType").asString("");
+        String conversationType = msg.path("conversationType").asText("");
         boolean isGroup = CONV_TYPE_GROUP.equals(conversationType);
         String chatType = isGroup ? ImTypes.CHAT_TYPE_GROUP : ImTypes.CHAT_TYPE_DIRECT;
-        String chatId = isGroup ? msg.path("conversationId").asString("") : "";
+        String chatId = isGroup ? msg.path("conversationId").asText("") : "";
 
-        String userId = msg.path("senderStaffId").asString("");
+        String userId = msg.path("senderStaffId").asText("");
         if (userId.isEmpty()) {
-            userId = msg.path("senderId").asString("");
+            userId = msg.path("senderId").asText("");
         }
-        String msgType = msg.path("msgtype").asString("");
-        String msgId = msg.path("msgId").asString("");
-        String robotCode = msg.path("robotCode").asString("");
+        String msgType = msg.path("msgtype").asText("");
+        String msgId = msg.path("msgId").asText("");
+        String robotCode = msg.path("robotCode").asText("");
         JsonNode content = msg.path("content");
 
         IncomingMessage incoming = new IncomingMessage();
         incoming.platform = ImTypes.PLATFORM_DINGTALK;
         incoming.userId = userId;
-        incoming.userName = msg.path("senderNick").asString("");
+        incoming.userName = msg.path("senderNick").asText("");
         incoming.chatId = chatId;
         incoming.chatType = chatType;
         incoming.messageId = msgId;
-        incoming.extra.put("session_webhook", msg.path("sessionWebhook").asString(""));
+        incoming.extra.put("session_webhook", msg.path("sessionWebhook").asText(""));
         incoming.extra.put("raw_msgtype", msgType);
 
         RichText rich = parseRichTextContent(msgType, content);
@@ -66,7 +66,7 @@ final class DingtalkCallbackParser {
             return incoming;
         }
         incoming.messageType = ImTypes.MESSAGE_TYPE_TEXT;
-        incoming.content = msg.path("text").path("content").asString("").trim();
+        incoming.content = msg.path("text").path("content").asText("").trim();
         return incoming;
     }
 
@@ -91,7 +91,7 @@ final class DingtalkCallbackParser {
         List<String> textParts = new ArrayList<>();
         RichText result = new RichText();
         for (JsonNode item : richText) {
-            String text = item.path("text").asString("").trim();
+            String text = item.path("text").asText("").trim();
             if (!text.isEmpty()) {
                 textParts.add(text);
             }
@@ -110,11 +110,11 @@ final class DingtalkCallbackParser {
 
     /** type=picture 才认；原图码优先回落预览码。 */
     private static String pictureDownloadCode(JsonNode item) {
-        if (!item.path("type").asString("").trim().equalsIgnoreCase("picture")) {
+        if (!item.path("type").asText("").trim().equalsIgnoreCase("picture")) {
             return "";
         }
-        String code = item.path("downloadCode").asString("");
-        return code.isEmpty() ? item.path("pictureDownloadCode").asString("") : code;
+        String code = item.path("downloadCode").asText("");
+        return code.isEmpty() ? item.path("pictureDownloadCode").asText("") : code;
     }
 
     /** msgtype=audio 且 recognition 非空。 */
@@ -125,7 +125,7 @@ final class DingtalkCallbackParser {
         if (content == null || content.isMissingNode() || content.isNull()) {
             return null;
         }
-        String text = content.path("recognition").asString("").trim();
+        String text = content.path("recognition").asText("").trim();
         return text.isEmpty() ? null : text;
     }
 
@@ -143,14 +143,14 @@ final class DingtalkCallbackParser {
                 return null;
             }
         }
-        String downloadCode = content == null ? "" : content.path("downloadCode").asString("");
+        String downloadCode = content == null ? "" : content.path("downloadCode").asText("");
         if (downloadCode.isEmpty()) {
-            downloadCode = content == null ? "" : content.path("pictureDownloadCode").asString("");
+            downloadCode = content == null ? "" : content.path("pictureDownloadCode").asText("");
         }
         if (downloadCode.isEmpty()) {
             return null;
         }
-        String fileName = content == null ? "" : content.path("fileName").asString("");
+        String fileName = content == null ? "" : content.path("fileName").asText("");
         if (ImTypes.MESSAGE_TYPE_IMAGE.equals(messageType)) {
             fileName = "";
         }

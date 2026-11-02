@@ -1,5 +1,6 @@
 package com.ragagent.im.runtime;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.agent.AgentLookup;
 import com.ragagent.contract.tool.ToolCapabilities;
 import com.ragagent.im.runtime.Commands.CommandContext;
@@ -10,7 +11,6 @@ import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 五个斜杠命令。注册序固定：help → info → search → stop → clear。
@@ -78,14 +78,14 @@ public final class ImCommandSet {
         }
 
         private String text(String field) {
-            return cfg != null && cfg.hasNonNull(field) ? cfg.get(field).asString("") : "";
+            return cfg != null && cfg.hasNonNull(field) ? cfg.get(field).asText("") : "";
         }
 
         private List<String> strings(String field) {
             List<String> out = new ArrayList<>();
             if (cfg != null && cfg.has(field) && cfg.get(field).isArray()) {
                 for (JsonNode n : cfg.get(field)) {
-                    out.add(n.asString(""));
+                    out.add(n.asText(""));
                 }
             }
             return out;

@@ -1,5 +1,6 @@
 package com.ragagent.agenttools.wiki;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.agent.SearchAuth;
 import com.ragagent.contract.tool.BaseTool;
 import com.ragagent.contract.tool.ToolDefinitions;
@@ -9,7 +10,6 @@ import com.ragagent.platform.tool.ToolSchemas;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.List;
-import tools.jackson.databind.JsonNode;
 
 /**
  * wiki_read_issue 工具。
@@ -48,8 +48,8 @@ public class WikiReadIssueTool extends BaseTool {
     @Override
     public ToolResult execute(ToolRequest request) {
         JsonNode args = JsonMappers.toJsonNode(request.args());
-        String issueId = args.path("issueId").asString("").trim();
-        String slug = args.path("slug").asString("").trim();
+        String issueId = args.path("issueId").asText("").trim();
+        String slug = args.path("slug").asText("").trim();
 
         if (issueId.isEmpty() && slug.isEmpty()) {
             return failure("Either issue_id or slug is required");

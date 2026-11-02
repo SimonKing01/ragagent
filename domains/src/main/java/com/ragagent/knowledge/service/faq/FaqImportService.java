@@ -1,5 +1,7 @@
 package com.ragagent.knowledge.service.faq;
 
+import com.fasterxml.jackson.core.JacksonException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.model.ModelCatalogPort.ModelRowView;
@@ -33,8 +35,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
 
 /**
  * FAQ 条目批量导入（upsert）与进度面：append/replace 两种模式的 dry-run 校验、

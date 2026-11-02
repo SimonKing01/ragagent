@@ -2,6 +2,7 @@ package com.ragagent.agenttools.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.agent.fixtures.RecordingSupport;
 import com.ragagent.agent.fixtures.ToolContractGoldenB;
 import com.ragagent.agenttools.sql.DatabaseQueryTool.QueryResult;
@@ -22,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 4.5b 回放：database_query 的录制回放。
@@ -167,16 +167,16 @@ class DatabaseQueryRecordingTest {
 
     private static ToolRequest req(JsonNode r) {
         try {
-            return ToolRequest.of(RecordingSupport.PLAIN.readTree(r.get("args").asString()));
-        } catch (tools.jackson.core.JacksonException e) {
+            return ToolRequest.of(RecordingSupport.PLAIN.readTree(r.get("args").asText()));
+        } catch (java.io.IOException e) {
             throw new IllegalStateException(e);
         }
     }
 
     private static void assertToolResult(String label, ToolResult result, JsonNode r) {
         assertThat(result.isSuccess()).as("%s success", label).isEqualTo(r.get("success").asBoolean());
-        assertThat(result.getOutput()).as("%s output", label).isEqualTo(r.get("output").asString());
-        String wantError = r.hasNonNull("error") ? r.get("error").asString() : "";
+        assertThat(result.getOutput()).as("%s output", label).isEqualTo(r.get("output").asText());
+        String wantError = r.hasNonNull("error") ? r.get("error").asText() : "";
         if (!wantError.isEmpty()) {
             assertThat(result.getError()).as("%s error", label).isEqualTo(wantError);
         }
@@ -203,7 +203,7 @@ class DatabaseQueryRecordingTest {
     @Test
     void schemaContract() {
         // _schema 语料：录制下来的 schema 原字节。
-        JsonNode schema = RecordingSupport.readTree(rec("database_query_schema").get("schema").asString());
+        JsonNode schema = RecordingSupport.readTree(rec("database_query_schema").get("schema").asText());
         assertThat(JsonMappers.toJsonNode(tool(wholeKb("aa45bq01")).getParameters())).isEqualTo(schema);
     }
 

@@ -1,5 +1,7 @@
 package com.ragagent.datasource.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.apikey.TenantAPIKeyScope;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
@@ -29,8 +31,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * 数据源管理端点。
@@ -116,7 +116,7 @@ public class DataSourceController {
             throw BizException.badRequest( "invalid request");
         }
         ResponseEntity<?> kbError = kbGuard.check(
-                tenantId, req.path("knowledgeBaseId").asString(""));
+                tenantId, req.path("knowledgeBaseId").asText(""));
         if (kbError != null) {
             return kbError;
         }

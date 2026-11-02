@@ -1,5 +1,6 @@
 package com.ragagent.websearch.provider;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.websearch.WebSearchResult;
 import com.ragagent.platform.web.ProviderJson;
 import com.ragagent.websearch.config.WebSearchProviderParams;
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import tools.jackson.databind.JsonNode;
 
 /**
  * 智谱独立 Web 搜索 provider。
@@ -121,25 +121,25 @@ public final class ZhipuWebSearchProvider implements WebSearchProvider {
         if (response == null) {
             throw new SearchHttp.SearchHttpException("failed to unmarshal Zhipu response");
         }
-        String errorCode = response.path("error").path("code").asString("");
-        String errorMessage = response.path("error").path("message").asString("");
+        String errorCode = response.path("error").path("code").asText("");
+        String errorMessage = response.path("error").path("message").asText("");
         if (!errorMessage.isEmpty() || !errorCode.isEmpty()) {
             throw new SearchHttp.SearchHttpException("Zhipu API error (" + errorCode + "): "
                     + errorMessage);
         }
         List<WebSearchResult> results = new ArrayList<>();
         for (JsonNode item : response.path("search_result")) {
-            if (item.path("title").asString("").trim().isEmpty()
-                    && item.path("link").asString("").trim().isEmpty()) {
+            if (item.path("title").asText("").trim().isEmpty()
+                    && item.path("link").asText("").trim().isEmpty()) {
                 continue;
             }
             WebSearchResult result = new WebSearchResult();
-            result.setTitle(item.path("title").asString(""));
-            result.setUrl(item.path("link").asString(""));
-            result.setSnippet(item.path("content").asString(""));
+            result.setTitle(item.path("title").asText(""));
+            result.setUrl(item.path("link").asText(""));
+            result.setSnippet(item.path("content").asText(""));
             result.setSource("zhipu");
             if (includeDate) {
-                OffsetDateTime publishedAt = parseZhipuDate(item.path("publish_date").asString(""));
+                OffsetDateTime publishedAt = parseZhipuDate(item.path("publish_date").asText(""));
                 if (publishedAt != null) {
                     result.setPublishedAt(publishedAt);
                 }
@@ -197,8 +197,8 @@ public final class ZhipuWebSearchProvider implements WebSearchProvider {
     static SearchHttp.SearchHttpException zhipuHttpError(int statusCode, byte[] body) {
         JsonNode response = ProviderJson.parse(body);
         if (response != null && response.isObject()) {
-            String code = response.path("error").path("code").asString("");
-            String message = response.path("error").path("message").asString("");
+            String code = response.path("error").path("code").asText("");
+            String message = response.path("error").path("message").asText("");
             if (!code.isEmpty() || !message.isEmpty()) {
                 return new SearchHttp.SearchHttpException("Zhipu API returned status " + statusCode
                         + " (" + code + "): " + message);

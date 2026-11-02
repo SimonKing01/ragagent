@@ -1,14 +1,14 @@
 package com.ragagent.platform.prompt;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 提示词模板目录，供 {@code GET /api/v1/tenants/kv/prompt-templates} 消费。
@@ -115,19 +115,19 @@ public final class PromptTemplateCatalog {
                     i18nNode.properties().forEach(e -> {
                         JsonNode v = e.getValue();
                         i18n.put(e.getKey(), new I18n(
-                                v.path("name").asString(""), v.path("description").asString("")));
+                                v.path("name").asText(""), v.path("description").asText("")));
                     });
                 }
                 out.add(new Template(
-                        t.path("id").asString(""),
-                        t.path("name").asString(""),
-                        t.path("description").asString(""),
-                        t.path("content").asString(""),
-                        t.path("user").asString(""),
+                        t.path("id").asText(""),
+                        t.path("name").asText(""),
+                        t.path("description").asText(""),
+                        t.path("content").asText(""),
+                        t.path("user").asText(""),
                         t.path("has_knowledge_base").asBoolean(false),
                         t.path("has_web_search").asBoolean(false),
                         t.path("default").asBoolean(false),
-                        t.path("mode").asString(""),
+                        t.path("mode").asText(""),
                         i18n));
             }
             return out;

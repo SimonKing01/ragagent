@@ -1,8 +1,8 @@
 package com.ragagent.session.domain;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.ragagent.contract.agent.AgentStep;
 import java.util.List;
-import tools.jackson.core.type.TypeReference;
 
 /**
  * {@code messages} 表上 {@code agent_steps} 列的处理器。

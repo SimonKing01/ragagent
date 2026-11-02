@@ -1,5 +1,8 @@
 package com.ragagent.agentmanagement.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.agentmanagement.dto.AgentResponses;
 import com.ragagent.agentmanagement.dto.AgentView;
 import com.ragagent.agentmanagement.service.AgentSuggestedQuestions.TagScope;
@@ -30,9 +33,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * agents CRUD 家族路由。
@@ -174,10 +174,10 @@ public class AgentController {
                         JsonNode ids = e.get("tagIds");
                         if (ids != null && ids.isArray()) {
                             for (JsonNode t : ids) {
-                                tagIds.add(t.asString(""));
+                                tagIds.add(t.asText(""));
                             }
                         }
-                        tagScopes.add(new TagScope(e.path("knowledgeBaseId").asString(""), tagIds));
+                        tagScopes.add(new TagScope(e.path("knowledgeBaseId").asText(""), tagIds));
                     }
                 } else {
                     throw new IllegalArgumentException("not an array");
@@ -227,14 +227,14 @@ public class AgentController {
             throw invalidParams(e.getMessage());
         }
         String name = node == null || node.get("name") == null || node.get("name").isNull()
-                ? "" : node.get("name").asString("");
+                ? "" : node.get("name").asText("");
         if (requireName && name.isEmpty()) {
             throw invalidParams(RequestFields.message("Name", "required"));
         }
         String description = node != null && node.get("description") != null
-                && !node.get("description").isNull() ? node.get("description").asString("") : "";
+                && !node.get("description").isNull() ? node.get("description").asText("") : "";
         String avatar = node != null && node.get("avatar") != null
-                && !node.get("avatar").isNull() ? node.get("avatar").asString("") : "";
+                && !node.get("avatar").isNull() ? node.get("avatar").asText("") : "";
         JsonNode config = node != null && node.get("config") != null && node.get("config").isObject()
                 ? node.get("config") : MAPPER.createObjectNode();
         return new AgentRequest(name, description, avatar, config);
@@ -256,7 +256,7 @@ public class AgentController {
         if (scope == null || !scope.isKnowledgeBaseRestricted()) {
             return;
         }
-        String mode = cfg.path("kbSelectionMode").asString("").toLowerCase().trim();
+        String mode = cfg.path("kbSelectionMode").asText("").toLowerCase().trim();
         switch (mode) {
             case "none" -> {
             }
@@ -280,7 +280,7 @@ public class AgentController {
         JsonNode n = cfg.get(field);
         if (n != null && n.isArray()) {
             for (JsonNode e : n) {
-                out.add(e.asString(""));
+                out.add(e.asText(""));
             }
         }
         return out;

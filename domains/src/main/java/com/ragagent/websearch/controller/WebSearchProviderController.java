@@ -1,5 +1,7 @@
 package com.ragagent.websearch.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.contract.apikey.APIKeyScopeContext;
 import com.ragagent.contract.apikey.TenantAPIKeyScope;
 import com.ragagent.contract.error.BizException;
@@ -36,8 +38,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * web 搜索 provider 管理面（10 条路由；角色门：读 Viewer+ / 写 Admin+）。
@@ -298,7 +298,7 @@ public class WebSearchProviderController {
 
     static String textOrNull(JsonNode body, String field) {
         JsonNode n = body.get(field);
-        return n == null || n.isNull() ? null : n.asString();
+        return n == null || n.isNull() ? null : n.asText();
     }
 
     static String textOrEmpty(JsonNode body, String field) {

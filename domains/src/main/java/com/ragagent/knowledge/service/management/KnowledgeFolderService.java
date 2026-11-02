@@ -1,5 +1,9 @@
 package com.ragagent.knowledge.service.management;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.knowledge.domain.Knowledge;
@@ -25,10 +29,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 知识文件夹树与文件夹移动 / 重命名：树的增删改查、移动/重命名的路径重写与冲突校验。
@@ -118,7 +118,7 @@ public class KnowledgeFolderService {
     }
 
     private static final Comparator<ObjectNode> byNameLower =
-            Comparator.comparing(n -> n.path("name").asString("").toLowerCase(Locale.ROOT));
+            Comparator.comparing(n -> n.path("name").asText("").toLowerCase(Locale.ROOT));
 
     /** 顶级挂 Folders，子级挂 parent.Children。 */
     private static ObjectNode ensureFolderNode(String path, Map<String, ObjectNode> nodes,

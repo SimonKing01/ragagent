@@ -1,10 +1,10 @@
 package com.ragagent.datasource.domain;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.ragagent.platform.web.ZeroTimeSerializer;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * 从外部源抓到的单个文档/内容项。

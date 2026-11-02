@@ -1,5 +1,6 @@
 package com.ragagent.agenttools.wiki;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.tool.BaseTool;
 import com.ragagent.contract.tool.ToolDefinitions;
 import com.ragagent.contract.tool.ToolRequest;
@@ -9,7 +10,6 @@ import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-import tools.jackson.databind.JsonNode;
 
 /**
  * wiki_delete_page 工具。
@@ -49,12 +49,12 @@ public class WikiDeletePageTool extends BaseTool {
         if (kbIds == null || kbIds.isEmpty()) {
             return failure("No knowledge bases available for editing");
         }
-        if (args.path("slug").asString("").isEmpty()) {
+        if (args.path("slug").asText("").isEmpty()) {
             return failure("slug is required");
         }
         String slug;
         try {
-            slug = WikiSlugs.normalizeAndValidateWikiSlug(args.path("slug").asString(""));
+            slug = WikiSlugs.normalizeAndValidateWikiSlug(args.path("slug").asText(""));
         } catch (IllegalArgumentException e) {
             return failure(e.getMessage());
         }

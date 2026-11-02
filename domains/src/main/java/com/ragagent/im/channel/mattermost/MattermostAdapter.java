@@ -1,5 +1,8 @@
 package com.ragagent.im.channel.mattermost;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.CallbackExchange;
 import com.ragagent.im.runtime.ImAdapterVerify;
@@ -16,9 +19,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.node.ArrayNode;
 
 /**
  * Mattermost 适配器（outgoing webhook 入站 + REST 出站）。
@@ -212,13 +212,13 @@ public class MattermostAdapter implements AdapterInterfaces.Adapter,
             throw new IllegalArgumentException("invalid json payload");
         }
         return new OutgoingPayload(
-                node.path("token").asString(""),
-                node.path("user_id").asString(""),
-                node.path("user_name").asString(""),
-                node.path("channel_id").asString(""),
-                node.path("post_id").asString(""),
-                node.path("text").asString(""),
-                node.path("root_id").asString(""),
+                node.path("token").asText(""),
+                node.path("user_id").asText(""),
+                node.path("user_name").asText(""),
+                node.path("channel_id").asText(""),
+                node.path("post_id").asText(""),
+                node.path("text").asText(""),
+                node.path("root_id").asText(""),
                 node.has("file_ids") ? node.get("file_ids") : null);
     }
 
@@ -259,14 +259,14 @@ public class MattermostAdapter implements AdapterInterfaces.Adapter,
         if (raw.isArray()) {
             List<String> out = new ArrayList<>();
             for (JsonNode item : raw) {
-                String value = item.asString("");
+                String value = item.asText("");
                 if (!value.isEmpty()) {
                     out.add(value);
                 }
             }
             return out;
         }
-        String text = raw.asString("");
+        String text = raw.asText("");
         return text.isEmpty() ? List.of() : splitFileIds(text);
     }
 

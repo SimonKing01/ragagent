@@ -5,11 +5,11 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.tenant.APIPrincipalConfig;
 import com.ragagent.platform.persistence.PgJsonTypeHandler;
 import com.ragagent.platform.persistence.SecretJsonTypeHandler;
 import java.time.OffsetDateTime;
-import tools.jackson.databind.JsonNode;
 
 /**
  * tenants 表实体。

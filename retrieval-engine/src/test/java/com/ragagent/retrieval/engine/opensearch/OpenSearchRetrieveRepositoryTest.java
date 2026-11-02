@@ -3,6 +3,8 @@ package com.ragagent.retrieval.engine.opensearch;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.retrieval.engine.EngineTypes;
 import com.ragagent.retrieval.engine.EngineTypes.IndexInfo;
 import com.ragagent.retrieval.engine.EngineTypes.RetrieveParams;
@@ -21,8 +23,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
  * OpenSearch k-NN 驱动：
@@ -191,30 +191,30 @@ class OpenSearchRetrieveRepositoryTest {
         JsonNode body = MAPPER.readTree(create.body());
         assertThat(body.path("settings").path("index").path("knn").asBoolean()).isTrue();
         assertThat(body.path("settings").path("index").path("number_of_shards").asInt()).isEqualTo(4);
-        assertThat(body.path("settings").path("index").path("refresh_interval").asString())
+        assertThat(body.path("settings").path("index").path("refresh_interval").asText())
                 .isEqualTo("1s");
         assertThat(body.path("settings").path("index").path("knn.algo_param.ef_search").asInt())
                 .isEqualTo(100);
         JsonNode emb = body.path("mappings").path("properties").path("embedding");
-        assertThat(emb.path("type").asString()).isEqualTo("knn_vector");
+        assertThat(emb.path("type").asText()).isEqualTo("knn_vector");
         assertThat(emb.path("dimension").asInt()).isEqualTo(3);
-        assertThat(emb.path("method").path("name").asString()).isEqualTo("hnsw");
-        assertThat(emb.path("method").path("space_type").asString()).isEqualTo("cosinesimil");
-        assertThat(emb.path("method").path("engine").asString()).isEqualTo("lucene");
+        assertThat(emb.path("method").path("name").asText()).isEqualTo("hnsw");
+        assertThat(emb.path("method").path("space_type").asText()).isEqualTo("cosinesimil");
+        assertThat(emb.path("method").path("engine").asText()).isEqualTo("lucene");
         assertThat(emb.path("method").path("parameters").path("m").asInt()).isEqualTo(16);
         assertThat(emb.path("method").path("parameters").path("ef_construction").asInt())
                 .isEqualTo(100);
         assertThat(body.path("mappings").path("properties").path("chunk_id").path("type")
-                .asString()).isEqualTo("keyword");
+                .asText()).isEqualTo("keyword");
         assertThat(body.path("mappings").path("properties").path("source_type").path("type")
-                .asString()).isEqualTo("integer");
+                .asText()).isEqualTo("integer");
 
         Captured alias = captured.stream()
                 .filter(c -> c.path().equals("/_aliases")).findFirst().orElseThrow();
         JsonNode aliasBody = MAPPER.readTree(alias.body());
-        assertThat(aliasBody.path("actions").get(0).path("add").path("index").asString())
+        assertThat(aliasBody.path("actions").get(0).path("add").path("index").asText())
                 .isEqualTo("weknora_3_v1");
-        assertThat(aliasBody.path("actions").get(0).path("add").path("alias").asString())
+        assertThat(aliasBody.path("actions").get(0).path("add").path("alias").asText())
                 .isEqualTo("weknora_3");
 
         // 幂等：第二次 save 时 alias 已存在（桩 HEAD 默认 404？——alias 存在性由
@@ -245,12 +245,12 @@ class OpenSearchRetrieveRepositoryTest {
                 .findFirst().orElseThrow();
         assertThat(put.path()).isEqualTo("/weknora_1/_doc/c1").as("_id=chunk_id");
         JsonNode doc = MAPPER.readTree(put.body());
-        assertThat(doc.path("chunk_id").asString()).isEqualTo("c1");
+        assertThat(doc.path("chunk_id").asText()).isEqualTo("c1");
         assertThat(doc.path("is_enabled").asBoolean()).isFalse().as("chunk_enabled 覆写");
         assertThat(doc.path("embedding").get(0).asDouble()).isEqualTo(1.5);
         // 键字母序
         List<String> keys = new ArrayList<>();
-        doc.propertyNames().forEach(keys::add);
+        doc.fieldNames().forEachRemaining(keys::add);
         assertThat(keys).isSorted();
 
         // keyword-only：无 embedding → <base>_keywords 索引 + 文档无 embedding 字段
@@ -276,10 +276,10 @@ class OpenSearchRetrieveRepositoryTest {
         String[] lines = bulk.body().split("\n");
         assertThat(lines).hasSize(4);
         JsonNode action = MAPPER.readTree(lines[0]);
-        assertThat(action.path("index").path("_id").asString()).isEqualTo("c1");
-        assertThat(action.path("index").path("_index").asString()).isEqualTo("weknora_2");
+        assertThat(action.path("index").path("_id").asText()).isEqualTo("c1");
+        assertThat(action.path("index").path("_index").asText()).isEqualTo("weknora_2");
         JsonNode doc2 = MAPPER.readTree(lines[1]);
-        assertThat(doc2.path("source_id").asString()).isEqualTo("s1");
+        assertThat(doc2.path("source_id").asText()).isEqualTo("s1");
 
         // 混合维度 → DIMENSION_MISMATCH
         Map<String, Object> mixed = Map.of("embedding", Map.of(
@@ -330,7 +330,7 @@ class OpenSearchRetrieveRepositoryTest {
         assertThat(knn.path("k").asInt()).isEqualTo(5);
         assertThat(knn.path("vector").get(0).asDouble()).isEqualTo(1.0);
         assertThat(knn.path("filter").path("bool").path("must").get(0)
-                .path("terms").path("knowledge_base_id").get(0).asString()).isEqualTo("kb-1");
+                .path("terms").path("knowledge_base_id").get(0).asText()).isEqualTo("kb-1");
         assertThat(knn.path("filter").path("bool").path("must").get(1).path("term")
                 .path("is_enabled").asBoolean()).isTrue().as("隐含 is_enabled=true 子句");
 
@@ -363,7 +363,7 @@ class OpenSearchRetrieveRepositoryTest {
         assertThat(body.path("size").asInt()).isEqualTo(10).as("TopK 缺省 10");
         // must 序：无显式过滤时为 [is_enabled 隐含子句, match content]
         assertThat(body.path("query").path("bool").path("must").get(1).path("match")
-                .path("content").asString()).isEqualTo("退款");
+                .path("content").asText()).isEqualTo("退款");
         assertThat(out.get(0).results().get(0).matchType)
                 .isEqualTo(EngineTypes.MATCH_KEYWORDS);
     }
@@ -381,7 +381,7 @@ class OpenSearchRetrieveRepositoryTest {
                 .findFirst().orElseThrow();
         assertThat(del.path()).isEqualTo("/weknora_2/_delete_by_query?refresh=true");
         JsonNode body = MAPPER.readTree(del.body());
-        assertThat(body.path("query").path("terms").path("source_id").get(0).asString())
+        assertThat(body.path("query").path("terms").path("source_id").get(0).asText())
                 .isEqualTo("s1");
 
         List<String> tooMany = new ArrayList<>();
@@ -408,13 +408,13 @@ class OpenSearchRetrieveRepositoryTest {
                 .findFirst().orElseThrow();
         assertThat(up.path()).contains("refresh=true");
         JsonNode body = MAPPER.readTree(up.body());
-        assertThat(body.path("script").path("params").path("target").asString())
+        assertThat(body.path("script").path("params").path("target").asText())
                 .isEqualTo("kb-dst").as("params 绑定在 script 内（Go 无顶层 params）");
-        assertThat(body.path("script").path("source").asString())
+        assertThat(body.path("script").path("source").asText())
                 .isEqualTo("ctx._source.knowledge_base_id = params.target;"
                         + " ctx._source.tag_id = '';");
         assertThat(body.path("query").path("bool").path("filter").get(0).path("term")
-                .path("knowledge_base_id").asString()).isEqualTo("kb-src");
+                .path("knowledge_base_id").asText()).isEqualTo("kb-src");
 
         // 完整性：updated != total → TRANSPORT
         bodyOverrides.put("POST /weknora_*/_update_by_query",
@@ -441,11 +441,11 @@ class OpenSearchRetrieveRepositoryTest {
         JsonNode first = MAPPER.readTree(updates.get(0).body());
         assertThat(first.path("script").path("params").path("v").asBoolean()).isFalse()
                 .as("false 组先发");
-        assertThat(first.path("query").path("terms").path("chunk_id").get(0).asString())
+        assertThat(first.path("query").path("terms").path("chunk_id").get(0).asText())
                 .isEqualTo("c1");
         JsonNode second = MAPPER.readTree(updates.get(1).body());
         assertThat(second.path("script").path("params").path("v").asBoolean()).isTrue();
-        assertThat(second.path("query").path("terms").path("chunk_id").get(1).asString())
+        assertThat(second.path("query").path("terms").path("chunk_id").get(1).asText())
                 .isEqualTo("c3").as("组内 id 排序");
 
         // tag 分组：字典序
@@ -453,7 +453,7 @@ class OpenSearchRetrieveRepositoryTest {
         r.batchUpdateChunkTagID(Map.of("c1", "t-b", "c2", "t-a"));
         JsonNode tagBody = MAPPER.readTree(
                 captured.get(0).body());
-        assertThat(tagBody.path("script").path("params").path("v").asString()).isEqualTo("t-a");
+        assertThat(tagBody.path("script").path("params").path("v").asText()).isEqualTo("t-a");
     }
 
     // ── CopyIndices ────────────────────────────────────────────────────────
@@ -494,14 +494,14 @@ class OpenSearchRetrieveRepositoryTest {
         assertThat(lines).hasSize(4);
         // 本块：source_id=c1 → c1t；生成问题：c1-q1 → c1t-q1；向量键 = 目标 source id
         JsonNode doc1 = MAPPER.readTree(lines[1]);
-        assertThat(doc1.path("source_id").asString()).isEqualTo("c1t");
-        assertThat(doc1.path("chunk_id").asString()).isEqualTo("c1t");
-        assertThat(doc1.path("knowledge_id").asString()).isEqualTo("doc-t");
-        assertThat(doc1.path("tag_id").asString()).isEqualTo("t1");
+        assertThat(doc1.path("source_id").asText()).isEqualTo("c1t");
+        assertThat(doc1.path("chunk_id").asText()).isEqualTo("c1t");
+        assertThat(doc1.path("knowledge_id").asText()).isEqualTo("doc-t");
+        assertThat(doc1.path("tag_id").asText()).isEqualTo("t1");
         JsonNode action2 = MAPPER.readTree(lines[2]);
-        assertThat(action2.path("index").path("_id").asString()).isEqualTo("c1t");
+        assertThat(action2.path("index").path("_id").asText()).isEqualTo("c1t");
         JsonNode doc2 = MAPPER.readTree(lines[3]);
-        assertThat(doc2.path("source_id").asString()).isEqualTo("c1t-q1");
+        assertThat(doc2.path("source_id").asText()).isEqualTo("c1t-q1");
         assertThat(doc2.path("embedding").get(0).asDouble()).isEqualTo(3.0);
     }
 

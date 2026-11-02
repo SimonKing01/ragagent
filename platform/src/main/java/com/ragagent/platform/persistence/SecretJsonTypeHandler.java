@@ -1,7 +1,7 @@
 package com.ragagent.platform.persistence;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.platform.security.JsonSecrets;
-import tools.jackson.databind.JsonNode;
 
 /**
  * jsonb 配置列的加密版：写前逐字段加密、读后逐字段解密，**结构不变**，读方无感。

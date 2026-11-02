@@ -4,7 +4,7 @@
 
 <p align="center">
   <img alt="JDK" src="https://img.shields.io/badge/JDK-21-orange">
-  <img alt="Spring Boot" src="https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F">
+  <img alt="Spring Boot" src="https://img.shields.io/badge/Spring%20Boot-3.3-6DB33F">
   <img alt="Vue" src="https://img.shields.io/badge/Vue-3.5-42B883">
   <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-17%20%2B%20pgvector-4169E1">
   <img alt="License" src="https://img.shields.io/badge/License-MIT-blue">
@@ -127,7 +127,7 @@ POST（SSE）                                     ← 前端 / 任意 HTTP 客�
 
 | 层 | 选型 |
 |---|---|
-| 语言与框架 | JDK 21（虚拟线程用于管线并发与工具并行）· Spring Boot 4.1 |
+| 语言与框架 | JDK 21（虚拟线程用于管线并发与工具并行）· Spring Boot 3.3 |
 | 数据访问 | MyBatis-Plus + 手写 SQL/仓储门面 · Flyway 迁移（`migrations/versioned/`） |
 | 数据库 | PostgreSQL 17 + pgvector（默认以 ParadeDB 提供检索能力）· Redis 7（事件流、限流、跨实例协调） |
 | 检索引擎 | pgvector · Elasticsearch · OpenSearch · Milvus · Qdrant · Weaviate · 腾讯 VectorDB · Doris · SQLite |
