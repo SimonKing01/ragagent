@@ -144,7 +144,8 @@ public final class QaTurnExecutor {
         try {
             persistTurnMessages(reqCtx);
         } catch (RuntimeException e) {
-            throw BizException.internal(e.getMessage());
+            log.warn("Failed to persist turn", e);
+            throw BizException.internal("failed to persist turn");
         }
     }
 

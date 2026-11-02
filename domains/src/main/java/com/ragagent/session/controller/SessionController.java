@@ -105,7 +105,8 @@ public class SessionController {
         if (e instanceof BizException biz) {
             return biz;
         }
-        return BizException.internal(e.getMessage());
+        log.warn("unhandled exception mapped to internal error", e);
+        return BizException.internal("internal error");
     }
 
     // ── 创建 ──

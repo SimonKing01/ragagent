@@ -195,7 +195,8 @@ public class SessionStreamController {
             log.debug("Session not found, ID: {}", sessionId);
             throw BizException.notFound(e.getMessage());
         } catch (RuntimeException e) {
-            throw BizException.internal(e.getMessage());
+            log.warn("Failed to serve session stream", e);
+            throw BizException.internal("internal error");
         }
 
         // 取这条未完成的消息。三种失败各自映射：
@@ -216,7 +217,8 @@ public class SessionStreamController {
             log.debug("Message not found, session ID: {}, message ID: {}", sessionId, messageId);
             throw BizException.notFound(RECORD_NOT_FOUND);
         } catch (RuntimeException e) {
-            throw BizException.internal(e.getMessage());
+            log.warn("Failed to serve message stream", e);
+            throw BizException.internal("internal error");
         }
 
         String requestId = messageService.getMessage(sessionId, messageId).getRequestId();

@@ -83,7 +83,7 @@ public class AgentToolApprovalService {
                         "user mismatch: only the session owner may resolve this approval");
                 default -> {
                     log.error("Failed to resolve tool approval, pending_id={}", pendingId, e);
-                    throw BizException.internal(e.getMessage() == null ? "" : e.getMessage());
+                    throw BizException.internal("failed to resolve tool approval");
                 }
             }
         }

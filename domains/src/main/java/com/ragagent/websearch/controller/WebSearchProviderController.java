@@ -122,6 +122,8 @@ public class WebSearchProviderController {
                     boolOrFalse(body, "isDefault"), canViewIntegrationSecrets());
         } catch (RuntimeException e) {
             log.warn("Failed to create web search provider", e);
+            // 这里兜的主要是 provider type / 参数校验（文案对调用方有用，如 "invalid provider type: bogus"），
+            // 与「内部故障不可外泄」不同批处理：先把入参校验从 internal 里分出来，才能换固定文案。
             throw BizException.internal(e.getMessage());
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -170,7 +172,7 @@ public class WebSearchProviderController {
             }
         } catch (RuntimeException e) {
             log.warn("Failed to update web search provider {}", id, e);
-            throw BizException.internal(e.getMessage());
+            throw BizException.internal("failed to update web search provider");
         }
         return ResponseEntity.ok(connectedBody());
     }
@@ -185,7 +187,7 @@ public class WebSearchProviderController {
             service.delete(tenantId, id);
         } catch (RuntimeException e) {
             log.warn("Failed to delete web search provider {}", id, e);
-            throw BizException.internal(e.getMessage());
+            throw BizException.internal("failed to delete web search provider");
         }
         return ApiResponse.ok();   // 204 退役（空体与「外壳恒存在」冲突）
     }

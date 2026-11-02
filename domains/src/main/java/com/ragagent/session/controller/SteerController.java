@@ -494,7 +494,8 @@ public class SteerController {
         if (e instanceof BizException biz) {
             return biz;
         }
-        return BizException.internal(e.getMessage());
+        log.warn("unhandled exception mapped to internal error", e);
+        return BizException.internal("internal error");
     }
 
     /** 直接返回已拼好的载荷（原信封的 success 标记已按契约去除）。 */

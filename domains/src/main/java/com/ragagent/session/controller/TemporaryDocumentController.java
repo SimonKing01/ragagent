@@ -324,7 +324,8 @@ public class TemporaryDocumentController {
         if (e instanceof BizException biz) {
             return biz;
         }
-        return BizException.internal(e.getMessage());
+        log.warn("unhandled exception mapped to internal error", e);
+        return BizException.internal("internal error");
     }
 
     /** Content-Disposition：ASCII 安全字符集外的名字加引号。 */

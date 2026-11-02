@@ -580,7 +580,8 @@ public class McpServiceManagement {
         try {
             McpServiceUrls.validateServiceOutboundUrls(service);
         } catch (RuntimeException e) {
-            throw BizException.internal(e.getMessage());
+            log.warn("Failed to validate service outbound URLs", e);
+            throw BizException.internal("failed to validate service outbound URLs");
         }
     }
 
