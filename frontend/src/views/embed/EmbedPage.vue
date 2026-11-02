@@ -366,7 +366,7 @@ watch(headerTitle, (title) => {
     justify-content: center;
     width: 36px;
     height: 36px;
-    border-radius: 10px;
+    border-radius: 50%;
     flex-shrink: 0;
     background: color-mix(in srgb, var(--td-brand-color) 10%, transparent);
     color: var(--td-brand-color);
