@@ -225,6 +225,36 @@ return ResponseEntity.ok(...) 之前 catch 后直接拼 e.getMessage()
 
 ---
 
+## 七点六、G1/G2 收口结果（2026-11-03）
+
+**G1 泛类型返回：40 → 6**
+
+| 处理 | 数量 | 说明 |
+|---|---|---|
+| 收成 record | 34 | skill 4 · agents 列表 1 · embedchannel 13 · MCP 授权 URL 3（含契约方法）· IM 5 · 其余零散 |
+| 保留 `Map` | 6 | Steer 4 + `ok()` 辅助（同一端点按 `status` 分支返回不同键，改 record 会变线格式）· `WikiRequestSupport.rawError`（错误辅助，与 IM 同类问题，未纳入本轮） |
+
+**G2 异常出口：三步全部完成**
+
+- 第一步 12 处：`internal(e.getMessage())` → 固定文案 + 原始异常进日志。1 处按证据回退（该 catch 兜的是入参校验）。
+- 第二步 5 处：写库/索引失败不再冒充 400（全部在 `ChunkQuestionService`）。
+- 第三步 5 处：业务异常不再被降级成 400，保留原 code。
+
+**IM 错误格式统一（附带契约变更）**
+
+`ImChannelController.plain()` 原手写 `{"error": msg}` 裸体，且把 4xx 状态藏在 200 响应里
+（`{"code":0,"data":{"error":…},"message":"ok"}`）。改为抛 `BizException` 走统一外壳后：
+
+```diff
+- {"code":0,"data":{"error":"field 'platform' is required"},"message":"ok"}
++ {"code":1000,"data":null,"message":"field 'platform' is required"}
+```
+
+9 条金片随之更新；`scripts/contract-signature.baseline.json` 已签字。
+前端无需同步：`frontend/src/utils/request.ts` 的拦截器本就同时兼容 `message` 与 `error` 两种形态。
+
+---
+
 ## 八、不做的事
 
 - 不引入新框架（不换 ORM、不引 MapStruct）。
