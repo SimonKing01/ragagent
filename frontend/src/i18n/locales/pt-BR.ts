@@ -4029,7 +4029,7 @@ export default {
     zhHK: '繁體中文',
     esES: 'Español',
     ptBR: 'Português',
-    thTH: 'ไทย',
+    thTH: 'ภาษาไทย',
     selectLanguage: 'Selecionar idioma',
     language: 'Idioma',
     languageDescription: 'Selecione o idioma de exibição da interface',

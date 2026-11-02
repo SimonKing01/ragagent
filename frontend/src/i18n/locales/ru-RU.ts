@@ -2050,7 +2050,7 @@ export default {
     zhHK: '繁體中文',
     esES: 'Español',
     ptBR: 'Português',
-    thTH: 'ไทย',
+    thTH: 'ภาษาไทย',
     selectLanguage: 'Выбрать язык',
     language: 'Язык',
     languageDescription: 'Выберите язык отображения интерфейса',

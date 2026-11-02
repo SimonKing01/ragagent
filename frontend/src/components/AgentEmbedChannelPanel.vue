@@ -606,7 +606,7 @@ const defaultLocaleOptions = computed(() => ([
   { label: 'Русский', value: 'ru-RU' },
   { label: 'Español', value: 'es-ES' },
   { label: 'Português', value: 'pt-BR' },
-  { label: 'ไทย', value: 'th-TH' },
+  { label: 'ภาษาไทย', value: 'th-TH' },
 ]))
 
 const channelMenuOptions = (ch: EmbedChannel) => {

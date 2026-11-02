@@ -2052,7 +2052,7 @@ export default {
     zhHK: '繁體中文',
     esES: 'Español',
     ptBR: 'Português',
-    thTH: 'ไทย',
+    thTH: 'ภาษาไทย',
     selectLanguage: '选择语言',
     language: '语言',
     languageDescription: '选择界面显示语言',
