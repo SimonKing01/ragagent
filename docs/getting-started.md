@@ -18,7 +18,7 @@
 
 ```bash
 cp .env.example .env          # dev 默认值：8083 / postgres 检索 / 固定 JWT 密钥
-cp config/builtin_models.yaml.example config/builtin_models.yaml   # 模型声明，见下
+cp deploy/builtin_models.yaml.example config/builtin_models.yaml   # 模型声明，见下
 bash scripts/doctor.sh        # 体检：缺什么会直接给修复命令
 bash scripts/dev-up.sh        # 基础设施 + 后端；或按 README 四条命令手动起
 ```

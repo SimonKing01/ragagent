@@ -12,7 +12,7 @@
 ## 快速开始
 
 ```bash
-cp config/builtin_models.yaml.example config/builtin_models.yaml
+cp deploy/builtin_models.yaml.example config/builtin_models.yaml
 # 在 .env 里补 LLM_BASE_URL / LLM_API_KEY
 # 或改用样例里的本地 Ollama 写法（不需要 key）
 bash scripts/java-server-down.sh

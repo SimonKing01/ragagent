@@ -148,7 +148,7 @@ cp .env.example .env
 # 2) 配模型（**首次问答必需**）：复制样例，并在 .env 里补 LLM_BASE_URL / LLM_API_KEY
 #    （用本地 Ollama 的话改样例末尾那段，不需要 key）
 #    不配的话页面能打开，但第一次提问会失败——系统里没有任何可用模型
-cp config/builtin_models.yaml.example config/builtin_models.yaml
+cp deploy/builtin_models.yaml.example config/builtin_models.yaml
 
 # 3) 基础设施：PostgreSQL(15432) + Redis(16379) + 文档解析服务(50051)
 docker compose up -d
@@ -256,6 +256,7 @@ docker run --rm -p 8080:8080 --env-file .env ragagent-server
 ├── mcp-server/          # MCP 参考服务（独立交付物，不参与 Java 构建）
 ├── migrations/          # Flyway 迁移脚本
 ├── scripts/             # 工程脚本（起停、契约校验、架构守卫）
+├── deploy/              # 生产部署物料（编排、镜像定义、构建脚本、内置模型样例）
 ├── pom.xml              # 根 pom：版本唯一来源 + Boot BOM + 公共插件配置
 ├── docker-compose.yml   # 本地基础设施
 └── Dockerfile           # 服务镜像

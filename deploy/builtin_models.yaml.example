@@ -1,7 +1,7 @@
 # 内置模型声明（样例）——「第一次问答」必需的一步。
 #
 # 用法：
-#   1) cp config/builtin_models.yaml.example config/builtin_models.yaml
+#   1) cp deploy/builtin_models.yaml.example config/builtin_models.yaml
 #   2) 在 .env 里补 LLM_BASE_URL / LLM_API_KEY（或用下方 local + Ollama 的写法，不需要 key）
 #   3) 重启后端（bash scripts/java-server-down.sh --stop && bash scripts/java-server-up.sh）
 #

@@ -32,8 +32,10 @@ deploy/.build/
 .env
 *.local
 /data/
-# 内置模型声明（含真实凭据，只提交 .example）
-config/builtin_models.yaml
+# 内置模型声明：运行期放在 config/（默认路径），含真实凭据，不提交；
+# 样例在 deploy/builtin_models.yaml.example。
+/config/
+deploy/builtin_models.yaml
 
 # 测试产物
 
