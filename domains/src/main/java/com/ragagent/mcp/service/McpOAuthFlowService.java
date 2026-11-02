@@ -2,6 +2,7 @@ package com.ragagent.mcp.service;
 
 import com.ragagent.contract.error.AppError;
 import com.ragagent.contract.error.BizException;
+import com.ragagent.contract.tool.McpApprovalOps;
 import com.ragagent.mcp.approval.Decision;
 import com.ragagent.mcp.approval.ToolApprovalException;
 import com.ragagent.mcp.approval.ToolApprovalGate;
@@ -56,7 +57,7 @@ public class McpOAuthFlowService {
     }
 
     /** 发起授权：200 + {authorizationUrl, authorizationAttempt}。 */
-    public Map<String, Object> authorizeUrl(String serviceId, AuthorizeRequest req) {
+    public McpApprovalOps.AuthorizationUrl authorizeUrl(String serviceId, AuthorizeRequest req) {
         long tenantId = tenantIdOrZero();
         TenantContext.Principal principal = McpPrincipal.oauthPrincipalFromContext();
         if (tenantId == 0 || !McpPrincipal.valid(principal)) {
@@ -97,10 +98,7 @@ public class McpOAuthFlowService {
             throw BizException.internal("failed to start authorization: " + e.getMessage());
         }
 
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("authorizationUrl", result.authorizationUrl());
-        data.put("authorizationAttempt", result.attemptId());
-        return data;
+        return new McpApprovalOps.AuthorizationUrl(result.authorizationUrl(), result.attemptId());
     }
 
     /**

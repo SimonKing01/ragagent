@@ -80,7 +80,7 @@ public class ImChannelController {
 
     /** 创建渠道：201 + 裸资源行。 */
     @PostMapping("/api/v1/agents/{id}/im-channels")
-    public ResponseEntity<Map<String, Object>> create(@PathVariable("id") String agentId,
+    public ResponseEntity<ImChannelRows.ChannelRow> create(@PathVariable("id") String agentId,
                                                       @RequestBody(required = false) String rawBody) {
         if (agentId == null || agentId.isEmpty()) {
             return plain(400, "agent_id is required");
@@ -131,13 +131,13 @@ public class ImChannelController {
 
     /** per-agent 列表 = 裸数组（凭据不出现在列表行，IMChannelSummary）。 */
     @GetMapping("/api/v1/agents/{id}/im-channels")
-    public ResponseEntity<List<Map<String, Object>>> listByAgent(@PathVariable("id") String agentId) {
+    public ResponseEntity<List<ImChannelRows.ChannelSummary>> listByAgent(@PathVariable("id") String agentId) {
         if (agentId == null || agentId.isEmpty()) {
             return plain(400, "agent_id is required");
         }
         try {
             var channels = service.listChannelsByAgent(agentId, currentTenant());
-            List<Map<String, Object>> data = new ArrayList<>();
+            List<ImChannelRows.ChannelSummary> data = new ArrayList<>();
             for (var ch : channels) {
                 data.add(ImChannelRows.summaryRow(ch));
             }
@@ -181,7 +181,7 @@ public class ImChannelController {
 
     /** 更新渠道：成功 200 + 资源行。 */
     @PutMapping("/api/v1/im-channels/{id}")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable("id") String channelId,
+    public ResponseEntity<ImChannelRows.ChannelRow> update(@PathVariable("id") String channelId,
                                                       @RequestBody(required = false) String rawBody) {
         if (channelId == null || channelId.isEmpty()) {
             return plain(400, "channel id is required");
@@ -248,7 +248,7 @@ public class ImChannelController {
 
     /** 切换启用状态：任何失败都落 500 "failed to toggle channel"。 */
     @PostMapping("/api/v1/im-channels/{id}/toggle")
-    public ResponseEntity<Map<String, Object>> toggle(@PathVariable("id") String channelId) {
+    public ResponseEntity<ImChannelRows.ChannelRow> toggle(@PathVariable("id") String channelId) {
         if (channelId == null || channelId.isEmpty()) {
             return plain(400, "channel id is required");
         }
@@ -269,9 +269,17 @@ public class ImChannelController {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private WechatQRCodeService wechatQRCodeService;
 
+    /** 微信扫码出站载荷。 */
+    public record WechatQrcodeResponse(String qrcode, String qrcodeUrl) {
+    }
+
+    /** 扫码状态载荷：{status, credentials, baseUrl}，后两者在非 confirmed 时显式 null。 */
+    public record WechatQrcodeStatusResponse(String status, Object credentials, String baseUrl) {
+    }
+
     /** 微信扫码出站：200 裸对象 {qrcode, qrcodeUrl}。 */
     @PostMapping("/api/v1/wechat/qrcode")
-    public ResponseEntity<Map<String, Object>> wechatQrcode() {
+    public ResponseEntity<WechatQrcodeResponse> wechatQrcode() {
         if (wechatQRCodeService == null) {
             throw BizException.internal("failed to generate QR code: wechat iLink integration is not wired");
         }
@@ -281,10 +289,7 @@ public class ImChannelController {
         } catch (Exception e) {
             throw BizException.internal("failed to generate QR code: " + errText(e));
         }
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("qrcode", result.qrcode());
-        data.put("qrcodeUrl", result.qrcodeUrl());
-        return ResponseEntity.ok(data);
+        return ResponseEntity.ok(new WechatQrcodeResponse(result.qrcode(), result.qrcodeUrl()));
     }
 
     /**
@@ -292,7 +297,7 @@ public class ImChannelController {
      * （+ 非空 baseurl）。响应键序固定：status、credentials、baseUrl。
      */
     @PostMapping("/api/v1/wechat/qrcode/status")
-    public ResponseEntity<Map<String, Object>> wechatQrcodeStatus(
+    public ResponseEntity<WechatQrcodeStatusResponse> wechatQrcodeStatus(
             @RequestBody(required = false) String rawBody) {
         QrcodeRequest req = null;
         if (rawBody != null && !rawBody.isEmpty()) {
@@ -314,15 +319,15 @@ public class ImChannelController {
         } catch (Exception e) {
             return plain(500, "failed to check QR code status");
         }
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("status", result.status());
+        boolean confirmed = "confirmed".equals(result.status());
         Map<String, Object> credentials = new LinkedHashMap<>();
         credentials.put("botToken", result.botToken());
         credentials.put("ilinkBotId", result.ilinkBotId());
         credentials.put("ilinkUserId", result.ilinkUserId());
-        data.put("credentials", "confirmed".equals(result.status()) ? credentials : null);
-        data.put("baseUrl", "confirmed".equals(result.status()) ? result.baseUrl() : null);
-        return ResponseEntity.ok(data);
+        return ResponseEntity.ok(new WechatQrcodeStatusResponse(
+                result.status(),
+                confirmed ? credentials : null,
+                confirmed ? result.baseUrl() : null));
     }
 
     private static String errText(Exception e) {
@@ -363,10 +368,14 @@ public class ImChannelController {
 
     /** body 实际是 Map；返回类型泛型仅为调用点便利（未检查转换在本方法内是设计取舍）。 */
     @SuppressWarnings("unchecked")
+    /**
+     * 错误出口：与全仓统一信封一致（{@code {code,message,data}}），恒抛。
+     *
+     * <p>历史实现在这里手写 {@code {"error": msg}} 裸体，与同组接口的成功壳不一致；
+     * 统一后调用点仍写 {@code return plain(400, ...)}，形状由 GlobalExceptionHandler 施加。</p>
+     */
     private static <T> ResponseEntity<T> plain(int status, String message) {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("error", message);
-        return ResponseEntity.status(status).body((T) body);
+        throw new BizException(AppError.ofHttpStatus(status, message));
     }
 
     private static String orEmpty(String s) {

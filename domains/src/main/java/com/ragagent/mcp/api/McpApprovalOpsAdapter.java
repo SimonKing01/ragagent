@@ -9,7 +9,6 @@ import com.ragagent.mcp.service.McpOAuthFlowService;
 import com.ragagent.mcp.service.McpOAuthFlowService.AuthorizeRequest;
 import com.ragagent.mcp.service.McpOAuthFlowService.ResolveRequest;
 import com.ragagent.platform.web.JsonMappers;
-import java.util.Map;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,7 +32,7 @@ public class McpApprovalOpsAdapter implements McpApprovalOps {
     }
 
     @Override
-    public Map<String, Object> authorizeUrl(String serviceId, String rawBodyJson) {
+    public AuthorizationUrl authorizeUrl(String serviceId, String rawBodyJson) {
         AuthorizeRequest req =
                 parse(rawBodyJson, AuthorizeRequest.class);
         return oauth.authorizeUrl(serviceId, req);

@@ -7,10 +7,9 @@ import com.ragagent.embedchannel.service.EmbedChannelService;
 import com.ragagent.embedchannel.support.EmbedError;
 import com.ragagent.embedchannel.support.EmbedTokens;
 import com.ragagent.platform.security.LogSanitizer;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,7 +35,11 @@ final class EmbedChannelPublicOps {
     // ── 公开面（EmbedAuthFilter 已跑） ──
 
     /** 只有 publish token 能换 session token。 */
-    public ResponseEntity<Map<String, Object>> exchange(@PathVariable("channelId") String channelId) {
+    /** 换取访客会话令牌：{expiresIn, sessionToken}。 */
+    public record ExchangeResponse(int expiresIn, String sessionToken) {
+    }
+
+    public ResponseEntity<ExchangeResponse> exchange(@PathVariable("channelId") String channelId) {
         EmbedChannelEntity ch = EmbedChannelRows.channel(EmbedChannelController.request0());
         String auth = EmbedChannelController.trim(EmbedChannelController.request0().getHeader("Authorization"));
         boolean publishToken = auth.startsWith("Embed ")
@@ -53,10 +56,7 @@ final class EmbedChannelPublicOps {
             }
             return EmbedChannelController.plainError(500, "failed to issue session token");
         }
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("expiresIn", result.expiresIn());
-        data.put("sessionToken", result.token());
-        return ResponseEntity.ok(data);
+        return ResponseEntity.ok(new ExchangeResponse(result.expiresIn(), result.token()));
     }
 
     /** 公开配置视图。 */
@@ -66,14 +66,16 @@ final class EmbedChannelPublicOps {
     }
 
     /** 公开建议问题（开关关闭或失败时返回空列表）。 */
-    public ResponseEntity<Map<String, Object>> suggestedQuestions(
+    /** 推荐问题：{questions:[...]}。 */
+    public record SuggestedQuestionsResponse(List<Object> questions) {
+    }
+
+    public ResponseEntity<SuggestedQuestionsResponse> suggestedQuestions(
             @PathVariable("channelId") String channelId,
             @RequestParam(name = "limit", required = false) String limit) {
         EmbedChannelEntity ch = EmbedChannelRows.channel(EmbedChannelController.request0());
         if (!ch.isShowSuggestedQuestions()) {
-            Map<String, Object> data = new LinkedHashMap<>();
-            data.put("questions", new ArrayList<>());
-            return ResponseEntity.ok(data);
+            return ResponseEntity.ok(new SuggestedQuestionsResponse(List.of()));
         }
         int limitInt = 0;
         if (limit != null && !limit.isEmpty()) {
@@ -92,9 +94,7 @@ final class EmbedChannelPublicOps {
         } catch (RuntimeException e) {
             return EmbedChannelController.plainError(500, "failed to load suggested questions");
         }
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("questions", questions == null ? new ArrayList<>() : questions);
-        return ResponseEntity.ok(data);
+        return ResponseEntity.ok(new SuggestedQuestionsResponse(questions == null ? List.of() : questions));
     }
 
     /** 公开分块读取（白名单校验 + 404/403 分支）。 */
@@ -115,7 +115,11 @@ final class EmbedChannelPublicOps {
     }
 
     /** 创建访客会话：201 {id, sig}。访客 id（可选）随会话落库，供历史会话列表。 */
-    public ResponseEntity<Map<String, Object>> createSession(
+    /** 新建访客会话：{id, sig}。 */
+    public record SessionCreatedResponse(String id, String sig) {
+    }
+
+    public ResponseEntity<SessionCreatedResponse> createSession(
             @PathVariable("channelId") String channelId) {
         EmbedChannelEntity ch = EmbedChannelRows.channel(EmbedChannelController.request0());
         long tenantId = EmbedChannelController.currentTenant();
@@ -131,11 +135,8 @@ final class EmbedChannelPublicOps {
         } catch (RuntimeException e) {
             return EmbedChannelController.plainError(500, "failed to create session");
         }
-        String sig = EmbedTokens.signHandle(ch, createdId);
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("id", createdId);
-        data.put("sig", sig);
-        return ResponseEntity.status(201).body(data);
+        return ResponseEntity.status(201)
+                .body(new SessionCreatedResponse(createdId, EmbedTokens.signHandle(ch, createdId)));
     }
 
     /**
@@ -144,7 +145,11 @@ final class EmbedChannelPublicOps {
      * <p>只允许删本渠道 marker + 本访客名下的会话；不属于该访客时返回 404，
      * 不泄露会话是否存在。删除后该会话不再出现在历史列表里。</p>
      */
-    public ResponseEntity<Map<String, Object>> deleteSession(
+    /** 删除访客会话：{deleted:true}。 */
+    public record SessionDeletedResponse(boolean deleted) {
+    }
+
+    public ResponseEntity<SessionDeletedResponse> deleteSession(
             @PathVariable("channelId") String channelId,
             @PathVariable("sessionId") String sessionId) {
         EmbedChannelEntity ch = EmbedChannelRows.channel(EmbedChannelController.request0());
@@ -164,9 +169,7 @@ final class EmbedChannelPublicOps {
         if (!deleted) {
             return EmbedChannelController.plainError(404, "session not found");
         }
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("deleted", true);
-        return ResponseEntity.ok(data);
+        return ResponseEntity.ok(new SessionDeletedResponse(true));
     }
 
     /**
@@ -176,7 +179,15 @@ final class EmbedChannelPublicOps {
      * 上限 {@value #MAX_HISTORY_SESSIONS} 条。逐条附会话句柄签名——读消息时必须出示，
      * 而前端只在创建会话时领过一次。</p>
      */
-    public ResponseEntity<Map<String, Object>> listSessions(
+    /** 访客历史会话条目。 */
+    public record SessionItem(String id, String title, OffsetDateTime updatedAt, String sig) {
+    }
+
+    /** 访客历史会话列表：{sessions:[...]}。 */
+    public record SessionsResponse(List<SessionItem> sessions) {
+    }
+
+    public ResponseEntity<SessionsResponse> listSessions(
             @PathVariable("channelId") String channelId) {
         EmbedChannelEntity ch = EmbedChannelRows.channel(EmbedChannelController.request0());
         long tenantId = EmbedChannelController.currentTenant();
@@ -193,17 +204,11 @@ final class EmbedChannelPublicOps {
         } catch (RuntimeException e) {
             return EmbedChannelController.plainError(500, "failed to load sessions");
         }
-        List<Map<String, Object>> sessions = new ArrayList<>(rows.size());
+        List<SessionItem> sessions = new ArrayList<>(rows.size());
         for (EmbedSessionOps.VisitorSessionRow row : rows) {
-            Map<String, Object> item = new LinkedHashMap<>();
-            item.put("id", row.id());
-            item.put("title", row.title() == null ? "" : row.title());
-            item.put("updatedAt", row.updatedAt());
-            item.put("sig", EmbedTokens.signHandle(ch, row.id()));
-            sessions.add(item);
+            sessions.add(new SessionItem(row.id(), row.title() == null ? "" : row.title(),
+                    row.updatedAt(), EmbedTokens.signHandle(ch, row.id())));
         }
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("sessions", sessions);
-        return ResponseEntity.ok(data);
+        return ResponseEntity.ok(new SessionsResponse(sessions));
     }
 }

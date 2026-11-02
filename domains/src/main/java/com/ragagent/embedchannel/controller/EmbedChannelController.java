@@ -105,28 +105,28 @@ final FileProxyPort fileProxyService;
 
 
     @PostMapping("/api/v1/agents/{id}/embed-channels")
-    public ResponseEntity<Map<String, Object>> create(@PathVariable("id") String agentId,
+    public ResponseEntity<EmbedChannelRows.EmbedChannelRow> create(@PathVariable("id") String agentId,
                                                       @RequestBody(required = false) String rawBody) {
         return mgmtOps.create(agentId, rawBody);
     }
 
     @GetMapping("/api/v1/agents/{id}/embed-channels")
-    public ResponseEntity<List<Map<String, Object>>> listByAgent(@PathVariable("id") String agentId) {
+    public ResponseEntity<List<EmbedChannelRows.EmbedChannelRow>> listByAgent(@PathVariable("id") String agentId) {
         return mgmtOps.listByAgent(agentId);
     }
 
     @GetMapping("/api/v1/embed-channels")
-    public ResponseEntity<List<Map<String, Object>>> listAll() {
+    public ResponseEntity<List<EmbedChannelRows.EmbedChannelRow>> listAll() {
         return mgmtOps.listAll();
     }
 
     @GetMapping("/api/v1/embed-channels/{channelId}")
-    public ResponseEntity<Map<String, Object>> get(@PathVariable("channelId") String channelId) {
+    public ResponseEntity<EmbedChannelRows.EmbedChannelRow> get(@PathVariable("channelId") String channelId) {
         return mgmtOps.get(channelId);
     }
 
     @PutMapping("/api/v1/embed-channels/{channelId}")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable("channelId") String channelId,
+    public ResponseEntity<EmbedChannelRows.EmbedChannelRow> update(@PathVariable("channelId") String channelId,
                                                       @RequestBody(required = false) String rawBody) {
         return mgmtOps.update(channelId, rawBody);
     }
@@ -137,23 +137,23 @@ final FileProxyPort fileProxyService;
     }
 
     @PostMapping("/api/v1/embed-channels/{channelId}/rotate-token")
-    public ResponseEntity<Map<String, Object>> rotate(@PathVariable("channelId") String channelId) {
+    public ResponseEntity<EmbedChannelRows.EmbedChannelRow> rotate(@PathVariable("channelId") String channelId) {
         return mgmtOps.rotate(channelId);
     }
 
     @PostMapping("/api/v1/embed-channels/{channelId}/preview-session")
-    public ResponseEntity<Map<String, Object>> preview(@PathVariable("channelId") String channelId) {
+    public ResponseEntity<EmbedChannelMgmtOps.PreviewResponse> preview(@PathVariable("channelId") String channelId) {
         return mgmtOps.preview(channelId);
     }
 
     @GetMapping("/api/v1/embed-channels/{channelId}/stats")
-    public ResponseEntity<Map<String, Object>> stats(@PathVariable("channelId") String channelId) {
+    public ResponseEntity<EmbedChannelMgmtOps.StatsResponse> stats(@PathVariable("channelId") String channelId) {
         return mgmtOps.stats(channelId);
     }
 
 
     @PostMapping("/api/v1/embed/{channelId}/exchange")
-    public ResponseEntity<Map<String, Object>> exchange(@PathVariable("channelId") String channelId) {
+    public ResponseEntity<EmbedChannelPublicOps.ExchangeResponse> exchange(@PathVariable("channelId") String channelId) {
         return publicOps.exchange(channelId);
     }
 
@@ -163,7 +163,7 @@ final FileProxyPort fileProxyService;
     }
 
     @GetMapping("/api/v1/embed/{channelId}/suggested-questions")
-    public ResponseEntity<Map<String, Object>> suggestedQuestions(
+    public ResponseEntity<EmbedChannelPublicOps.SuggestedQuestionsResponse> suggestedQuestions(
             @PathVariable("channelId") String channelId,
             @RequestParam(name = "limit", required = false) String limit) {
         return publicOps.suggestedQuestions(channelId, limit);
@@ -175,19 +175,19 @@ final FileProxyPort fileProxyService;
     }
 
     @GetMapping("/api/v1/embed/{channelId}/sessions")
-    public ResponseEntity<Map<String, Object>> listSessions(
+    public ResponseEntity<EmbedChannelPublicOps.SessionsResponse> listSessions(
             @PathVariable("channelId") String channelId) {
         return publicOps.listSessions(channelId);
     }
 
     @PostMapping("/api/v1/embed/{channelId}/sessions")
-    public ResponseEntity<Map<String, Object>> createSession(
+    public ResponseEntity<EmbedChannelPublicOps.SessionCreatedResponse> createSession(
             @PathVariable("channelId") String channelId) {
         return publicOps.createSession(channelId);
     }
 
     @DeleteMapping("/api/v1/embed/{channelId}/sessions/{sessionId}")
-    public ResponseEntity<Map<String, Object>> deleteSession(
+    public ResponseEntity<EmbedChannelPublicOps.SessionDeletedResponse> deleteSession(
             @PathVariable("channelId") String channelId,
             @PathVariable("sessionId") String sessionId) {
         return publicOps.deleteSession(channelId, sessionId);
@@ -259,7 +259,7 @@ final FileProxyPort fileProxyService;
     }
 
     @PostMapping("/api/v1/embed/{channelId}/sessions/{sessionId}/mcp-services/{svcId}/oauth/authorize-url")
-    public ResponseEntity<Map<String, Object>> mcpAuthorize(
+    public ResponseEntity<McpApprovalOps.AuthorizationUrl> mcpAuthorize(
             @PathVariable("sessionId") String sessionId,
             @PathVariable("svcId") String serviceId,
             @RequestBody(required = false) String rawBody) {
@@ -373,7 +373,7 @@ void ensureSession(String sessionId) {
 
     // ── 响应组构件 ──
 
-    static ResponseEntity<Map<String, Object>> plainError(int status, String message) {
+    static <T> ResponseEntity<T> plainError(int status, String message) {
         throw new BizException(AppError.ofHttpStatus(status, message));   // 恒抛（调用点一行不动 ✓）
     }
 

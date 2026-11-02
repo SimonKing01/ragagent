@@ -1,10 +1,10 @@
 package com.ragagent.im.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ragagent.im.domain.ImChannelEntity;
 import com.ragagent.platform.web.JsonMappers;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.time.OffsetDateTime;
 
 /** IM 渠道响应行：键序与旧控制器逐字一致。 */
 public final class ImChannelRows {
@@ -14,45 +14,80 @@ public final class ImChannelRows {
     private ImChannelRows() {
     }
 
+    /** 渠道资源行（create/update/toggle）：键名即字段名，{@code deletedAt} 恒输出 null。 */
+    public record ChannelRow(
+            String id,
+            Long tenantId,
+            String agentId,
+            String platform,
+            String name,
+            boolean enabled,
+            String mode,
+            String outputMode,
+            String knowledgeBaseId,
+            String botIdentity,
+            String sessionMode,
+            JsonNode credentials,
+            OffsetDateTime createdAt,
+            OffsetDateTime updatedAt,
+            Object deletedAt) {
+    }
+
     /** 渠道行（create/update/toggle 的资源行），键名即字段名。 */
-    public static Map<String, Object> channelRow(ImChannelEntity ch) {
-        Map<String, Object> m = new LinkedHashMap<>();
-        m.put("id", ch.getId());
-        m.put("tenantId", ch.getTenantId());
-        m.put("agentId", ch.getAgentId());
-        m.put("platform", ch.getPlatform());
-        m.put("name", ch.getName());
-        m.put("enabled", ch.isEnabled());
-        m.put("mode", ch.getMode());
-        m.put("outputMode", ch.getOutputMode());
-        m.put("knowledgeBaseId", ch.getKnowledgeBaseId());
-        m.put("botIdentity", ch.getBotIdentity());
-        m.put("sessionMode", ch.getSessionMode());
-        m.put("credentials", rawJson(ch.getCredentials()));
-        m.put("createdAt", ch.getCreatedAt());
-        m.put("updatedAt", ch.getUpdatedAt());
-        m.put("deletedAt", null);
-        return m;
+    public static ChannelRow channelRow(ImChannelEntity ch) {
+        return new ChannelRow(
+                ch.getId(),
+                ch.getTenantId(),
+                ch.getAgentId(),
+                ch.getPlatform(),
+                ch.getName(),
+                ch.isEnabled(),
+                ch.getMode(),
+                ch.getOutputMode(),
+                ch.getKnowledgeBaseId(),
+                ch.getBotIdentity(),
+                ch.getSessionMode(),
+                rawJson(ch.getCredentials()),
+                ch.getCreatedAt(),
+                ch.getUpdatedAt(),
+                null);
+    }
+
+    /** per-agent 列表行：凭据不出行，只出 {@code credentialsConfigured}。 */
+    public record ChannelSummary(
+            String id,
+            Long tenantId,
+            String agentId,
+            String platform,
+            String name,
+            boolean enabled,
+            String mode,
+            String outputMode,
+            String knowledgeBaseId,
+            String botIdentity,
+            String sessionMode,
+            boolean credentialsConfigured,
+            OffsetDateTime createdAt,
+            OffsetDateTime updatedAt) {
     }
 
     /** per-agent 列表行（IMChannelSummary：凭据不出行，只出 credentialsConfigured）。 */
-    public static Map<String, Object> summaryRow(ImChannelEntity ch) {
-        Map<String, Object> m = new LinkedHashMap<>();
-        m.put("id", ch.getId());
-        m.put("tenantId", ch.getTenantId());
-        m.put("agentId", ch.getAgentId());
-        m.put("platform", ch.getPlatform());
-        m.put("name", ch.getName());
-        m.put("enabled", ch.isEnabled());
-        m.put("mode", ch.getMode());
-        m.put("outputMode", ch.getOutputMode());
-        m.put("knowledgeBaseId", ch.getKnowledgeBaseId());
-        m.put("botIdentity", ch.getBotIdentity());
-        m.put("sessionMode", ch.getSessionMode());
-        m.put("credentialsConfigured", credentialsConfigured(ch.getCredentials()));
-        m.put("createdAt", ch.getCreatedAt());
-        m.put("updatedAt", ch.getUpdatedAt());
-        return m;
+    public static ChannelSummary summaryRow(ImChannelEntity ch) {
+        return new ChannelSummary(
+                ch.getId(),
+                ch.getTenantId(),
+                ch.getAgentId(),
+                ch.getPlatform(),
+                ch.getName(),
+                ch.isEnabled(),
+                ch.getMode(),
+                ch.getOutputMode(),
+                ch.getKnowledgeBaseId(),
+                ch.getBotIdentity(),
+                ch.getSessionMode(),
+                credentialsConfigured(ch.getCredentials()),
+                ch.getCreatedAt(),
+                ch.getUpdatedAt());
     }
 
     /** trim 后非 "" 且非 "{}"。 */
@@ -62,7 +97,7 @@ public final class ImChannelRows {
     }
 
     /** credentials 是任意 jsonb：坏 JSON 在绑定阶段已被拒，这里容错回 "{}"。 */
-    private static Object rawJson(String raw) {
+    private static JsonNode rawJson(String raw) {
         if (raw == null || raw.isEmpty()) {
             return MAPPER.createObjectNode();
         }

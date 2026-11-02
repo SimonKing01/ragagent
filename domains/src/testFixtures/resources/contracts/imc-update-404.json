@@ -1,1 +1,1 @@
-{"code":0,"data":{"error":"channel not found"},"message":"ok"}
+{"code":1003,"data":null,"message":"channel not found"}

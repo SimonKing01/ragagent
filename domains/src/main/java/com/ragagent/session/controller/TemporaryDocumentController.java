@@ -16,7 +16,6 @@ import com.ragagent.session.service.AgentResolver;
 import com.ragagent.session.support.SessionNotFoundException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -145,7 +144,7 @@ public class TemporaryDocumentController {
 
     /** 超过 multipart 上限：错误文案固定为 "http: request body too large"。 */
     @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<Map<String, Object>> bodyTooLarge() {
+    public ResponseEntity<Object> bodyTooLarge() {
         throw new BizException(AppError.badRequest(
                 "invalid attachment upload: http: request body too large"));
     }

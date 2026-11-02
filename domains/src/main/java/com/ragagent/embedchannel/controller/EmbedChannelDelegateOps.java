@@ -6,12 +6,12 @@ import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.session.EmbedReply;
 import com.ragagent.contract.session.MessageSuggestionView;
 import com.ragagent.contract.session.MessageView;
+import com.ragagent.contract.tool.McpApprovalOps;
 import com.ragagent.embedchannel.domain.EmbedChannelEntity;
 import com.ragagent.platform.security.LogSanitizer;
 import com.ragagent.platform.web.ApiResponse;
 import com.ragagent.platform.web.ServletSseSink;
 import java.util.List;
-import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -222,7 +222,7 @@ final class EmbedChannelDelegateOps {
     }
 
     /** MCP OAuth 授权 URL（委托 McpOAuthController）。 */
-    public ResponseEntity<Map<String, Object>> mcpAuthorize(
+    public ResponseEntity<McpApprovalOps.AuthorizationUrl> mcpAuthorize(
             @PathVariable("sessionId") String sessionId,
             @PathVariable("svcId") String serviceId,
             @RequestBody(required = false) String rawBody) {

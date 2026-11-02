@@ -9,7 +9,6 @@ import com.ragagent.contract.error.BizException;
 import com.ragagent.im.channel.wechat.WechatQRCodeService;
 import com.ragagent.im.channel.wechat.WechatQRCodeService.LoginResult;
 import com.ragagent.im.channel.wechat.WechatQRCodeService.QRCodeResult;
-import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +49,7 @@ class ImChannelWechatQrcodeTest {
         }
     }
 
-    private static String json(ResponseEntity<Map<String, Object>> response) throws Exception {
+    private static String json(ResponseEntity<?> response) throws Exception {
         return MAPPER.writeValueAsString(response.getBody());
     }
 
@@ -63,7 +62,7 @@ class ImChannelWechatQrcodeTest {
 
         // 注意 record 组件序是 (qrcodeUrl, qrcode)
         stub.qrResult = new QRCodeResult("https://x/qr.png", "q-1");
-        ResponseEntity<Map<String, Object>> ok = controller.wechatQrcode();
+        ResponseEntity<?> ok = controller.wechatQrcode();
         assertEquals(200, ok.getStatusCode().value());
         assertEquals("{\"qrcode\":\"q-1\",\"qrcodeUrl\":\"https://x/qr.png\"}",
                 json(ok));
@@ -103,22 +102,24 @@ class ImChannelWechatQrcodeTest {
         String noBase = json(controller.wechatQrcodeStatus("{\"qrcode\":\"q-1\"}"));
         assertTrue(noBase.contains("\"baseUrl\":\""));
 
-        // 缺 qrcode → 400 固定文案（golden 已锁，见 ImContractTest）
-        ResponseEntity<Map<String, Object>> bad = controller.wechatQrcodeStatus("{}");
-        assertEquals(400, bad.getStatusCode().value());
-        assertEquals("qrcode is required", bad.getBody().get("error"));
-        assertEquals(400, controller.wechatQrcodeStatus(null).getStatusCode().value());
+        // 缺 qrcode → 400 固定文案（走统一错误出口，HTTP 形态见 ImContractTest）
+        BizException bad = assertThrows(BizException.class,
+                () -> controller.wechatQrcodeStatus("{}"));
+        assertEquals(400, bad.appError().httpCode());
+        assertEquals("qrcode is required", bad.appError().message());
+        assertEquals(400, assertThrows(BizException.class,
+                () -> controller.wechatQrcodeStatus(null)).appError().httpCode());
 
         // 出站失败 → 500 固定文案（不带原因）
         stub.failPoll = true;
-        ResponseEntity<Map<String, Object>> failed =
-                controller.wechatQrcodeStatus("{\"qrcode\":\"q-1\"}");
-        assertEquals(500, failed.getStatusCode().value());
-        assertEquals("failed to check QR code status", failed.getBody().get("error"));
+        BizException failed = assertThrows(BizException.class,
+                () -> controller.wechatQrcodeStatus("{\"qrcode\":\"q-1\"}"));
+        assertEquals(500, failed.appError().httpCode());
+        assertEquals("failed to check QR code status", failed.appError().message());
 
         // bean 缺位 → 接缝文案（同一文案）
         ImChannelController bare = new ImChannelController(null);
-        assertEquals(500, bare.wechatQrcodeStatus("{\"qrcode\":\"q-1\"}")
-                .getStatusCode().value());
+        assertEquals(500, assertThrows(BizException.class,
+                () -> bare.wechatQrcodeStatus("{\"qrcode\":\"q-1\"}")).appError().httpCode());
     }
 }

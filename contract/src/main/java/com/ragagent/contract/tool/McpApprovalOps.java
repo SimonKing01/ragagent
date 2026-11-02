@@ -1,6 +1,5 @@
 package com.ragagent.contract.tool;
 
-import java.util.Map;
 
 /**
  * MCP OAuth 授权与工具审批解析的操作面（L1）：embed 渠道把访客 UI 的动作转给这两个操作族。
@@ -20,8 +19,12 @@ import java.util.Map;
  */
 public interface McpApprovalOps {
 
+    /** 授权 URL 载荷：{authorizationUrl, authorizationAttempt}。 */
+    record AuthorizationUrl(String authorizationUrl, String authorizationAttempt) {
+    }
+
     /** 取 MCP OAuth 授权 URL；{@code rawBodyJson} 为空/null 时等价于无 body。 */
-    Map<String, Object> authorizeUrl(String serviceId, String rawBodyJson);
+    AuthorizationUrl authorizeUrl(String serviceId, String rawBodyJson);
 
     /** OAuth 授权状态；{@code attemptId} 可为 null/空。 */
     Object authorizationStatus(String serviceId, String attemptId);

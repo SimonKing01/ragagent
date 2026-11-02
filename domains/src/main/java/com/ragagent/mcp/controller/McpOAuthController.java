@@ -1,5 +1,6 @@
 package com.ragagent.mcp.controller;
 
+import com.ragagent.contract.tool.McpApprovalOps;
 import com.ragagent.mcp.oauth.OAuthManager;
 import com.ragagent.mcp.oauth.error.OAuthCallbackException;
 import com.ragagent.mcp.protocol.McpClientManager;
@@ -11,7 +12,6 @@ import com.ragagent.platform.web.ApiResponse;
 import com.ragagent.platform.web.ApiResult;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URI;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -81,7 +81,7 @@ public class McpOAuthController {
     // ── 1. 发起授权 ────────────────────────────────────────────────────
 
     @PostMapping("/mcp-services/{id}/oauth/authorize-url")
-    public ResponseEntity<Map<String, Object>> authorizeUrl(@PathVariable("id") String serviceId,
+    public ResponseEntity<McpApprovalOps.AuthorizationUrl> authorizeUrl(@PathVariable("id") String serviceId,
                                                             @RequestBody(required = false) AuthorizeRequest req) {
         return ResponseEntity.ok(flowService.authorizeUrl(serviceId, req));
     }
