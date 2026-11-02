@@ -138,7 +138,7 @@ public class SsrfGuard {
         try {
             uri = URI.create(normalized);
         } catch (IllegalArgumentException e) {
-            throw new SsrfException("invalid URL: " + e.getMessage());
+            throw new SsrfException("invalid URL: " + e.getMessage(), e);
         }
         String hostname = uri.getHost();
         if (hostname == null || hostname.isEmpty()) {
@@ -156,7 +156,7 @@ public class SsrfGuard {
             isSafeURL(normalized, uri, hostname);
         } catch (SsrfException e) {
             // 仅 isSSRFSafeURL 的拒绝带 "SSRF validation failed: " 前缀
-            throw new SsrfException("SSRF validation failed: " + e.getMessage());
+            throw new SsrfException("SSRF validation failed: " + e.getMessage(), e);
         }
     }
 

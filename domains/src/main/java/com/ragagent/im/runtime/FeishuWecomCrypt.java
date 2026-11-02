@@ -71,7 +71,7 @@ public final class FeishuWecomCrypt {
         try {
             ciphertext = Base64.getDecoder().decode(encryptedBase64);
         } catch (IllegalArgumentException e) {
-            throw new CryptException("base64 decode: " + e.getMessage());
+            throw new CryptException("base64 decode: " + e.getMessage(), e);
         }
         byte[] keyHash = Hashes.sha256(encryptKey);
         if (ciphertext.length < BLOCK) {
@@ -86,7 +86,7 @@ public final class FeishuWecomCrypt {
         } catch (CryptException e) {
             throw e;
         } catch (Exception e) {
-            throw new CryptException("decrypt failed: " + e.getMessage());
+            throw new CryptException("decrypt failed: " + e.getMessage(), e);
         }
     }
 
@@ -114,13 +114,13 @@ public final class FeishuWecomCrypt {
             // 43 字符 EncodingAESKey + "=" 后解码 32 字节
             aesKey = Base64.getDecoder().decode(aesKeyBase64 + "=");
         } catch (IllegalArgumentException e) {
-            throw new CryptException("decode encoding_aes_key: " + e.getMessage());
+            throw new CryptException("decode encoding_aes_key: " + e.getMessage(), e);
         }
         byte[] ciphertext;
         try {
             ciphertext = Base64.getDecoder().decode(encryptedBase64);
         } catch (IllegalArgumentException e) {
-            throw new CryptException("base64 decode: " + e.getMessage());
+            throw new CryptException("base64 decode: " + e.getMessage(), e);
         }
         if (ciphertext.length < BLOCK) {
             throw new CryptException("ciphertext too short");
@@ -136,7 +136,7 @@ public final class FeishuWecomCrypt {
         } catch (CryptException e) {
             throw e;
         } catch (Exception e) {
-            throw new CryptException("decrypt failed: " + e.getMessage());
+            throw new CryptException("decrypt failed: " + e.getMessage(), e);
         }
         if (plain.length < 20) {
             throw new CryptException("plaintext too short for envelope");
@@ -176,6 +176,10 @@ public final class FeishuWecomCrypt {
     public static final class CryptException extends Exception {
         public CryptException(String message) {
             super(message);
+        }
+
+        public CryptException(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 }

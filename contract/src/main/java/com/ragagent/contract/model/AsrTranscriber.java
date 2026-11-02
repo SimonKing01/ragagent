@@ -28,11 +28,15 @@ public interface AsrTranscriber {
     /** 构造失败异常（message 已含 "base URL SSRF check failed" 等前缀原文，文案钉死）。 */
     class AsrCreateException extends RuntimeException {
         public AsrCreateException(String message) { super(message); }
+
+        public AsrCreateException(String message, Throwable cause) { super(message, cause); }
     }
 
     /** 调用失败异常（message 按 "ASR transcription request failed: ..." 包裹，文案钉死）。 */
     class AsrTranscribeException extends RuntimeException {
         public AsrTranscribeException(String message) { super(message); }
+
+        public AsrTranscribeException(String message, Throwable cause) { super(message, cause); }
     }
 
     /**

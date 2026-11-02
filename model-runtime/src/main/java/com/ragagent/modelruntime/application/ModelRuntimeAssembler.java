@@ -194,7 +194,7 @@ public class ModelRuntimeAssembler implements ModelRuntime {
         try {
             ssrfGuard.validateURLForSSRF(baseUrl);
         } catch (RuntimeException e) {
-            throw new RuntimeException("base URL SSRF check failed: " + e.getMessage());
+            throw new RuntimeException("base URL SSRF check failed: " + e.getMessage(), e);
         }
     }
 

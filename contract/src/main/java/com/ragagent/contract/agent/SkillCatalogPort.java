@@ -74,6 +74,10 @@ public static final class SkillValidationException extends RuntimeException {
     public SkillValidationException(String message) {
         super(message);
     }
+
+    public SkillValidationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
     List<SkillRow> listVisible(Long tenantId);
 

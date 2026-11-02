@@ -35,6 +35,10 @@ public class OidcService {
         public OidcException(String message) {
             super(message);
         }
+
+        public OidcException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 
     /** 授权 URL 构造结果（nonce 不进 JSON，由 controller 绑 cookie） */
@@ -83,7 +87,7 @@ public class OidcService {
         try {
             ssrfGuard.validateURLForSSRF(ep);
         } catch (SsrfGuard.SsrfException e) {
-            throw new OidcException("OIDC " + label + " endpoint failed SSRF validation: " + e.getMessage());
+            throw new OidcException("OIDC " + label + " endpoint failed SSRF validation: " + e.getMessage(), e);
         }
     }
 

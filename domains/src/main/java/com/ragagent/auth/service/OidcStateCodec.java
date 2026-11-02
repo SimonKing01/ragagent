@@ -63,6 +63,10 @@ public class OidcStateCodec {
         public StateException(String message) {
             super(message);
         }
+
+        public StateException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 
     /**
@@ -96,13 +100,13 @@ public class OidcStateCodec {
         try {
             payloadBytes = Base64.getUrlDecoder().decode(parts[0]);
         } catch (IllegalArgumentException e) {
-            throw new StateException("decode oidc state payload: " + e.getMessage());
+            throw new StateException("decode oidc state payload: " + e.getMessage(), e);
         }
         byte[] sigBytes;
         try {
             sigBytes = Base64.getUrlDecoder().decode(parts[1]);
         } catch (IllegalArgumentException e) {
-            throw new StateException("decode oidc state signature: " + e.getMessage());
+            throw new StateException("decode oidc state signature: " + e.getMessage(), e);
         }
         if (!MessageDigest.isEqual(hmac(payloadBytes), sigBytes)) {
             throw new StateException("oidc state signature mismatch");
@@ -111,7 +115,7 @@ public class OidcStateCodec {
         try {
             node = MAPPER.readTree(payloadBytes);
         } catch (Exception e) {
-            throw new StateException("unmarshal oidc state: " + e.getMessage());
+            throw new StateException("unmarshal oidc state: " + e.getMessage(), e);
         }
         String nonce = node.path("nonce").isTextual() ? node.path("nonce").asText() : "";
         String redirectUri = node.path("redirect_uri").isTextual() ? node.path("redirect_uri").asText() : "";

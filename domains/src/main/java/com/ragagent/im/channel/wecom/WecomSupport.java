@@ -55,7 +55,7 @@ final class WecomSupport {
         try {
             uri = URI.create(endpoint);
         } catch (RuntimeException e) {
-            throw new IllegalArgumentException("invalid endpoint URL: " + e.getMessage());
+            throw new IllegalArgumentException("invalid endpoint URL: " + e.getMessage(), e);
         }
         if (!requiredScheme.equals(uri.getScheme())) {
             throw new IllegalArgumentException("endpoint must use " + requiredScheme + ":// scheme,"
@@ -235,7 +235,7 @@ final class WecomSupport {
             try {
                 aesKey = Base64.getDecoder().decode(aesKeyB64);
             } catch (IllegalArgumentException e2) {
-                throw new IllegalArgumentException("base64 decode aes key: " + e2.getMessage());
+                throw new IllegalArgumentException("base64 decode aes key: " + e2.getMessage(), e2);
             }
         }
         if (aesKey.length < 16) {

@@ -58,6 +58,10 @@ public final class VlmClient {
         public VlmException(String message) {
             super(message);
         }
+
+        public VlmException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 
     /**
@@ -110,14 +114,14 @@ public final class VlmClient {
         try {
             respBody = transport.post(url, config.apiKey(), req);
         } catch (Exception e) {
-            throw new VlmException("OpenAI VLM request: " + e.getMessage());
+            throw new VlmException("OpenAI VLM request: " + e.getMessage(), e);
         }
 
         com.fasterxml.jackson.databind.JsonNode root;
         try {
             root = JsonMappers.lenient().readTree(respBody);
         } catch (Exception e) {
-            throw new VlmException("OpenAI VLM request: " + e.getMessage());
+            throw new VlmException("OpenAI VLM request: " + e.getMessage(), e);
         }
         var choices = root.path("choices");
         if (!choices.isArray() || choices.isEmpty()) {
@@ -169,7 +173,7 @@ public final class VlmClient {
                 }
             });
         } catch (RuntimeException e) {
-            throw new VlmException("Ollama VLM request: " + e.getMessage());
+            throw new VlmException("Ollama VLM request: " + e.getMessage(), e);
         }
         return result[0] == null ? "" : result[0];
     }

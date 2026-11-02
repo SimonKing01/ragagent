@@ -43,7 +43,7 @@ public class VlmHttpTransport implements VlmClient.Transport {
         try {
             resp = LlmTransport.send(request);
         } catch (IOException e) {
-            throw new RuntimeException("Post \"" + url + "\": " + e.getMessage());
+            throw new RuntimeException("Post \"" + url + "\": " + e.getMessage(), e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Post \"" + url + "\": interrupted");

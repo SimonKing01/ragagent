@@ -90,7 +90,7 @@ public class WecomWebhookAdapter implements AdapterInterfaces.Adapter,
             // 43 字符的 EncodingAESKey + "=" 后解出 32 字节
             this.aesKey = Base64.getDecoder().decode(this.encodingAesKey + "=");
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("decode encoding_aes_key: " + e.getMessage());
+            throw new IllegalArgumentException("decode encoding_aes_key: " + e.getMessage(), e);
         }
         String base = apiBaseUrl == null || apiBaseUrl.isEmpty()
                 ? DEFAULT_API_BASE_URL : apiBaseUrl;

@@ -40,7 +40,7 @@ final class SearxngValidation {
         try {
             new SsrfGuard().validateURLForSSRF(base);
         } catch (RuntimeException e) {
-            throw new SearchHttp.SearchHttpException("invalid SearXNG base_url: " + e.getMessage());
+            throw new SearchHttp.SearchHttpException("invalid SearXNG base_url: " + e.getMessage(), e);
         }
     }
 }

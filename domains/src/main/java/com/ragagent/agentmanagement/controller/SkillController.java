@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -110,14 +109,18 @@ public class SkillController {
     public record SkillFileEntry(String name, String path) {
     }
 
+    /** {@code GET /skills/catalog} 的载荷。 */
+    public record SkillCatalogResponse(List<SkillSummary> skills) {
+    }
+
     @GetMapping("/api/v1/skills/catalog")
-    public ResponseEntity<Map<String, Object>> listCatalog() {
+    public ResponseEntity<SkillCatalogResponse> listCatalog() {
         Long tenant = TenantContext.currentTenantId();
         List<SkillSummary> skills = new ArrayList<>();
         for (SkillCatalogPort.SkillRow row : catalog.listVisible(tenant)) {
             skills.add(summary(row, catalog.listReferences(row.slug(), row.name(), tenant)));
         }
-        return ResponseEntity.ok(Map.of("skills", skills));
+        return ResponseEntity.ok(new SkillCatalogResponse(skills));
     }
 
     /** 技能选择器条目（与裁剪前 GET /api/v1/skills 的 {name, description} 同形）。 */
@@ -130,16 +133,17 @@ public class SkillController {
      * <p>与管理面 {@code GET /skills/catalog} 的区别只在投影：选择器只要 name/description，
      * 管理面要版本、引用者与只读标记。两者同域同源，合在一个控制器里避免"同名同义两个入口"。</p>
      */
+    /** {@code GET /skills} 的载荷（选择器：{@code skills} + 可用标记）。 */
+    public record SkillListResponse(List<SkillInfoResponse> skills, boolean skillsAvailable) {
+    }
+
     @GetMapping("/api/v1/skills")
-    public ResponseEntity<Map<String, Object>> listSkills() {
-        Map<String, Object> body = new java.util.LinkedHashMap<>();
+    public ResponseEntity<SkillListResponse> listSkills() {
         List<SkillInfoResponse> response = new ArrayList<>();
         for (SkillCatalogPort.SkillRow row : catalog.listVisible(TenantContext.currentTenantId())) {
             response.add(new SkillInfoResponse(row.name(), row.description()));
         }
-        body.put("skills", response);
-        body.put("skillsAvailable", true);
-        return ResponseEntity.ok(body);
+        return ResponseEntity.ok(new SkillListResponse(response, true));
     }
 
     @PostMapping("/api/v1/skills/catalog")
@@ -228,15 +232,24 @@ public class SkillController {
         return ApiResponse.ok();
     }
 
+    /** {@code GET /skills/catalog/{id}/files} 的载荷。 */
+    public record SkillFilesResponse(List<SkillFileEntry> files) {
+    }
+
     @GetMapping("/api/v1/skills/catalog/{id}/files")
-    public ResponseEntity<Map<String, Object>> listCatalogFiles(@PathVariable("id") String id) {
+    public ResponseEntity<SkillFilesResponse> listCatalogFiles(@PathVariable("id") String id) {
         requireRow(id, TenantContext.currentTenantId());
         // 入库技能只有 SKILL.md（附随文件未支持）；保持裁剪前的数组形状。
-        return ResponseEntity.ok(Map.of("files", List.of(new SkillFileEntry(SkillCatalogPort.SKILL_FILE_NAME, SkillCatalogPort.SKILL_FILE_NAME))));
+        return ResponseEntity.ok(new SkillFilesResponse(
+                List.of(new SkillFileEntry(SkillCatalogPort.SKILL_FILE_NAME, SkillCatalogPort.SKILL_FILE_NAME))));
+    }
+
+    /** {@code GET /skills/catalog/{id}/files/content} 的载荷。 */
+    public record SkillFileContentResponse(String name, String path, String content) {
     }
 
     @GetMapping("/api/v1/skills/catalog/{id}/files/content")
-    public ResponseEntity<Map<String, Object>> getCatalogFile(
+    public ResponseEntity<SkillFileContentResponse> getCatalogFile(
             @PathVariable("id") String id,
             @RequestParam(value = "path", required = false) String path) {
         SkillCatalogPort.SkillRow row = requireRow(id, TenantContext.currentTenantId());
@@ -245,10 +258,10 @@ public class SkillController {
                 && !path.endsWith("/" + SkillCatalogPort.SKILL_FILE_NAME)) {
             throw new BizException(AppError.notFound("file not found in skill: " + path));
         }
-        return ResponseEntity.ok(Map.of(
-                "name", SkillCatalogPort.SKILL_FILE_NAME,
-                "path", SkillCatalogPort.SKILL_FILE_NAME,
-                "content", row.content()));
+        return ResponseEntity.ok(new SkillFileContentResponse(
+                SkillCatalogPort.SKILL_FILE_NAME,
+                SkillCatalogPort.SKILL_FILE_NAME,
+                row.content()));
     }
 
     /** 创建必须落在某个空间（缺上下文时不能默默写成平台内置行）。 */

@@ -376,6 +376,11 @@ public class UserService implements UserNameLookup {
             this.kind = kind;
         }
 
+        public ChangePasswordException(ChangePasswordFailure kind, String message, Throwable cause) {
+            super(message, cause);
+            this.kind = kind;
+        }
+
         public ChangePasswordFailure kind() {
             return kind;
         }
@@ -411,7 +416,7 @@ public class UserService implements UserNameLookup {
         try {
             userRepo.updateById(user);
         } catch (RuntimeException e) {
-            throw new ChangePasswordException(ChangePasswordFailure.OTHER, e.getMessage());
+            throw new ChangePasswordException(ChangePasswordFailure.OTHER, e.getMessage(), e);
         }
         // 吊销全部会话：被偷的 token 不能活过密码轮换
         revokeTokensByUserId(userId);
@@ -465,6 +470,10 @@ public class UserService implements UserNameLookup {
     public static final class SwitchTenantException extends RuntimeException {
         public SwitchTenantException(String message) {
             super(message);
+        }
+
+        public SwitchTenantException(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 

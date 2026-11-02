@@ -148,7 +148,7 @@ public class FeishuAdapter implements AdapterInterfaces.Adapter,
         try {
             uri = URI.create(endpoint);
         } catch (RuntimeException e) {
-            throw new IllegalArgumentException("invalid api_base_url: " + e.getMessage());
+            throw new IllegalArgumentException("invalid api_base_url: " + e.getMessage(), e);
         }
         if (!"http".equals(uri.getScheme()) && !"https".equals(uri.getScheme())) {
             throw new IllegalArgumentException("api_base_url must use http(s):// scheme, got "

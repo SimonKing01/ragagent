@@ -50,6 +50,12 @@ public class FetchException extends RuntimeException {
         this.retryable = retryable;
     }
 
+    public FetchException(Code code, boolean retryable, String message, Throwable cause) {
+        super(message, cause);
+        this.code = code;
+        this.retryable = retryable;
+    }
+
     public Code getCode() {
         return code;
     }

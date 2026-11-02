@@ -513,21 +513,24 @@ public final class LegacySplitter {
             return false;
         };
 
-        int[] best = {-1, -1, Integer.MAX_VALUE}; // start, end, priority
-        boolean[] found = {false};
         int finalMinEnd = minEnd;
         class Consider {
+            int bestStart = -1;
+            int bestEnd = -1;
+            int bestPriority = Integer.MAX_VALUE;
+            boolean found;
+
             void apply(int start, int end, int priority) {
                 if (start < 0 || end <= start || end < finalMinEnd || end > runes.length
                         || insideProtectedFn.test(start) || !hasMeaningfulTail(end)) {
                     return;
                 }
-                if (!found[0] || priority < best[2]
-                        || (priority == best[2] && start < best[0])) {
-                    best[0] = start;
-                    best[1] = end;
-                    best[2] = priority;
-                    found[0] = true;
+                if (!found || priority < bestPriority
+                        || (priority == bestPriority && start < bestStart)) {
+                    bestStart = start;
+                    bestEnd = end;
+                    bestPriority = priority;
+                    found = true;
                 }
             }
 
@@ -581,10 +584,10 @@ public final class LegacySplitter {
             }
         }
 
-        if (!found[0]) {
+        if (!consider.found) {
             return new BoundaryResult(0, false);
         }
-        return new BoundaryResult(best[1], true);
+        return new BoundaryResult(consider.bestEnd, true);
     }
 
     /**

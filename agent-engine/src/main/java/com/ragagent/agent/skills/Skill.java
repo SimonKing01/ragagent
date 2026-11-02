@@ -204,7 +204,7 @@ public final class Skill {
         try {
             skill.frontmatterRepaired = SkillFrontmatter.unmarshalSkillFrontmatter(frontmatter, skill);
         } catch (RuntimeException e) {
-            throw new SkillValidationException("failed to parse YAML frontmatter: " + e.getMessage());
+            throw new SkillValidationException("failed to parse YAML frontmatter: " + e.getMessage(), e);
         }
         skill.applyInstallName();
         skill.instructions = String.join("\n", bodyLines).strip();
@@ -212,7 +212,7 @@ public final class Skill {
         try {
             skill.validate();
         } catch (SkillValidationException e) {
-            throw new SkillValidationException("skill validation failed: " + e.getMessage());
+            throw new SkillValidationException("skill validation failed: " + e.getMessage(), e);
         }
         return skill;
     }

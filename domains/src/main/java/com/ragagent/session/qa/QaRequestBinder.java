@@ -73,7 +73,7 @@ public final class QaRequestBinder {
             try {
                 data = Base64Support.decode(upload.data);
             } catch (RuntimeException e) {
-                throw new IllegalArgumentException("attachment " + i + " decode failed: " + e.getMessage());
+                throw new IllegalArgumentException("attachment " + i + " decode failed: " + e.getMessage(), e);
             }
             if (data.length > maxFileBytes) {
                 throw new IllegalArgumentException(

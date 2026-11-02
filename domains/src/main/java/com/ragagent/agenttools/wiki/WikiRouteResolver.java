@@ -184,7 +184,7 @@ import java.util.concurrent.ConcurrentHashMap;
             try {
                 knowledge = knowledgeService.byIdOnly(knowledgeId);
             } catch (RuntimeException e) {
-                throw new IllegalStateException("failed to resolve source document " + knowledgeId + ": " + e.getMessage());
+                throw new IllegalStateException("failed to resolve source document " + knowledgeId + ": " + e.getMessage(), e);
             }
             if (knowledge == null) {
                 throw new IllegalStateException("failed to resolve source document " + knowledgeId + ": empty result");

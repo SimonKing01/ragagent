@@ -72,11 +72,11 @@ public final class HeuristicSplitter {
             if (blockLen > cfg.getChunkSize()) {
                 // 前后边界之间的块本身就放不进任何 chunk：flush 当前累积，然后递归细分
                 if (curEnd - chunkStart > 0) {
-                    out = appendChunk(out, runes, chunkStart, curEnd, seq);
+                    appendChunk(out, runes, chunkStart, curEnd, seq);
                     seq = out.size();
                     chunkStart = curEnd;
                 }
-                out = appendOversizeBlock(out, runes, curEnd, nextEnd, cfg, seq);
+                appendOversizeBlock(out, runes, curEnd, nextEnd, cfg, seq);
                 seq = out.size();
                 curEnd = nextEnd;
                 chunkStart = nextEnd;
@@ -87,7 +87,7 @@ public final class HeuristicSplitter {
             int accumulated = nextEnd - chunkStart;
             if (accumulated > cfg.getChunkSize() && curEnd - chunkStart >= minChunkSize) {
                 // flush 累积内容为一个 chunk，从 curEnd 重启
-                out = appendChunk(out, runes, chunkStart, curEnd, seq);
+                appendChunk(out, runes, chunkStart, curEnd, seq);
                 seq = out.size();
                 // overlap 起点吸附到最近的语义边界或换行，避免从行/词中间切开
                 chunkStart = applyOverlapAligned(runes, curEnd, cfg.getChunkOverlap(), bounds);
@@ -97,7 +97,7 @@ public final class HeuristicSplitter {
 
         // flush 剩余
         if (curEnd > chunkStart) {
-            out = appendChunk(out, runes, chunkStart, curEnd, seq);
+            appendChunk(out, runes, chunkStart, curEnd, seq);
         }
         return out;
     }
@@ -218,23 +218,22 @@ public final class HeuristicSplitter {
     /**
      * content 是原文截取片段，start/end 码点偏移必须与 content 的码点长度一致。
      */
-    private static List<ParsedChunk> appendChunk(List<ParsedChunk> out, int[] runes,
+    private static void appendChunk(List<ParsedChunk> out, int[] runes,
             int start, int end, int seq) {
         if (end <= start) {
-            return out;
+            return;
         }
         String raw = CodePoints.str(runes, start, end);
         if (raw.strip().isEmpty()) {
-            return out;
+            return;
         }
         out.add(new ParsedChunk(raw, "", seq, start, end));
-        return out;
     }
 
-    private static List<ParsedChunk> appendOversizeBlock(List<ParsedChunk> out, int[] runes,
+    private static void appendOversizeBlock(List<ParsedChunk> out, int[] runes,
             int start, int end, SplitterConfig cfg, int seq) {
         if (end <= start) {
-            return out;
+            return;
         }
         String subText = CodePoints.str(runes, start, end);
         List<ParsedChunk> subs = LegacySplitter.splitText(subText, cfg);
@@ -242,7 +241,6 @@ public final class HeuristicSplitter {
             out.add(new ParsedChunk(s.getContent(), "", seq, start + s.getStart(), start + s.getEnd()));
             seq++;
         }
-        return out;
     }
 
     /**

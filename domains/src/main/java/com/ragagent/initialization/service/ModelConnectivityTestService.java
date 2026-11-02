@@ -345,7 +345,7 @@ public final class ModelConnectivityTestService {
             }
             throw new IllegalStateException("调用DocReader服务失败: " + msg);
         } catch (Exception e) {
-            throw new IllegalStateException("调用DocReader服务失败: " + e.getMessage());
+            throw new IllegalStateException("调用DocReader服务失败: " + e.getMessage(), e);
         }
     }
 

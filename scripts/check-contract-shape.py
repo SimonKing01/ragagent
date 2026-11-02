@@ -40,15 +40,21 @@ TYPE_DECL_RE = re.compile(r"^(record|class|interface|enum)\b")
 
 
 def count_port_methods(path: Path) -> int:
+    """只数端口自身的成员；嵌套类型（异常/值类型）里的成员不计入预算。
+
+    行扫描要跟踪花括号深度：接口体为 1 层，嵌套类型内部为 2 层以上。
+    不跟踪深度会把嵌套异常类的构造器算成端口方法，重载一个构造器就报预算超限。
+    """
     n = 0
+    depth = 0
     for line in path.read_text(encoding="utf-8").splitlines():
         s = line.strip()
-        if not s or s.startswith(("*", "/", "@", "import", "package", "//")):
-            continue
-        if TYPE_DECL_RE.match(s):
-            continue
-        if PORT_METHOD_RE.match(s):
-            n += 1
+        if depth == 1 and s and not s.startswith(("*", "/", "@", "import", "package", "//")):
+            if not TYPE_DECL_RE.match(s) and PORT_METHOD_RE.match(s):
+                n += 1
+        depth += s.count("{") - s.count("}")
+        if depth < 0:
+            depth = 0
     return n
 
 

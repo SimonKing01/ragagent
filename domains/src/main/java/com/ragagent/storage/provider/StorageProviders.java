@@ -89,6 +89,10 @@ public final class StorageProviders {
         public ConnectorFailure(String message) {
             super(message);
         }
+
+        public ConnectorFailure(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 
     private static final Map<String, Descriptor> BY_KEY = build();
@@ -252,7 +256,7 @@ public final class StorageProviders {
         try {
             Files.createDirectories(safe);
         } catch (IOException e) {
-            throw new ConnectorFailure("create local storage directory: " + e.getMessage());
+            throw new ConnectorFailure("create local storage directory: " + e.getMessage(), e);
         }
         if (!Files.isDirectory(base)) {
             throw new ConnectorFailure("storage directory not accessible: " + base);

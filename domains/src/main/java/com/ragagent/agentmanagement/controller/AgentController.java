@@ -23,7 +23,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -68,7 +67,7 @@ public class AgentController {
 
     // ── GET /agents ──
     @GetMapping("/api/v1/agents")
-    public ResponseEntity<Map<String, Object>> list(
+    public ResponseEntity<AgentResponses.AgentListPayload> list(
             @RequestParam(value = "creator", required = false) String creator,
             HttpServletRequest req) {
         String locale = BuiltinAgentRegistry.localeFromRequest(req.getHeader("Accept-Language"));

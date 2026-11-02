@@ -46,13 +46,14 @@ public final class AgentResponses {
                         ? null : row.getCreatorName());
     }
 
+    /** {@code GET /agents} 的载荷（外壳 {@code data} 的内容；外壳不由本类构造）。 */
+    public record AgentListPayload(List<AgentView> agents, List<String> disabledOwnAgentIds) {
+    }
+
     /** 列表载荷（就是外壳 {@code data} 的内容；外壳不再由本类构造）。 */
-    public static Map<String, Object> listEnvelope(List<?> agents,
+    public static AgentListPayload listEnvelope(List<AgentView> agents,
             List<String> disabledOwnIds) {
-        Map<String, Object> m = new LinkedHashMap<>();
-        m.put("agents", agents);
-        m.put("disabledOwnAgentIds", disabledOwnIds == null ? List.of() : disabledOwnIds);
-        return m;
+        return new AgentListPayload(agents, disabledOwnIds == null ? List.of() : disabledOwnIds);
     }
 
 

@@ -57,7 +57,7 @@ public class OpenAiAsrTranscriber implements AsrTranscriber {
             try {
                 ssrfGuard.validateURLForSSRF(config.baseUrl());
             } catch (RuntimeException e) {
-                throw new AsrCreateException("base URL SSRF check failed: " + e.getMessage());
+                throw new AsrCreateException("base URL SSRF check failed: " + e.getMessage(), e);
             }
         }
         if (audioBytes == null || audioBytes.length == 0) {
@@ -93,7 +93,7 @@ public class OpenAiAsrTranscriber implements AsrTranscriber {
         try (InputStream stream = resp.body()) {
             respBody = stream == null ? new byte[0] : stream.readAllBytes();
         } catch (IOException e) {
-            throw new AsrTranscribeException("ASR transcription request failed: " + e.getMessage());
+            throw new AsrTranscribeException("ASR transcription request failed: " + e.getMessage(), e);
         }
         int status = resp.statusCode();
         if (status != 200) {

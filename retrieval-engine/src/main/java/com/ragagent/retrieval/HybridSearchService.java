@@ -133,6 +133,10 @@ public class HybridSearchService implements HybridSearchPort {
         public RetrievalException(String message) {
             super(message);
         }
+
+        public RetrievalException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 
     // ── storeGroup ──────────────────────────────────────────────────────────
@@ -316,7 +320,7 @@ public class HybridSearchService implements HybridSearchPort {
         } catch (RetrievalException e) {
             throw e;
         } catch (Exception e) {
-            throw new RetrievalException("embed query text: " + e.getMessage());
+            throw new RetrievalException("embed query text: " + e.getMessage(), e);
         }
     }
 

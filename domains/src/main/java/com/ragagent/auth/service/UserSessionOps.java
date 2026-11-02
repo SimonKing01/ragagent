@@ -136,14 +136,14 @@ final class UserSessionOps {
             UserPreferences merged = svc.updateUserPreferences(user.getId(), patch);
             user.setPreferences(merged);
         } catch (RuntimeException e) {
-            throw new UserService.SwitchTenantException("record last-active-tenant preference: " + e.getMessage());
+            throw new UserService.SwitchTenantException("record last-active-tenant preference: " + e.getMessage(), e);
         }
 
         String[] tokens;
         try {
             tokens = svc.generateTokensForTenant(user, targetTenantId);
         } catch (RuntimeException e) {
-            throw new UserService.SwitchTenantException("generate tokens: " + e.getMessage());
+            throw new UserService.SwitchTenantException("generate tokens: " + e.getMessage(), e);
         }
 
         // 尽力吊销旧 refresh（失败只记日志，不拖垮切换）

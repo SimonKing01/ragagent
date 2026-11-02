@@ -4,6 +4,7 @@ import com.ragagent.session.rag.support.QueryTokenizer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 /**
@@ -83,13 +84,13 @@ final class QueryTextOps {
     public static List<String> tokenize(String text) {
         List<String> tokens = new ArrayList<>();
         StringBuilder current = new StringBuilder();
-        boolean[] currentIsHan = new boolean[] {false};
+        AtomicBoolean currentIsHan = new AtomicBoolean(false);
 
         Runnable flush = () -> {
             if (current.length() == 0) {
                 return;
             }
-            if (currentIsHan[0]) {
+            if (currentIsHan.get()) {
                 for (String word : QueryTokenizer.cutForSearch(current.toString())) {
                     String w = word.trim();
                     if (!w.isEmpty()) {
@@ -100,22 +101,22 @@ final class QueryTextOps {
                 tokens.add(current.toString());
             }
             current.setLength(0);
-            currentIsHan[0] = false;
+            currentIsHan.set(false);
         };
 
         for (int i = 0; i < text.length(); ) {
             int cp = text.codePointAt(i);
             if (isHan(cp)) {
-                if (current.length() > 0 && !currentIsHan[0]) {
+                if (current.length() > 0 && !currentIsHan.get()) {
                     flush.run();
                 }
-                currentIsHan[0] = true;
+                currentIsHan.set(true);
                 current.appendCodePoint(cp);
             } else if (Character.isLetter(cp) || Character.isDigit(cp)) {
-                if (current.length() > 0 && currentIsHan[0]) {
+                if (current.length() > 0 && currentIsHan.get()) {
                     flush.run();
                 }
-                currentIsHan[0] = false;
+                currentIsHan.set(false);
                 current.appendCodePoint(cp);
             } else {
                 flush.run();

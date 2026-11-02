@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +72,7 @@ final class FinalizePhase {
         // 整个最终答案流共用一个 ID
         String answerID = EventIds.generateEventID("answer");
         log.debug("[Agent][FinalAnswer] AnswerID: {}", answerID);
-        boolean[] answerDoneEmitted = {false};
+        AtomicBoolean answerDoneEmitted = new AtomicBoolean(false);
 
         int budget = engine.clampCompletionBudgetToContext(engine.tokenEstimator.estimateMessages(messages));
         ChatOptions opts = new ChatOptions();
@@ -94,12 +95,12 @@ final class FinalizePhase {
                 engine.eventBus.emit(new Event(answerID, EventType.EVENT_AGENT_FINAL_ANSWER, sessionId,
                         new AgentFinalAnswerData(chunk.getContent(), chunk.isDone(), false), null, ""));
                 if (chunk.isDone()) {
-                    answerDoneEmitted[0] = true;
+                    answerDoneEmitted.set(true);
                 }
             }
         });
 
-        if (!answerDoneEmitted[0]) {
+        if (!answerDoneEmitted.get()) {
             engine.eventBus.emit(new Event(answerID, EventType.EVENT_AGENT_FINAL_ANSWER, sessionId,
                     new AgentFinalAnswerData("", true, false), null, ""));
         }

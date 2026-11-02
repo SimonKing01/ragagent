@@ -80,7 +80,7 @@ final class ThinkPhase {
             stream = engine.chatModel.chatStream(encoded, opts);
         } catch (RuntimeException e) {
             log.error("[Agent][Stream] Failed to start LLM stream", e);
-            throw new AgentEngineException(e.getMessage() == null ? e.toString() : e.getMessage());
+            throw new AgentEngineException(e.getMessage() == null ? e.toString() : e.getMessage(), e);
         }
 
         StreamLLMResult result = new StreamLLMResult();
@@ -544,7 +544,7 @@ final class ThinkPhase {
                 return null; // 优雅降级成功
             }
 
-            throw new AgentEngineException("LLM call failed: " + error.getMessage());
+            throw new AgentEngineException("LLM call failed: " + error.getMessage(), error);
         }
 
         log.info("[PIPELINE] stage=Agent action=think_result iteration={} finish_reason={} tool_calls={} content_len={}",

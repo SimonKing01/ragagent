@@ -269,7 +269,7 @@ public class TemporaryDocumentService {
             repo.create(document);
         } catch (RuntimeException e) {
             fileStore.deleteFile(resourceRef);
-            throw new IllegalArgumentException("create attachment record: " + e.getMessage());
+            throw new IllegalArgumentException("create attachment record: " + e.getMessage(), e);
         }
         processor.enqueueProcess(tenantId, document.getId());
         return document;

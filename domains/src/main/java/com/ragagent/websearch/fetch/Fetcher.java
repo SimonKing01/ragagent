@@ -86,7 +86,7 @@ public final class Fetcher {
         try {
             parsedUrl = URI.create(rawUrl.trim());
         } catch (IllegalArgumentException e) {
-            throw new FetchException(Code0.INVALID_URL, false, "invalid URL: " + e.getMessage());
+            throw new FetchException(Code0.INVALID_URL, false, "invalid URL: " + e.getMessage(), e);
         }
         String scheme = parsedUrl.getScheme() == null ? "" : parsedUrl.getScheme();
         String hostname = parsedUrl.getHost() == null ? "" : parsedUrl.getHost();
@@ -236,7 +236,7 @@ public final class Fetcher {
         try {
             parsedUrl = URI.create(rawUrl);
         } catch (IllegalArgumentException e) {
-            throw new FetchException(Code0.INVALID_URL, false, "invalid URL: " + e.getMessage());
+            throw new FetchException(Code0.INVALID_URL, false, "invalid URL: " + e.getMessage(), e);
         }
         String host = parsedUrl.getHost();
         try {
