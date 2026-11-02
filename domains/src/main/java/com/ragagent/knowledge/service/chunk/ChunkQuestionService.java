@@ -119,7 +119,8 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         try {
             meta = parseDocumentMetadata(chunk.getMetadata());
         } catch (JsonProcessingException e) {
-            throw BizException.badRequest(e.getMessage());
+            log.warn("Failed to parse stored chunk metadata", e);
+            throw BizException.internal("failed to read chunk metadata");
         }
         if (meta == null) {
             meta = new DocumentChunkMetadata();
@@ -153,17 +154,20 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         try {
             chunk.setMetadata(writeDocumentMetadata(meta));
         } catch (JsonProcessingException e) {
-            throw BizException.badRequest(e.getMessage());
+            log.warn("Failed to serialize chunk metadata", e);
+            throw BizException.internal("failed to write chunk metadata");
         }
         try {
             chunkRepository.updateChunk(chunk);
         } catch (RuntimeException e) {
-            throw BizException.badRequest(e.getMessage());
+            log.warn("Failed to update chunk", e);
+            throw BizException.internal("failed to persist chunk");
         }
         try {
             chunkVectorIndexer.syncChunkIndex(chunk);
         } catch (RuntimeException e) {
-            throw BizException.badRequest(e.getMessage());
+            log.warn("Failed to sync chunk index", e);
+            throw BizException.internal("failed to sync chunk index");
         }
         for (GeneratedQuestion gq : meta.getGeneratedQuestions()) {
             if (questionId.equals(gq.getId())) {
@@ -341,7 +345,8 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         try {
             persistGeneratedQuestions(kb, chunk, generated);
         } catch (RuntimeException e) {
-            throw BizException.badRequest(e.getMessage());
+            log.warn("Failed to persist generated questions", e);
+            throw BizException.internal("failed to persist generated questions");
         }
         log.info("Successfully regenerated {} questions for chunk {}", generated.size(), chunkId);
         return generated;
