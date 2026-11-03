@@ -259,7 +259,7 @@ public class MemoryExtractionService implements MemoryExtractHandler {
      * 抽取入口：先进入 payload 的租户作用域再走主体。
      *
      * <p>抽取跑在队列虚拟线程上（没有 HTTP Filter 填 {@code TenantContext}），而抽取链要按
-     * <b>租户可见性</b>解析模型（{@code DefaultMemoryModelResolver} → {@code getModelByID}）
+     * <b>租户可见性</b>解析模型（{@code DefaultMemoryModelResolver} → {@code getModelById}）
      * ——空租户会让用户自建模型查不到。payload 已显式携带租户，故在此进入作用域。</p>
      */
     public void handle(MemoryExtractPayload payload) {

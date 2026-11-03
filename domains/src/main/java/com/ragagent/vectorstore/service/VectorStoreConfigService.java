@@ -85,8 +85,8 @@ public class VectorStoreConfigService {
         return EnvVectorStores.find(driverProperties.driver(), envLookup, id);
     }
 
-    public VectorStore getByID(long tenantId, String id) {
-        return repo.getByID(tenantId, id);
+    public VectorStore getById(long tenantId, String id) {
+        return repo.getById(tenantId, id);
     }
 
     public List<VectorStore> list(long tenantId) {
@@ -114,7 +114,7 @@ public class VectorStoreConfigService {
             return env == null ? null
                     : VectorStoreResponse.of(env, "env", true);
         }
-        VectorStore store = getByID(tenantId, id);
+        VectorStore store = getById(tenantId, id);
         return store == null ? null
                 : VectorStoreResponse.of(store, "user", false);
     }
@@ -140,7 +140,7 @@ public class VectorStoreConfigService {
         updated.setTenantId(tenantId);
         updated.setName(name);
         updateName(updated);
-        VectorStore result = getByID(tenantId, id);
+        VectorStore result = getById(tenantId, id);
         return result == null ? null
                 : VectorStoreResponse.of(result, "user", false);
     }
@@ -152,7 +152,7 @@ public class VectorStoreConfigService {
             return env == null ? null
                     : testConnection(env.getEngineType(), env.getConnectionConfig());
         }
-        VectorStore store = getByID(tenantId, id);
+        VectorStore store = getById(tenantId, id);
         if (store == null) {
             return null;
         }

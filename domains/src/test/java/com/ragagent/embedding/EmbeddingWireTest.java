@@ -456,7 +456,7 @@ class EmbeddingWireTest {
             }
 
             @Override
-            public String getModelID() {
+            public String getModelId() {
                 return "emb-gate";
             }
         };
@@ -520,7 +520,7 @@ class EmbeddingWireTest {
             }
 
             @Override
-            public String getModelID() {
+            public String getModelId() {
                 return "m";
             }
         };
@@ -551,7 +551,7 @@ class EmbeddingWireTest {
             }
 
             @Override
-            public String getModelID() {
+            public String getModelId() {
                 return "m";
             }
         };
@@ -591,7 +591,7 @@ class EmbeddingWireTest {
             }
 
             @Override
-            public String getModelID() {
+            public String getModelId() {
                 return "m";
             }
         };

@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 解析「知识处理链要跑在哪个租户作用域」——worker 虚拟线程<b>没有</b> HTTP Filter 链填
- * {@code TenantContext}，而下游模型解析（{@code ModelService.getModelByID} /
+ * {@code TenantContext}，而下游模型解析（{@code ModelService.getModelById} /
  * {@code ModelRuntime}）按<b>租户可见性</b>过滤
  * （{@code tenant_id = 当前租户 OR is_builtin}）：空租户会按 0 查，用户<b>自建模型</b>
  * （{@code is_builtin = false}）直接查不到 ⇒ 整条链以

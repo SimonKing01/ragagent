@@ -62,7 +62,7 @@ class QaTurnExecutorNormalFailureTest {
         QaRequestContext reqCtx = new QaRequestContext();
         reqCtx.sessionId = "s-1";
         reqCtx.query = "问题";
-        reqCtx.userMessageID = "um-1";
+        reqCtx.userMessageId = "um-1";
         reqCtx.session = session;
 
         Message assistant = new Message();

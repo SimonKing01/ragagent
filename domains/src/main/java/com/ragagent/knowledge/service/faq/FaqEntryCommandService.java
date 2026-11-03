@@ -105,7 +105,7 @@ public class FaqEntryCommandService {
         long tid = tenantId();
 
         FaqChunkMetadata meta = faqGuard.sanitizeFAQEntryPayload(payload);
-        String tagID = faqGuard.resolveTagID(kb.getId(), payload);
+        String tagId = faqGuard.resolveTagId(kb.getId(), payload);
 
         String guardKey = "faq:create:" + tid + ":" + kb.getId() + ":" + sha256Hex(meta.standardQuestion);
         if (!taskStore.acquireCreateGuard(guardKey)) {
@@ -136,7 +136,7 @@ public class FaqEntryCommandService {
             chunk.setIsEnabled(isEnabled);
             chunk.setFlags(flags);
             chunk.setChunkType("faq");
-            chunk.setTagId(tagID);
+            chunk.setTagId(tagId);
             chunk.setStatus(1); // stored
             if (payload.id() != null && payload.id() > 0) {
                 chunk.setSeqId(payload.id());

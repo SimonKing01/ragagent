@@ -51,7 +51,7 @@ public class StorageBackendService {
 
     /** 控制器读面：租户内按 id 取后端；不存在返回 {@code null}（控制器转 404）。 */
     public StorageBackend getBackend(long tenantId, String id) {
-        return repo.getByID(tenantId, id).orElse(null);
+        return repo.getById(tenantId, id).orElse(null);
     }
 
     /** 路径规范化：收敛 ../ 与 ..（近似语义，非完整实现），用于 path_prefix 规范化比较 */
@@ -180,7 +180,7 @@ public class StorageBackendService {
 
     /** 更新：守卫顺序 get → env → merge → immutable → disable-guard → 校验 → 连通性测试 → 落库 */
     public void update(StorageBackend incoming) {
-        StorageBackend existing = repo.getByID(tenant(incoming), incoming.getId()).orElse(null);
+        StorageBackend existing = repo.getById(tenant(incoming), incoming.getId()).orElse(null);
         if (existing == null) {
             throw BizException.notFound("storage backend not found");
         }
@@ -241,7 +241,7 @@ public class StorageBackendService {
     /** 删除：事务内 get → env → default → KB → 资源 → legacy → 软删 */
     public void delete(long tenantId, String id) {
         tx.executeWithoutResult(status -> {
-            StorageBackend backend = repo.getByID(tenantId, id).orElse(null);
+            StorageBackend backend = repo.getById(tenantId, id).orElse(null);
             if (backend == null) {
                 throw BizException.notFound("storage backend not found");
             }
@@ -272,7 +272,7 @@ public class StorageBackendService {
     /** 设默认：事务内 get → 仅 active → 更新租户默认 */
     public void setDefault(long tenantId, String id) {
         tx.executeWithoutResult(status -> {
-            StorageBackend backend = repo.getByID(tenantId, id).orElse(null);
+            StorageBackend backend = repo.getById(tenantId, id).orElse(null);
             if (backend == null) {
                 throw BizException.notFound("storage backend not found");
             }

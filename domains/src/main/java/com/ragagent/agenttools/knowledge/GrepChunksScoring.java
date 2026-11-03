@@ -55,10 +55,10 @@ public final class GrepChunksScoring {
             uniqueResults.add(r);
         }
 
-        LinkedHashSet<String> seenByID = new LinkedHashSet<>();
+        LinkedHashSet<String> seenById = new LinkedHashSet<>();
         List<GrepChunkHit> deduplicated = new ArrayList<>();
         for (GrepChunkHit r : uniqueResults) {
-            if (seenByID.add(GrepChunkHit.nz(r.id))) {
+            if (seenById.add(GrepChunkHit.nz(r.id))) {
                 deduplicated.add(r);
             }
         }

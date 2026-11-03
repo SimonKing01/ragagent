@@ -469,7 +469,7 @@ public final class PluginMerge implements Plugin {
      * 可信对按位置合并；含编辑/扩展/过期内容的对
      * 落回文本匹配。入参必须已按 ChunkIndex 排序。
      */
-    public List<SearchResult> mergeSequentialChunks(String knowledgeID, List<SearchResult> chunks) {
+    public List<SearchResult> mergeSequentialChunks(String knowledgeId, List<SearchResult> chunks) {
         if (chunks.isEmpty()) {
             return null;
         }
@@ -493,18 +493,18 @@ public final class PluginMerge implements Plugin {
                     lastChunk.setContent(appendTrustedContent(lastChunk.getContent(),
                             current.getContent(), lastChunk.getEndAt() - current.getStartAt()));
                     lastChunk.setEndAt(current.getEndAt());
-                    recordMergedChild(knowledgeID, lastChunk, current, "image_merge");
+                    recordMergedChild(knowledgeId, lastChunk, current, "image_merge");
                 }
-                case SUBSUME -> recordMergedChild(knowledgeID, lastChunk, current, "image_merge_contained");
+                case SUBSUME -> recordMergedChild(knowledgeId, lastChunk, current, "image_merge_contained");
                 case JOIN_DISTINCT -> {
                     lastChunk.setContent(ChunkSearchUtil.joinChunkContent(
                             lastChunk.getContent(), current.getContent(), "\n\n"));
-                    recordMergedChild(knowledgeID, lastChunk, current, "image_merge_contained");
+                    recordMergedChild(knowledgeId, lastChunk, current, "image_merge_contained");
                 }
                 case JOIN_TEXT -> {
                     lastChunk.setContent(ChunkSearchUtil.joinChunkContent(
                             lastChunk.getContent(), current.getContent(), "\n\n"));
-                    recordMergedChild(knowledgeID, lastChunk, current, "image_merge");
+                    recordMergedChild(knowledgeId, lastChunk, current, "image_merge");
                 }
             }
 
@@ -576,7 +576,7 @@ public final class PluginMerge implements Plugin {
     }
 
     /** 记录子块 ID + 合并 ImageInfo。 */
-    private void recordMergedChild(String knowledgeID, SearchResult target, SearchResult source, String warnKey) {
+    private void recordMergedChild(String knowledgeId, SearchResult target, SearchResult source, String warnKey) {
         if (!containsId(target.getSubChunkId(), source.getId())) {
             appendSubChunkId(target, source.getId());
         }
@@ -584,7 +584,7 @@ public final class PluginMerge implements Plugin {
             mergeImageInfo(target, source);
         } catch (RuntimeException e) {
             Map<String, Object> f = new LinkedHashMap<>();
-            f.put("knowledge_id", knowledgeID);
+            f.put("knowledge_id", knowledgeId);
             f.put("error", e.getMessage());
             PipelineLog.warn("Merge", warnKey, f);
         }

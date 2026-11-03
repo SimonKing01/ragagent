@@ -271,7 +271,7 @@ final class ElasticsearchV8WriteOps {
     }
 
     /** 按 tagID 分组逐组 update_by_query。 */
-    void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
+    void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
         if (chunkTagMap == null || chunkTagMap.isEmpty()) {
             log.debug("[Elasticsearch] Chunk tag map is empty, skipping update");
             return;

@@ -69,7 +69,7 @@ final class RssUtil {
      * 把条目 ID 限定在它所属 feed 之下，
      * 这样不同 feed 的相同 GUID 不会互相覆盖。
      */
-    static String itemExternalID(String feedUrl, String itemId) {
+    static String itemExternalId(String feedUrl, String itemId) {
         return nullToEmpty(feedUrl) + ":" + nullToEmpty(itemId);
     }
 

@@ -450,7 +450,7 @@ class OpenSearchRetrieveRepositoryTest {
 
         // tag 分组：字典序
         captured.clear();
-        r.batchUpdateChunkTagID(Map.of("c1", "t-b", "c2", "t-a"));
+        r.batchUpdateChunkTagId(Map.of("c1", "t-b", "c2", "t-a"));
         JsonNode tagBody = MAPPER.readTree(
                 captured.get(0).body());
         assertThat(tagBody.path("script").path("params").path("v").asText()).isEqualTo("t-a");

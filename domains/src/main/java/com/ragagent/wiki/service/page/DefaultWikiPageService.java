@@ -274,8 +274,8 @@ public class DefaultWikiPageService implements WikiPageService {
     }
 
     @Override
-    public WikiPage getPageByID(String id) {
-        WikiPage page = repo.getByID(id);
+    public WikiPage getPageById(String id) {
+        WikiPage page = repo.getById(id);
         WikiPageLinkOps.stripWikiPageInlineChunkCitations(page);
         return page;
     }
@@ -341,13 +341,13 @@ public class DefaultWikiPageService implements WikiPageService {
     }
 
     @Override
-    public List<WikiPage> listPagesBySourceRef(String kbId, String knowledgeID) {
-        return repo.listBySourceRef(kbId, knowledgeID);
+    public List<WikiPage> listPagesBySourceRef(String kbId, String knowledgeId) {
+        return repo.listBySourceRef(kbId, knowledgeId);
     }
 
     @Override
-    public List<String> listSlugsBySourceRef(String kbId, String knowledgeID) {
-        return repo.listSlugsBySourceRef(kbId, knowledgeID);
+    public List<String> listSlugsBySourceRef(String kbId, String knowledgeId) {
+        return repo.listSlugsBySourceRef(kbId, knowledgeId);
     }
 
     @Override
@@ -627,29 +627,29 @@ public class DefaultWikiPageService implements WikiPageService {
     }
 
     @Override
-    public List<WikiFolderNode> listChildFolders(String kbId, String parentID, List<String> pageTypes) {
-        return folderSupport.listChildFolders(kbId, parentID, pageTypes);
+    public List<WikiFolderNode> listChildFolders(String kbId, String parentId, List<String> pageTypes) {
+        return folderSupport.listChildFolders(kbId, parentId, pageTypes);
     }
 
     @Override
-    public WikiFolder createFolder(String kbId, Long tenantID, String parentID, String name) {
-        return folderSupport.createFolder(kbId, tenantID, parentID, name);
+    public WikiFolder createFolder(String kbId, Long tenantId, String parentId, String name) {
+        return folderSupport.createFolder(kbId, tenantId, parentId, name);
     }
 
     @Override
-    public FindOrCreateResult findOrCreateFolderPath(String kbId, Long tenantID, List<String> path) {
-        return folderSupport.findOrCreateFolderPath(kbId, tenantID, path);
+    public FindOrCreateResult findOrCreateFolderPath(String kbId, Long tenantId, List<String> path) {
+        return folderSupport.findOrCreateFolderPath(kbId, tenantId, path);
     }
 
     @Override
-    public WikiPage movePage(String kbId, String slug, String folderID) {
-        return folderSupport.movePage(kbId, slug, folderID);
+    public WikiPage movePage(String kbId, String slug, String folderId) {
+        return folderSupport.movePage(kbId, slug, folderId);
     }
 
     @Override
-    public WikiFolder renameOrMoveFolder(String kbId, String id, String newName, String newParentID,
+    public WikiFolder renameOrMoveFolder(String kbId, String id, String newName, String newParentId,
             boolean moveParent) {
-        return folderSupport.renameOrMoveFolder(kbId, id, newName, newParentID, moveParent);
+        return folderSupport.renameOrMoveFolder(kbId, id, newName, newParentId, moveParent);
     }
 
     @Override
@@ -711,8 +711,8 @@ public class DefaultWikiPageService implements WikiPageService {
     }
 
     @Override
-    public void updateIssueStatus(String issueID, String status) {
-        revisionOps.updateIssueStatus(issueID, status);
+    public void updateIssueStatus(String issueId, String status) {
+        revisionOps.updateIssueStatus(issueId, status);
     }
 
     // ── 链接维护:实现随协作者(WikiPageLinkOps) ──

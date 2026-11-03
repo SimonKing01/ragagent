@@ -47,7 +47,7 @@ public final class LangfuseReranker implements Reranker {
         input.put("documents_preview",
                 LangfusePayloads.previewDocs(documents, LangfusePayloads.RERANK_PREVIEW_DOCS));
         Map<String, Object> metadata = new LinkedHashMap<>();
-        metadata.put("model_id", inner.getModelID());
+        metadata.put("model_id", inner.getModelId());
         metadata.put("num_queries", 1);
         metadata.put("total_chars", totalChars);
         metadata.put("avg_doc_chars", LangfusePayloads.avgDocChars(documents));
@@ -83,7 +83,7 @@ public final class LangfuseReranker implements Reranker {
     }
 
     @Override
-    public String getModelID() {
-        return inner.getModelID();
+    public String getModelId() {
+        return inner.getModelId();
     }
 }

@@ -44,14 +44,14 @@ public class AgentLookupAdapter implements AgentLookup {
             return false;
         }
         try {
-            if (agentMapper.getByIDAndTenant(id, tenantId) != null) {
+            if (agentMapper.getByIdAndTenant(id, tenantId) != null) {
                 return true;
             }
         } catch (RuntimeException e) {
             // 查询异常＝不可用 ⇒ 与"未知 agent"同归 false（调用方按各自错误语义收口）
             return false;
         }
-        return BuiltinAgentRegistry.isBuiltinAgentID(id);
+        return BuiltinAgentRegistry.isBuiltinAgentId(id);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class AgentLookupAdapter implements AgentLookup {
             return false;
         }
         try {
-            CustomAgentEntity row = agentMapper.getByIDAndTenant(id, tenantId);
+            CustomAgentEntity row = agentMapper.getByIdAndTenant(id, tenantId);
             return row != null && row.getTenantId() != null && row.getTenantId() == tenantId;
         } catch (RuntimeException e) {
             return false;
@@ -71,7 +71,7 @@ public class AgentLookupAdapter implements AgentLookup {
     @Override
     public AgentView view(String agentId, String locale) {
         try {
-            CustomAgentEntity row = agentService.getAgentByID(agentId, locale).row();
+            CustomAgentEntity row = agentService.getAgentById(agentId, locale).row();
             if (row == null) {
                 return null;
             }

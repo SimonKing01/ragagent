@@ -44,7 +44,7 @@ public class StorageBackendPortAdapter implements StorageBackendPort {
 
     @Override
     public StorageBackendView findById(long tenantId, String id) {
-        return toView(backendRepository.getByID(tenantId, id).orElse(null));
+        return toView(backendRepository.getById(tenantId, id).orElse(null));
     }
 
     @Override

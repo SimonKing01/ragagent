@@ -182,12 +182,12 @@ public final class PluginSearchEntity implements Plugin {
                 if (node.getChunks() == null) {
                     continue;
                 }
-                for (String chunkID : node.getChunks()) {
-                    if (seen.containsKey(chunkID)) {
+                for (String chunkId : node.getChunks()) {
+                    if (seen.containsKey(chunkId)) {
                         continue;
                     }
-                    seen.put(chunkID, Boolean.TRUE);
-                    chunkIDs.add(chunkID);
+                    seen.put(chunkId, Boolean.TRUE);
+                    chunkIDs.add(chunkId);
                 }
             }
         }

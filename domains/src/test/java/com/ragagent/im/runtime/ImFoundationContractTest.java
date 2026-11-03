@@ -337,7 +337,7 @@ class ImFoundationContractTest {
         IncomingMessage threadMsg = IncomingMessage.of("slack", "uid", "");
         threadMsg.chatId = "chat9";
         assertFx("session_title_thread", ImFormat.buildThreadSessionTitle(threadMsg));
-        assertFx("short_id", ImFormat.shortID("0123456789abcdef"));
+        assertFx("short_id", ImFormat.shortId("0123456789abcdef"));
         assertFx("title_initial", ImFormat.imInitialSessionTitle(userMsg, ImFormat::buildUserSessionTitle));
     }
 

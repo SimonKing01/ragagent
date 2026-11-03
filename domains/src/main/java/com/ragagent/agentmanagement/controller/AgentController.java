@@ -110,7 +110,7 @@ public class AgentController {
             HttpServletRequest req) {
         requireNonEmpty(id);
         String locale = BuiltinAgentRegistry.localeFromRequest(req.getHeader("Accept-Language"));
-        var result = service.getAgentByID(id, locale);
+        var result = service.getAgentById(id, locale);
         return ResponseEntity.ok(AgentResponses.agent(result));
     }
 
@@ -146,7 +146,7 @@ public class AgentController {
         requireNonEmpty(id);
         String locale = BuiltinAgentRegistry.localeFromRequest(req.getHeader("Accept-Language"));
         // 先 getAgentByID（404 路径），再对 source config 做 API-Key scope 校验
-        var source = service.getAgentByID(id, locale);
+        var source = service.getAgentById(id, locale);
         authorizeKnowledgeScope(source.config());
         var result = service.copyAgent(id, locale);
         return ResponseEntity.status(201).body(AgentResponses.agent(result));

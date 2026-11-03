@@ -16,8 +16,8 @@ public class WebSearchProviderRepository {
         this.mapper = mapper;
     }
 
-    public WebSearchProviderEntity getByID(long tenantId, String id) {
-        return mapper.getByID(tenantId, id);
+    public WebSearchProviderEntity getById(long tenantId, String id) {
+        return mapper.getById(tenantId, id);
     }
 
     public List<WebSearchProviderEntity> list(long tenantId) {

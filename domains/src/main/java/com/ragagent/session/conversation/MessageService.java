@@ -114,7 +114,7 @@ public class MessageService {
     public Message getMessage(String sessionId, String messageId) {
         long tenantId = requireTenantId();
         SessionService.loadSessionForRead(
-                sessionRepository, tenantId, SessionService.sessionUserIDForLookup(), sessionId);
+                sessionRepository, tenantId, SessionService.sessionUserIdForLookup(), sessionId);
         return messageRepository.getMessage(sessionId, messageId);
     }
 
@@ -125,7 +125,7 @@ public class MessageService {
     public List<Message> getRecentMessages(String sessionId, int limit) {
         long tenantId = requireTenantId();
         SessionService.loadSessionForRead(
-                sessionRepository, tenantId, SessionService.sessionUserIDForLookup(), sessionId);
+                sessionRepository, tenantId, SessionService.sessionUserIdForLookup(), sessionId);
         return clarifyReadArtifactVersions(sessionId,
                 messageRepository.getRecentMessagesBySession(sessionId, limit));
     }
@@ -138,7 +138,7 @@ public class MessageService {
             int limit) {
         long tenantId = requireTenantId();
         SessionService.loadSessionForRead(
-                sessionRepository, tenantId, SessionService.sessionUserIDForLookup(), sessionId);
+                sessionRepository, tenantId, SessionService.sessionUserIdForLookup(), sessionId);
         return clarifyReadArtifactVersions(sessionId,
                 messageRepository.getMessagesBySessionBeforeTime(sessionId, beforeTime, limit));
     }
@@ -221,7 +221,7 @@ public class MessageService {
      */
     public void deleteMessage(String sessionId, String messageId) {
         long tenantId = requireTenantId();
-        sessionRepository.get(tenantId, SessionService.sessionUserIDForLookup(), sessionId);
+        sessionRepository.get(tenantId, SessionService.sessionUserIdForLookup(), sessionId);
 
         Message msg = messageRepository.getMessage(sessionId, messageId);
 
@@ -250,7 +250,7 @@ public class MessageService {
      */
     public void clearSessionMessages(String sessionId) {
         long tenantId = requireTenantId();
-        sessionRepository.get(tenantId, SessionService.sessionUserIDForLookup(), sessionId);
+        sessionRepository.get(tenantId, SessionService.sessionUserIdForLookup(), sessionId);
 
         try {
             List<String> knowledgeIds = messageRepository.getKnowledgeIdsBySessionId(sessionId);
@@ -282,7 +282,7 @@ public class MessageService {
      */
     public Message createMessage(Message message) {
         long tenantId = requireTenantId();
-        sessionRepository.get(tenantId, SessionService.sessionUserIDForLookup(), message.getSessionId());
+        sessionRepository.get(tenantId, SessionService.sessionUserIdForLookup(), message.getSessionId());
         return messageRepository.create(message);
     }
 
@@ -301,7 +301,7 @@ public class MessageService {
     /** 更新消息（严格 owner 范围校验后按零值跳过语义落库）。 */
     public void updateMessage(Message message) {
         long tenantId = requireTenantId();
-        sessionRepository.get(tenantId, SessionService.sessionUserIDForLookup(), message.getSessionId());
+        sessionRepository.get(tenantId, SessionService.sessionUserIdForLookup(), message.getSessionId());
         messageRepository.update(message);
     }
 
@@ -315,7 +315,7 @@ public class MessageService {
      */
     public boolean completeMessageOnce(Message message) {
         long tenantId = requireTenantId();
-        sessionRepository.get(tenantId, SessionService.sessionUserIDForLookup(), message.getSessionId());
+        sessionRepository.get(tenantId, SessionService.sessionUserIdForLookup(), message.getSessionId());
         return messageRepository.completeOnce(message);
     }
 

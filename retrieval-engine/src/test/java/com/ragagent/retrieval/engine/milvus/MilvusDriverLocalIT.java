@@ -147,7 +147,7 @@ class MilvusDriverLocalIT {
         assertThat(kwHits.get(0).results().get(0).score).isEqualTo(1.0);
 
         // 3) tag 更新（查整行 → 回写）：对象仍可被向量检索（证明向量随行回写没丢）
-        repo.batchUpdateChunkTagID(Map.of(chunkA, "t9"));
+        repo.batchUpdateChunkTagId(Map.of(chunkA, "t9"));
         List<RetrieveResult> byTag = awaitHits(
                 () -> repo.retrieve(vectorParams(new float[] {1f, 0f, 0f}, null, List.of("t9"))),
                 "tag-filtered vector hit");

@@ -440,7 +440,7 @@ class ElasticsearchV8RetrieveRepositoryTest {
                 MAPPER.readTree(updates.get(1).body()).path("script").path("source").asText());
 
         captured.clear();
-        r.batchUpdateChunkTagID(Map.of("c1", "t1", "c2", "t1", "c3", "t2"));
+        r.batchUpdateChunkTagId(Map.of("c1", "t1", "c2", "t1", "c3", "t2"));
         List<Captured> tagUpdates = captured.stream()
                 .filter(c -> c.path().endsWith("/_update_by_query")).toList();
         assertEquals(2, tagUpdates.size(), "按 tag 分两组");

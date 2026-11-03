@@ -58,26 +58,26 @@ final class WikiIngestMapPhase {
                                     WikiPendingOp op,
                                     WikiBatchContext batchCtx) {
         long docStartedAt = System.currentTimeMillis();
-        String knowledgeID = op.getKnowledgeId();
+        String knowledgeId = op.getKnowledgeId();
         String lang = WikiLanguageSupport.resolveLanguageName(op.getLanguage());
         String kbId = payload.knowledgeBaseId();
 
         // 页级 span：沿 LatestAttempt →
         // postprocess stage 找父 span，在其下开 postprocess.wiki。找不到父 → null，
         // 后续 helper 全部 no-op（best-effort，追踪绝不阻断批次）。
-        KnowledgeSpanPort.SpanHandle wikiSpan = handler.spans.beginWikiSubspan(knowledgeID,
+        KnowledgeSpanPort.SpanHandle wikiSpan = handler.spans.beginWikiSubspan(knowledgeId,
                 Map.of("language", lang, "knowledge_base_id", kbId));
 
         // 守卫 ingest/delete 竞争：用户在任务排队期间（wikiIngestDelay = 30 秒）或更早
         // 阶段在途期间删掉了文档，我们<b>绝不</b>能继续做 LLM 抽取——那会建出 source_refs
         // 指向幽灵 knowledge ID 的 wiki 页面，永远无法经 wiki_read_source_doc 到达。
-        if (handler.ingestService.isKnowledgeGone(kbId, knowledgeID)) {
-            log.info("wiki ingest: knowledge {} has been deleted, skip map", knowledgeID);
+        if (handler.ingestService.isKnowledgeGone(kbId, knowledgeId)) {
+            log.info("wiki ingest: knowledge {} has been deleted, skip map", knowledgeId);
             handler.spans.skipSpan(wikiSpan, "knowledge_deleted");
             return new WikiIngestBatchHandler.MapResult(null, null);
         }
 
-        DocumentContent doc = loadDocumentContent(payload, knowledgeID, wikiSpan);
+        DocumentContent doc = loadDocumentContent(payload, knowledgeId, wikiSpan);
         if (doc == null) {
             return new WikiIngestBatchHandler.MapResult(null, null);
         }
@@ -87,22 +87,22 @@ final class WikiIngestMapPhase {
 
         // 引用来源引用。<b>刻意</b>只用 knowledge ID（不用 docTitle，后者通常是上传文件名），
         // 这样文件名不会泄漏进下游 LLM prompt 可能读到的引用字符串里。
-        String sourceRef = knowledgeID;
-        Set<String> oldPageSlugs = handler.ingestService.getExistingPageSlugsForKnowledge(kbId, knowledgeID);
+        String sourceRef = knowledgeId;
+        Set<String> oldPageSlugs = handler.ingestService.getExistingPageSlugsForKnowledge(kbId, knowledgeId);
 
         Extraction extraction = extractCandidatesWithFallback(
-                chatModel, kbId, content, lang, oldPageSlugs, batchCtx, wikiSpan, knowledgeID);
+                chatModel, kbId, content, lang, oldPageSlugs, batchCtx, wikiSpan, knowledgeId);
         List<ExtractedItem> extractedEntities = extraction.entities();
         List<ExtractedItem> extractedConcepts = extraction.concepts();
         Map<String, ExtractedItem> slugItems = extraction.slugItems();
         boolean pass0Failed = extraction.pass0Failed();
         List<String> summaryExtractedPages = new ArrayList<>(slugItems.keySet());
-        SlugListing slug = buildSlugListing(slugItems, knowledgeID);
+        SlugListing slug = buildSlugListing(slugItems, knowledgeId);
         String summarySlug = slug.summarySlug();
 
         ClassifyResult classified = classifyAndMerge(chatModel, chunks, content, lang,
                 extractedEntities, extractedConcepts, slugItems, summaryExtractedPages,
-                summarySlug, slug.listing(), pass0Failed, batchCtx, wikiSpan, knowledgeID, kbId);
+                summarySlug, slug.listing(), pass0Failed, batchCtx, wikiSpan, knowledgeId, kbId);
         extractedEntities = classified.entities();
         extractedConcepts = classified.concepts();
         slugItems = classified.slugItems();
@@ -111,7 +111,7 @@ final class WikiIngestMapPhase {
         int uncited = classified.uncited();
 
         UpdateResult updateResult = buildUpdates(extractedEntities, extractedConcepts,
-                extractedPages, classified.summaryContent(), summarySlug, docTitle, knowledgeID,
+                extractedPages, classified.summaryContent(), summarySlug, docTitle, knowledgeId,
                 sourceRef, lang, oldPageSlugs, content,
                 batchCtx, classified.summaryErr(), wikiSpan);
         List<SlugUpdate> updates = updateResult.updates();
@@ -123,7 +123,7 @@ final class WikiIngestMapPhase {
         log.info("wiki ingest: mapped knowledge {} title={} candidates={} chunks={} batches={} "
                         + "cited_chunks={} uncited_slugs={} new_slugs={} updates={} reparse_slugs={} "
                         + "stale_slugs={} pass0_fallback={} elapsed={}ms",
-                knowledgeID, WikiTextUtils.previewText(docTitle, 80),
+                knowledgeId, WikiTextUtils.previewText(docTitle, 80),
                 slugItems.size(), chunks.size(), classified.batchCount(), citedChunkSet.size(),
                 uncited, classified.newSlugCount(), updates.size(), reparseOverlap, staleCount,
                 pass0Failed, System.currentTimeMillis() - docStartedAt);
@@ -147,7 +147,7 @@ final class WikiIngestMapPhase {
         mapStats.put("classify_batches", classified.batchCount());
         mapStats.put("summary_preview", WikiTextUtils.previewText(docSummaryLine, 160));
 
-        DocIngestResult result = new DocIngestResult(knowledgeID);
+        DocIngestResult result = new DocIngestResult(knowledgeId);
         result.setDocTitle(docTitle);
         result.setSummary(docSummaryLine);
         result.setPages(extractedPages);
@@ -177,8 +177,8 @@ final class WikiIngestMapPhase {
      */
     Extraction extractCandidatesWithFallback(LlmChatClient chatModel, String kbId, String content,
             String lang, Set<String> oldPageSlugs, WikiBatchContext batchCtx,
-            KnowledgeSpanPort.SpanHandle wikiSpan, String knowledgeID) {
-        log.info("wiki ingest: pass 0 — extracting candidate slugs for {}", knowledgeID);
+            KnowledgeSpanPort.SpanHandle wikiSpan, String knowledgeId) {
+        log.info("wiki ingest: pass 0 — extracting candidate slugs for {}", knowledgeId);
         Map<String, Object> extractInput = new LinkedHashMap<>();
         extractInput.put("content_chars", content.codePointCount(0, content.length()));
         extractInput.put("old_pages", oldPageSlugs == null ? 0 : oldPageSlugs.size());
@@ -197,7 +197,7 @@ final class WikiIngestMapPhase {
             slugItems = candidates.slugItems();
         } catch (RuntimeException e) {
             log.warn("wiki ingest: pass 0 failed for {} () — falling back to single-pass extractor",
-                    knowledgeID, e);
+                    knowledgeId, e);
             pass0Failed = true;
             try {
                 WikiIngestCitePipeline.CandidateSlugs fallback =
@@ -207,7 +207,7 @@ final class WikiIngestMapPhase {
                 concepts = fallback.concepts();
                 slugItems = fallback.slugItems();
             } catch (RuntimeException e2) {
-                log.warn("wiki ingest: single-pass fallback also failed for {}", knowledgeID, e2);
+                log.warn("wiki ingest: single-pass fallback also failed for {}", knowledgeId, e2);
                 handler.spans.failSpan(extractSpan, "EXTRACT_FAILED", e2.getMessage(), e2);
                 handler.spans.failSpan(wikiSpan, "EXTRACT_FAILED", e2.getMessage(), e2);
                 throw e2;
@@ -230,7 +230,7 @@ final class WikiIngestMapPhase {
      * <p>摘要 slug 由 knowledge ID 派生，而非 {@code docTitle}（通常是上传文件名）——
      * 文件名式 slug 会在下游 LLM prompt 的交叉链接语境里暴露文件名。</p>
      */
-    SlugListing buildSlugListing(Map<String, ExtractedItem> slugItems, String knowledgeID) {
+    SlugListing buildSlugListing(Map<String, ExtractedItem> slugItems, String knowledgeId) {
         StringBuilder listing = new StringBuilder();
         for (Map.Entry<String, ExtractedItem> entry : slugItems.entrySet()) {
             String slug = entry.getKey();
@@ -244,7 +244,7 @@ final class WikiIngestMapPhase {
             }
             listing.append('\n');
         }
-        return new SlugListing("summary/" + WikiTextUtils.slugify(knowledgeID), listing.toString());
+        return new SlugListing("summary/" + WikiTextUtils.slugify(knowledgeId), listing.toString());
     }
 
     /**
@@ -253,17 +253,17 @@ final class WikiIngestMapPhase {
      * <p><b>三处返回 {@code null} 的终态</b>（不可重试，调用方直接跳过）：知识已删 /
      * 无 chunk / 去图片标记后文本不足。每处都先 {@code skipSpan} 留 trace 证据。</p>
      */
-    DocumentContent loadDocumentContent(WikiIngestPayload payload, String knowledgeID,
+    DocumentContent loadDocumentContent(WikiIngestPayload payload, String knowledgeId,
             KnowledgeSpanPort.SpanHandle wikiSpan) {
         List<ChunkView> chunks;
         try {
-            chunks = handler.listTextChunksByKnowledgeID(payload.tenantId(), knowledgeID);
+            chunks = handler.listTextChunksByKnowledgeId(payload.tenantId(), knowledgeId);
         } catch (Exception e) {
             handler.spans.failSpan(wikiSpan, "LIST_CHUNKS_FAILED", e.getMessage(), e);
             throw new IllegalStateException("get chunks: " + e.getMessage(), e);
         }
         if (chunks.isEmpty()) {
-            log.info("wiki ingest: document {} has no chunks, skip", knowledgeID);
+            log.info("wiki ingest: document {} has no chunks, skip", knowledgeId);
             handler.spans.skipSpan(wikiSpan, "no_chunks");
             return null;
         }
@@ -275,26 +275,26 @@ final class WikiIngestMapPhase {
                     content.offsetByCodePoints(0, WikiIngestConstants.MAX_CONTENT_FOR_WIKI));
         }
         log.info("wiki ingest: doc {} chunks={} content_len(raw={},truncated={})",
-                knowledgeID, chunks.size(), rawRuneCount, content.codePointCount(0, content.length()));
+                knowledgeId, chunks.size(), rawRuneCount, content.codePointCount(0, content.length()));
 
         // 没有真实文本时拒绝跑 LLM 抽取——扫描版 PDF 的页面被转成图片、VLM OCR 又没产出，
         // 只剩图片标记时 LLM 会编造实体与概念。
         if (!WikiImageMarkup.hasSufficientTextContent(content)) {
             log.warn("wiki ingest: doc {} has insufficient text content after stripping image markup "
-                    + "(raw_len={}), skipping LLM extraction", knowledgeID, rawRuneCount);
+                    + "(raw_len={}), skipping LLM extraction", knowledgeId, rawRuneCount);
             handler.spans.skipSpan(wikiSpan, "insufficient_text_content");
             return null;
         }
 
-        return new DocumentContent(chunks, content, resolveDocTitle(knowledgeID, chunks));
+        return new DocumentContent(chunks, content, resolveDocTitle(knowledgeId, chunks));
     }
 
     /**
      * 文档标题优先取知识行，取不到就回落到
      * 第一个非空 chunk 的首行（短于 200 字节时），并裁掉 markdown 的 {@code "# "} 前缀。
      */
-    String resolveDocTitle(String knowledgeID, List<ChunkView> chunks) {
-        KnowledgeView kn = handler.getKnowledgeByIDOnly(knowledgeID);
+    String resolveDocTitle(String knowledgeId, List<ChunkView> chunks) {
+        KnowledgeView kn = handler.getKnowledgeByIdOnly(knowledgeId);
         if (kn != null && kn.title() != null && !kn.title().isEmpty()) {
             return kn.title();
         }
@@ -312,14 +312,14 @@ final class WikiIngestMapPhase {
                 return trimmed;
             }
         }
-        return knowledgeID;
+        return knowledgeId;
     }
     private record UpdateResult(List<SlugUpdate> updates, String docSummary,
             String docSummaryLine, int reparseOverlap, int staleCount) {
     }
     private UpdateResult buildUpdates(List<ExtractedItem> extractedEntities,
             List<ExtractedItem> extractedConcepts, List<DocIngestResult.PageRef> extractedPages,
-            String summaryContent, String summarySlug, String docTitle, String knowledgeID,
+            String summaryContent, String summarySlug, String docTitle, String knowledgeId,
             String sourceRef, String lang, Set<String> oldPageSlugs, String content,
             WikiBatchContext batchCtx, RuntimeException summaryErr,
             KnowledgeSpanPort.SpanHandle wikiSpan) {
@@ -339,7 +339,7 @@ final class WikiIngestMapPhase {
             // requeueFailedOps 随后把它追加回待办列表，让下一批次重试。
             // generateWithTemplate 内部的退避重试已经在我们放弃之前耗尽了 LLM 自己的瞬时
             // 错误预算。
-            log.error("wiki ingest: generate summary failed for {}, will requeue", knowledgeID, summaryErr);
+            log.error("wiki ingest: generate summary failed for {}, will requeue", knowledgeId, summaryErr);
             handler.spans.failSpan(wikiSpan, "SUMMARY_FAILED", summaryErr.getMessage(), summaryErr);
             throw new IllegalStateException("generate summary: " + summaryErr.getMessage(), summaryErr);
         }
@@ -361,7 +361,7 @@ final class WikiIngestMapPhase {
 
         SlugUpdate summaryUpdate = new SlugUpdate(summarySlug, SlugUpdate.TYPE_SUMMARY);
         summaryUpdate.setDocTitle(docTitle);
-        summaryUpdate.setKnowledgeId(knowledgeID);
+        summaryUpdate.setKnowledgeId(knowledgeId);
         summaryUpdate.setSourceRef(sourceRef);
         summaryUpdate.setLanguage(lang);
         summaryUpdate.setSummaryLine(sumLine);
@@ -377,7 +377,7 @@ final class WikiIngestMapPhase {
             SlugUpdate u = new SlugUpdate(item.getSlug(), SlugUpdate.TYPE_ENTITY);
             u.setItem(item);
             u.setDocTitle(docTitle);
-            u.setKnowledgeId(knowledgeID);
+            u.setKnowledgeId(knowledgeId);
             u.setSourceRef(sourceRef);
             u.setLanguage(lang);
             u.setSourceChunks(item.getSourceChunks());
@@ -393,7 +393,7 @@ final class WikiIngestMapPhase {
             SlugUpdate u = new SlugUpdate(item.getSlug(), SlugUpdate.TYPE_CONCEPT);
             u.setItem(item);
             u.setDocTitle(docTitle);
-            u.setKnowledgeId(knowledgeID);
+            u.setKnowledgeId(knowledgeId);
             u.setSourceRef(sourceRef);
             u.setLanguage(lang);
             u.setSourceChunks(item.getSourceChunks());
@@ -416,7 +416,7 @@ final class WikiIngestMapPhase {
         // （而不是预先装进批次上下文）。首次摄取时为空——那时 oldPageSlugs 也为空，
         // 因此永远不会咨询它。
         String priorContribution = batchCtx == null
-                ? "" : batchCtx.summaryContentByKnowledgeId(knowledgeID);
+                ? "" : batchCtx.summaryContentByKnowledgeId(knowledgeId);
 
         Set<String> newSlugSet = new LinkedHashSet<>();
         for (DocIngestResult.PageRef ref : extractedPages) {
@@ -434,7 +434,7 @@ final class WikiIngestMapPhase {
                         continue;
                     }
                     reparseOverlap++;
-                    updates.add(SlugUpdate.retract(oldSlug, knowledgeID, docTitle,
+                    updates.add(SlugUpdate.retract(oldSlug, knowledgeId, docTitle,
                             priorContribution, lang));
                     continue;
                 }
@@ -442,7 +442,7 @@ final class WikiIngestMapPhase {
                 SlugUpdate u = new SlugUpdate(oldSlug, SlugUpdate.TYPE_RETRACT_STALE);
                 u.setRetractDocContent(content);
                 u.setDocTitle(docTitle);
-                u.setKnowledgeId(knowledgeID);
+                u.setKnowledgeId(knowledgeId);
                 u.setLanguage(lang);
                 updates.add(u);
             }
@@ -462,7 +462,7 @@ final class WikiIngestMapPhase {
             List<ExtractedItem> extractedConcepts, Map<String, ExtractedItem> slugItems,
             List<String> summaryExtractedPages, String summarySlug, String slugListing,
             boolean pass0Failed, WikiBatchContext batchCtx,
-            KnowledgeSpanPort.SpanHandle wikiSpan, String knowledgeID, String kbId) {
+            KnowledgeSpanPort.SpanHandle wikiSpan, String knowledgeId, String kbId) {
         // 摘要与分块分类在 Pass 0 输出给定的前提下互相独立——并行跑。
         // 摘要负责 wiki-link 注入；分类给每个候选 slug 挂上具体的 chunk ID。
         final String[] summaryContentHolder = { null };

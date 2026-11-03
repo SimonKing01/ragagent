@@ -60,9 +60,9 @@ public final class SqlGuard {
     }
 
     /** validate + 注入的合入口（重写恒启用）。 */
-    public static String validateAndSecure(String sql, long tenantID, List<SearchScope> scopes)
+    public static String validateAndSecure(String sql, long tenantId, List<SearchScope> scopes)
             throws SqlGuardException {
-        SqlValidationResult validation = validate(sql, tenantID, scopes);
+        SqlValidationResult validation = validate(sql, tenantId, scopes);
         if (!validation.valid) {
             throw new SqlGuardException(validation);
         }
@@ -70,7 +70,7 @@ public final class SqlGuard {
         // 解析出的表→别名（出现序，确定；多表场景为实现边界点）。
         Map<String, String> tablesInQuery = SqlSelectDeepChecker.parseTablesInQuery(sql);
 
-        String securedSQL = SqlInjectionAnalyzer.injectTenantConditions(sql, tablesInQuery, tenantID);
+        String securedSQL = SqlInjectionAnalyzer.injectTenantConditions(sql, tablesInQuery, tenantId);
         securedSQL = SqlInjectionAnalyzer.injectSoftDeleteConditions(securedSQL, tablesInQuery);
         securedSQL = SqlInjectionAnalyzer.injectHiddenKbFilter(securedSQL, tablesInQuery);
         securedSQL = SqlInjectionAnalyzer.injectChunkEnabledFilter(securedSQL, tablesInQuery);
@@ -138,7 +138,7 @@ public final class SqlGuard {
      * 参数，校验本体不使用）。返回的 result 带完整 errors 列表
      * （Phase 5/6/7 的错误可叠加）。
      */
-    public static SqlValidationResult validate(String sql, long tenantID, List<SearchScope> scopes) {
+    public static SqlValidationResult validate(String sql, long tenantId, List<SearchScope> scopes) {
         return validate(sql, GuardConfig.securityDefaults());
     }
 

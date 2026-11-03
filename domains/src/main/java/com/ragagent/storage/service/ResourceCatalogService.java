@@ -79,7 +79,7 @@ public class ResourceCatalogService {
         if (resourceId.isEmpty()) {
             return Optional.empty();
         }
-        return repo.getByID(resourceId.get());
+        return repo.getById(resourceId.get());
     }
 
     /**

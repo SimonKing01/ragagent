@@ -20,7 +20,7 @@ class QaTurnFinalizerSnapshotTest {
     void snapshotKeepsValuesWhenContextKeepsMutating() {
         QaRequestContext ctx = new QaRequestContext();
         ctx.sessionId = "s1";
-        ctx.reqAgentID = "a1";
+        ctx.reqAgentId = "a1";
         ctx.reqAgentEnabled = true;
         ctx.summaryModelId = "m1";
         ctx.knowledgeBaseIds = new ArrayList<>(List.of("kb1"));
@@ -32,7 +32,7 @@ class QaTurnFinalizerSnapshotTest {
 
         SessionLastRequestState snapshot = finalizer.lastRequestStateSnapshot(ctx, QaMode.NORMAL);
 
-        ctx.reqAgentID = "a2";
+        ctx.reqAgentId = "a2";
         ctx.reqAgentEnabled = false;
         ctx.summaryModelId = "m2";
         ctx.knowledgeBaseIds.add("kb2");

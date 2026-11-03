@@ -3,7 +3,7 @@ package com.ragagent.contract.event.payload;
 
 /**
  * 运行中用户消息注入报告。
- * emit 点：SteerIntake（{@code generateEventID("injected")}），见包注释 emit 表 #23。
+ * emit 点：SteerIntake（{@code generateEventId("injected")}），见包注释 emit 表 #23。
  *
  * <p>用户在生成期间追加的消息被并入运行中的轮次：一行 user-role 消息已按该轮的
  * request ID 落库、文本已追加进 agent 的消息列表，下一次 LLM 调用即可见。

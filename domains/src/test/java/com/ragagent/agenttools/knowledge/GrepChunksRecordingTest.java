@@ -172,12 +172,12 @@ class GrepChunksRecordingTest {
                         || t.tagIds() == null || t.tagIds().isEmpty()) {
                     continue;
                 }
-                long tenantID = t.tenantId();
-                if (tenantID == 0) {
+                long tenantId = t.tenantId();
+                if (tenantId == 0) {
                     Long mapped = kbTenantMap.get(t.knowledgeBaseId());
-                    tenantID = mapped == null ? 0 : mapped;
+                    tenantId = mapped == null ? 0 : mapped;
                 }
-                if (tenantID == 0) {
+                if (tenantId == 0) {
                     continue;
                 }
                 clauses.add("(chunks.knowledge_base_id = ? AND chunks.tenant_id = ? AND EXISTS ("
@@ -185,17 +185,17 @@ class GrepChunksRecordingTest {
                         + "WHERE ktr.knowledge_id = chunks.knowledge_id AND ktr.tag_id IN ("
                         + placeholders(t.tagIds().size()) + ")))");
                 args.add(t.knowledgeBaseId());
-                args.add(tenantID);
+                args.add(tenantId);
                 args.addAll(t.tagIds());
             }
-            for (String kbID : fullKbIDs) {
-                long tenantID = kbTenantMap.getOrDefault(kbID, 0L);
-                if (tenantID == 0) {
+            for (String kbId : fullKbIDs) {
+                long tenantId = kbTenantMap.getOrDefault(kbId, 0L);
+                if (tenantId == 0) {
                     continue;
                 }
                 clauses.add("(chunks.knowledge_base_id = ? AND chunks.tenant_id = ?)");
-                args.add(kbID);
-                args.add(tenantID);
+                args.add(kbId);
+                args.add(tenantId);
             }
             if (clauses.isEmpty()) {
                 return List.of();

@@ -271,9 +271,9 @@ class SessionServiceReadTest {
     @Test
     void sharedAgentScopeDropsTheUserScope() {
         TenantContext.set(TENANT, null, null, false, "u-1", false);
-        assertThat(SessionService.sessionUserIDForLookup()).isEqualTo("u-1");
+        assertThat(SessionService.sessionUserIdForLookup()).isEqualTo("u-1");
 
         SessionLookupScope.mark();
-        assertThat(SessionService.sessionUserIDForLookup()).isEmpty();
+        assertThat(SessionService.sessionUserIdForLookup()).isEmpty();
     }
 }

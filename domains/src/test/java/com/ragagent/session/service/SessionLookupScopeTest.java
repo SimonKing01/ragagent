@@ -31,7 +31,7 @@ class SessionLookupScopeTest {
     void unmarkedUsesSessionOwner() {
         TenantContext.set(7L, TenantContext.webUserPrincipal("u-9"), "owner", false, "u-9", false);
         assertFalse(SessionLookupScope.isMarked());
-        assertEquals("u-9", SessionService.sessionUserIDForLookup());
+        assertEquals("u-9", SessionService.sessionUserIdForLookup());
     }
 
     @Test
@@ -40,7 +40,7 @@ class SessionLookupScopeTest {
         TenantContext.set(7L, TenantContext.webUserPrincipal("u-9"), "owner", false, "u-9", false);
         SessionLookupScope.mark();
         assertTrue(SessionLookupScope.isMarked());
-        assertEquals("", SessionService.sessionUserIDForLookup());
+        assertEquals("", SessionService.sessionUserIdForLookup());
     }
 
     @Test
@@ -50,6 +50,6 @@ class SessionLookupScopeTest {
         SessionLookupScope.mark();
         SessionLookupScope.clear();
         assertFalse(SessionLookupScope.isMarked());
-        assertEquals("u-9", SessionService.sessionUserIDForLookup());
+        assertEquals("u-9", SessionService.sessionUserIdForLookup());
     }
 }

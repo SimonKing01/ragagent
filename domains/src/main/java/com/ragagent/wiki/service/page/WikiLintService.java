@@ -435,14 +435,14 @@ public class WikiLintService {
      * 摘掉等于
      * {@code knowledgeID} 或以其 + "|" 开头的 source_ref 条目。
      */
-    static List<String> removeSourceRef(List<String> refs, String knowledgeID) {
+    static List<String> removeSourceRef(List<String> refs, String knowledgeId) {
         List<String> result = new ArrayList<>(refs == null ? 0 : refs.size());
         if (refs == null) {
             return result;
         }
-        String prefix = knowledgeID + "|";
+        String prefix = knowledgeId + "|";
         for (String ref : refs) {
-            if (ref.equals(knowledgeID) || ref.startsWith(prefix)) {
+            if (ref.equals(knowledgeId) || ref.startsWith(prefix)) {
                 continue;
             }
             result.add(ref);

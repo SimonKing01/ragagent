@@ -207,7 +207,7 @@ class ChatLocalImageResolverWiringTest {
 
         StorageBackendRepository backendRepo = mock(StorageBackendRepository.class);
         when(backendRepo.tenantDefaultBackendId(7L)).thenReturn(null);
-        when(backendRepo.getByID(7L, "bk1")).thenReturn(Optional.of(localBackend()));
+        when(backendRepo.getById(7L, "bk1")).thenReturn(Optional.of(localBackend()));
 
         ResourceRepository resourceRepo = mock(ResourceRepository.class);
         ResourceCatalogService realCatalog = new ResourceCatalogService(resourceRepo);

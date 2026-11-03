@@ -77,7 +77,7 @@ public final class JinaReranker implements Reranker {
     }
 
     @Override
-    public String getModelID() {
+    public String getModelId() {
         return modelId;
     }
 }

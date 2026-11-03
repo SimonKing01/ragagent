@@ -23,7 +23,7 @@ public interface CustomAgentMapper extends BaseMapper<CustomAgentEntity> {
     /** id + tenant + 软删过滤。 */
     @Select("SELECT " + COLS + " FROM custom_agents "
             + "WHERE id = #{id} AND tenant_id = #{tenantId} AND deleted_at IS NULL LIMIT 1")
-    CustomAgentEntity getByIDAndTenant(@Param("id") String id, @Param("tenantId") long tenantId);
+    CustomAgentEntity getByIdAndTenant(@Param("id") String id, @Param("tenantId") long tenantId);
 
     /** 按租户列出，created_at DESC。 */
     @Select("SELECT " + COLS + " FROM custom_agents "

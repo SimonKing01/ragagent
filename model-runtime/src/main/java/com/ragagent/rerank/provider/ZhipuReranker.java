@@ -85,7 +85,7 @@ public final class ZhipuReranker implements Reranker {
     }
 
     @Override
-    public String getModelID() {
+    public String getModelId() {
         return modelId;
     }
 }

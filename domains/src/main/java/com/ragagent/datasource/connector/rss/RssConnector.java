@@ -472,7 +472,7 @@ public class RssConnector implements Connector {
         String author = item.authorName() == null ? "" : item.authorName();
 
         FetchedItem fetched = new FetchedItem();
-        fetched.setExternalId(RssUtil.itemExternalID(feedUrl, itemId));
+        fetched.setExternalId(RssUtil.itemExternalId(feedUrl, itemId));
         fetched.setTitle(title);
         fetched.setContent(content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
         fetched.setContentType("text/markdown");

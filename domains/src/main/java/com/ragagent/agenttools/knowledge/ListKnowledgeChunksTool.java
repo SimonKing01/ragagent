@@ -106,35 +106,35 @@ public class ListKnowledgeChunksTool extends BaseTool {
     public ToolResult execute(ToolRequest request) {
         JsonNode args = JsonMappers.toJsonNode(request.args());
 
-        String chunkID = args.path("faqId").asText("").trim();
-        if (chunkID.isEmpty()) {
-            chunkID = args.path("chunkId").asText("").trim();
+        String chunkId = args.path("faqId").asText("").trim();
+        if (chunkId.isEmpty()) {
+            chunkId = args.path("chunkId").asText("").trim();
         }
-        String knowledgeID = args.path("knowledgeId").asText("").trim();
-        if (!chunkID.isEmpty()) {
-            return executeByChunkID(chunkID);
+        String knowledgeId = args.path("knowledgeId").asText("").trim();
+        if (!chunkId.isEmpty()) {
+            return executeByChunkId(chunkId);
         }
-        if (knowledgeID.isEmpty()) {
+        if (knowledgeId.isEmpty()) {
             return failure("one of faq_id, chunk_id, or knowledge_id is required");
         }
-        return executeByKnowledgePage(knowledgeID, args);
+        return executeByKnowledgePage(knowledgeId, args);
     }
 
     /** knowledgeId 分页路径：offset 是精确块起点，不按 limit 取整。 */
-    private ToolResult executeByKnowledgePage(String knowledgeID, JsonNode args) {
+    private ToolResult executeByKnowledgePage(String knowledgeId, JsonNode args) {
         KnowledgeInfoRow knowledge;
         try {
-            SearchAuth.authorizeKnowledgeInSearchTargets(searchTargets, knowledgeID,
+            SearchAuth.authorizeKnowledgeInSearchTargets(searchTargets, knowledgeId,
                     DocChunkSupport.asScopeReader(knowledgeReader));
-            knowledge = knowledgeReader == null ? null : knowledgeReader.byIdOnly(knowledgeID);
+            knowledge = knowledgeReader == null ? null : knowledgeReader.byIdOnly(knowledgeId);
         } catch (RuntimeException e) {
             return failure("Knowledge is not accessible: " + e.getMessage());
         }
         if (knowledge == null) {
-            return failure("Knowledge is not accessible: document " + knowledgeID + " not found: empty result");
+            return failure("Knowledge is not accessible: document " + knowledgeId + " not found: empty result");
         }
 
-        long effectiveTenantID = knowledge.tenantId();
+        long effectiveTenantId = knowledge.tenantId();
 
         int chunkLimit = 20;
         if (args.path("limit").asInt(0) > 0) {
@@ -156,7 +156,7 @@ public class ListKnowledgeChunksTool extends BaseTool {
         try {
             // 精确起点：startChunkIndex 是块号，不按 limit 取整到页边界
             result = pagedChunks == null ? null
-                    : pagedChunks.listRange(effectiveTenantID, knowledgeID, startChunkIndex, chunkLimit);
+                    : pagedChunks.listRange(effectiveTenantId, knowledgeId, startChunkIndex, chunkLimit);
         } catch (RuntimeException e) {
             return failure("failed to list chunks: " + e.getMessage());
         }
@@ -180,7 +180,7 @@ public class ListKnowledgeChunksTool extends BaseTool {
                             + " Retry with startChunkIndex=%d (or any value < %d).",
                     startChunkIndex, totalChunks, totalChunks - 1, suggestedOffset, totalChunks));
             Map<String, Object> data = new LinkedHashMap<>();
-            data.put("knowledgeId", knowledgeID);
+            data.put("knowledgeId", knowledgeId);
             data.put("totalChunks", totalChunks);
             data.put("requestedOffset", startChunkIndex);
             data.put("requestedLimit", chunkLimit);
@@ -191,11 +191,11 @@ public class ListKnowledgeChunksTool extends BaseTool {
 
         // 图片富化（惰性）
         if (fetched > 0) {
-            DocChunkSupport.enrichChunkImageInfo(imageCollector, effectiveTenantID, chunks);
+            DocChunkSupport.enrichChunkImageInfo(imageCollector, effectiveTenantId, chunks);
         }
 
-        String knowledgeTitle = lookupKnowledgeTitle(knowledgeID);
-        String output = buildOutput(knowledgeID, knowledgeTitle, totalChunks, fetched, chunks);
+        String knowledgeTitle = lookupKnowledgeTitle(knowledgeId);
+        String output = buildOutput(knowledgeId, knowledgeTitle, totalChunks, fetched, chunks);
 
         List<Map<String, Object>> formattedChunks = new ArrayList<>();
         for (int idx = 0; idx < chunks.size(); idx++) {
@@ -249,7 +249,7 @@ public class ListKnowledgeChunksTool extends BaseTool {
         toolResult.setOutput(output);
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("displayType", "knowledge_chunks_list");
-        data.put("knowledgeId", knowledgeID);
+        data.put("knowledgeId", knowledgeId);
         data.put("knowledgeTitle", knowledgeTitle);
         data.put("totalChunks", totalChunks);
         data.put("fetchedChunks", fetched);
@@ -262,26 +262,26 @@ public class ListKnowledgeChunksTool extends BaseTool {
     }
 
     /** faq_id / chunk_id 单块路径。 */
-    private ToolResult executeByChunkID(String chunkID) {
+    private ToolResult executeByChunkId(String chunkId) {
         ChunkFacts chunk;
         try {
-            chunk = SearchAuth.authorizeDomainChunkInSearchTargets(searchTargets, chunkID,
+            chunk = SearchAuth.authorizeDomainChunkInSearchTargets(searchTargets, chunkId,
                     chunkById, DocChunkSupport.asScopeReader(knowledgeReader));
         } catch (RuntimeException e) {
             return failure("chunk is not accessible: " + e.getMessage());
         }
         if (chunk == null) {
-            return failure("chunk is not accessible: chunk " + chunkID + " not found: empty result");
+            return failure("chunk is not accessible: chunk " + chunkId + " not found: empty result");
         }
 
         List<ChunkFacts> chunks = List.of(chunk);
         String imageInfo = chunk.imageInfo();
         if (imageInfo == null || imageInfo.isEmpty()) {
-            long effectiveTenantID = searchTargets == null
+            long effectiveTenantId = searchTargets == null
                     ? 0
                     : searchTargets.getTenantIdForKb(chunk.knowledgeBaseId());
-            if (effectiveTenantID > 0 && imageCollector != null) {
-                Map<String, String> infoMap = imageCollector.collect(effectiveTenantID,
+            if (effectiveTenantId > 0 && imageCollector != null) {
+                Map<String, String> infoMap = imageCollector.collect(effectiveTenantId,
                         List.of(chunk.id()));
                 if (infoMap != null) {
                     String merged = infoMap.get(chunk.id());
@@ -338,13 +338,13 @@ public class ListKnowledgeChunksTool extends BaseTool {
     }
 
     /** 取文档标题（trim 后返回；失败/无服务 → ""）。 */
-    private String lookupKnowledgeTitle(String knowledgeID) {
+    private String lookupKnowledgeTitle(String knowledgeId) {
         if (knowledgeReader == null) {
             return "";
         }
         KnowledgeInfoRow knowledge;
         try {
-            knowledge = knowledgeReader.byIdOnly(knowledgeID);
+            knowledge = knowledgeReader.byIdOnly(knowledgeId);
         } catch (RuntimeException e) {
             return "";
         }
@@ -355,7 +355,7 @@ public class ListKnowledgeChunksTool extends BaseTool {
     }
 
     /** XML 输出。 */
-    private String buildOutput(String knowledgeID, String knowledgeTitle, long total,
+    private String buildOutput(String knowledgeId, String knowledgeTitle, long total,
             int fetched, List<ChunkFacts> chunks) {
         StringBuilder b = new StringBuilder();
 
@@ -364,7 +364,7 @@ public class ListKnowledgeChunksTool extends BaseTool {
             titleAttr = String.format(" title=\"%s\"", knowledgeTitle);
         }
         b.append(String.format("<knowledgeChunks knowledgeId=\"%s\"%s total=\"%d\" fetched=\"%d\">\n",
-                knowledgeID, titleAttr, total, fetched));
+                knowledgeId, titleAttr, total, fetched));
 
         if (fetched == 0) {
             b.append("</knowledgeChunks>");

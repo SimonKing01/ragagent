@@ -37,7 +37,7 @@ final class WikiPageFolderSupport {
     }
 
     public WikiFolder getFolder(String kbId, String id) {
-        return service.folderRepo.getFolderByID(kbId, id);
+        return service.folderRepo.getFolderById(kbId, id);
     }
 
     /**
@@ -48,7 +48,7 @@ final class WikiPageFolderSupport {
      * 完全空的文件夹（子树里任何类型的页面都没有）只在请求多个类型时列出
      * ——即合并后的 knowledge 视图——这样单类型页签（如 summary）不会冒出空容器。</p>
      */
-    public List<WikiFolderNode> listChildFolders(String kbId, String parentID,
+    public List<WikiFolderNode> listChildFolders(String kbId, String parentId,
                                                  List<String> pageTypes) {
         List<WikiFolder> all = service.folderRepo.listAllFolders(kbId);
         List<String> types = pageTypes == null ? List.of() : pageTypes;
@@ -73,7 +73,7 @@ final class WikiPageFolderSupport {
         };
         List<WikiFolderNode> out = new ArrayList<>();
         for (WikiFolder f : all) {
-            if (!f.getParentId().equals(parentID) || !relevant.test(f.getId())) {
+            if (!f.getParentId().equals(parentId) || !relevant.test(f.getId())) {
                 continue;
             }
             boolean hasChildren = false;
@@ -89,16 +89,16 @@ final class WikiPageFolderSupport {
     }
 
     /** 创建文件夹（校验名字、解析父路径、防同级重名）。 */
-    public WikiFolder createFolder(String kbId, Long tenantID, String parentID, String name) {
+    public WikiFolder createFolder(String kbId, Long tenantId, String parentId, String name) {
         String folderName = DefaultWikiPageService.validateFolderName(name);
         String parentPath = "";
         int depth = 1;
-        if (!WikiConstants.FOLDER_ROOT_ID.equals(parentID)) {
-            WikiFolder parent = service.folderRepo.getFolderByID(kbId, parentID);
+        if (!WikiConstants.FOLDER_ROOT_ID.equals(parentId)) {
+            WikiFolder parent = service.folderRepo.getFolderById(kbId, parentId);
             parentPath = parent.getPath();
             depth = parent.getDepth() + 1;
         }
-        if (service.folderRepo.folderNameExists(kbId, parentID, folderName)) {
+        if (service.folderRepo.folderNameExists(kbId, parentId, folderName)) {
             throw new WikiFolderConflictException();
         }
         String path = folderName;
@@ -108,9 +108,9 @@ final class WikiPageFolderSupport {
         OffsetDateTime now = OffsetDateTime.now();
         WikiFolder folder = new WikiFolder();
         folder.setId(UUID.randomUUID().toString());
-        folder.setTenantId(tenantID);
+        folder.setTenantId(tenantId);
         folder.setKnowledgeBaseId(kbId);
-        folder.setParentId(parentID);
+        folder.setParentId(parentId);
         folder.setName(folderName);
         folder.setPath(path);
         folder.setDepth(depth);
@@ -126,18 +126,18 @@ final class WikiPageFolderSupport {
      * 顺路补齐缺失的中间文件夹。对 (kb, parent, name) 唯一约束是并发安全的——
      * 创建冲突时重新拉取。
      */
-    public WikiPageService.FindOrCreateResult findOrCreateFolderPath(String kbId, Long tenantID, List<String> path) {
+    public WikiPageService.FindOrCreateResult findOrCreateFolderPath(String kbId, Long tenantId, List<String> path) {
         List<String> clean = WikiCategoryPaths.cleanCategoryPath(path);
         if (clean.isEmpty()) {
             return new WikiPageService.FindOrCreateResult(WikiConstants.FOLDER_ROOT_ID, null);
         }
-        String parentID = WikiConstants.FOLDER_ROOT_ID;
+        String parentId = WikiConstants.FOLDER_ROOT_ID;
         String parentPath = "";
         for (int depth = 0; depth < clean.size(); depth++) {
             String name = clean.get(depth);
             WikiFolder child;
-            if (service.folderRepo.folderNameExists(kbId, parentID, name)) {
-                child = service.folderRepo.getChildFolderByName(kbId, parentID, name);
+            if (service.folderRepo.folderNameExists(kbId, parentId, name)) {
+                child = service.folderRepo.getChildFolderByName(kbId, parentId, name);
             } else {
                 String fp = name;
                 if (!parentPath.isEmpty()) {
@@ -146,9 +146,9 @@ final class WikiPageFolderSupport {
                 OffsetDateTime now = OffsetDateTime.now();
                 child = new WikiFolder();
                 child.setId(UUID.randomUUID().toString());
-                child.setTenantId(tenantID);
+                child.setTenantId(tenantId);
                 child.setKnowledgeBaseId(kbId);
-                child.setParentId(parentID);
+                child.setParentId(parentId);
                 child.setName(name);
                 child.setPath(fp);
                 child.setDepth(depth + 1);
@@ -160,23 +160,23 @@ final class WikiPageFolderSupport {
                     // 创建竞争（或唯一约束冲突）：同名兄弟此刻必然已存在——
                     // 重新拉取，而不是让整个 plan 失败
                     try {
-                        child = service.folderRepo.getChildFolderByName(kbId, parentID, name);
+                        child = service.folderRepo.getChildFolderByName(kbId, parentId, name);
                     } catch (RuntimeException e) {
                         throw new WikiException("create wiki folder \"" + fp + "\": "
                                 + cerr.getMessage(), cerr);
                     }
                 }
             }
-            parentID = child.getId();
+            parentId = child.getId();
             parentPath = child.getPath();
         }
-        return new WikiPageService.FindOrCreateResult(parentID, clean);
+        return new WikiPageService.FindOrCreateResult(parentId, clean);
     }
 
     /** 移动页面到文件夹：纯记账写入，不动版本号 */
-    public WikiPage movePage(String kbId, String slug, String folderID) {
+    public WikiPage movePage(String kbId, String slug, String folderId) {
         WikiPage page = service.repo.getBySlug(kbId, slug);
-        page.setFolderId(folderID == null ? "" : folderID.trim());
+        page.setFolderId(folderId == null ? "" : folderId.trim());
         applyFolderToPage(page);
         page.setUpdatedAt(OffsetDateTime.now());
         DefaultWikiPageService.normalizeWikiHierarchy(page);
@@ -190,15 +190,15 @@ final class WikiPageFolderSupport {
      * 移进自己或自己的后代）与同级重名。
      */
     public WikiFolder renameOrMoveFolder(String kbId, String id, String newName,
-                                         String newParentID, boolean moveParent) {
-        WikiFolder folder = service.folderRepo.getFolderByID(kbId, id);
+                                         String newParentId, boolean moveParent) {
+        WikiFolder folder = service.folderRepo.getFolderById(kbId, id);
         String name = folder.getName();
         if (newName != null && !newName.trim().isEmpty()) {
             name = DefaultWikiPageService.validateFolderName(newName);
         }
         String targetParent = folder.getParentId();
         if (moveParent) {
-            targetParent = newParentID == null ? "" : newParentID;
+            targetParent = newParentId == null ? "" : newParentId;
         }
         String parentPath = "";
         int depthBase = 0;
@@ -206,7 +206,7 @@ final class WikiPageFolderSupport {
             if (targetParent.equals(folder.getId())) {
                 throw new WikiException("cannot move a folder into itself");
             }
-            WikiFolder parent = service.folderRepo.getFolderByID(kbId, targetParent);
+            WikiFolder parent = service.folderRepo.getFolderById(kbId, targetParent);
             if (parent.getPath().equals(folder.getPath())
                     || parent.getPath().startsWith(folder.getPath() + "/")) {
                 throw new WikiException("cannot move a folder into its own descendant");
@@ -285,7 +285,7 @@ final class WikiPageFolderSupport {
      * 文件夹。UI 必须先把内容移走；这让删除保持非破坏性。
      */
     public void deleteFolder(String kbId, String id) {
-        service.folderRepo.getFolderByID(kbId, id);
+        service.folderRepo.getFolderById(kbId, id);
         List<WikiFolder> children = service.folderRepo.listChildFolders(kbId, id);
         if (!children.isEmpty()) {
             throw new WikiFolderNotEmptyException();
@@ -310,10 +310,10 @@ final class WikiPageFolderSupport {
             return null;
         }
         List<WikiFolder> all = service.folderRepo.listAllFolders(kbId);
-        Map<String, WikiFolder> byID = new LinkedHashMap<>(all.size());
+        Map<String, WikiFolder> byId = new LinkedHashMap<>(all.size());
         for (WikiFolder folder : all) {
             if (folder != null) {
-                byID.put(folder.getId(), folder);
+                byId.put(folder.getId(), folder);
             }
         }
         Map<String, WikiFolder> candidates = new LinkedHashMap<>();
@@ -324,7 +324,7 @@ final class WikiPageFolderSupport {
                 if (!seen.add(id)) {
                     break; // 环
                 }
-                WikiFolder folder = byID.get(id);
+                WikiFolder folder = byId.get(id);
                 if (folder == null) {
                     break;
                 }
@@ -372,7 +372,7 @@ final class WikiPageFolderSupport {
         }
         WikiFolder folder;
         try {
-            folder = service.folderRepo.getFolderByID(page.getKnowledgeBaseId(), page.getFolderId());
+            folder = service.folderRepo.getFolderById(page.getKnowledgeBaseId(), page.getFolderId());
         } catch (WikiFolderNotFoundException e) {
             throw new WikiException("wiki page references unknown folder \""
                     + page.getFolderId() + "\"");

@@ -453,7 +453,7 @@ class RssConnectorTest {
     // ── FetchAll：分页/条目细节 ──────────────────────────────────────────
 
     @Test
-    void itemWithoutGUIDFallsBackToLinkAndUntitled() throws IOException {
+    void itemWithoutGUIdFallsBackToLinkAndUntitled() throws IOException {
         // 无 title/guid 的条目 → itemID=link、"untitled"、guid=""、updated_at=now
         try (FakeFeed feed = new FakeFeed()) {
             feed.feedXmlOverride("<?xml version=\"1.0\"?>"

@@ -139,7 +139,7 @@ class WeaviateDriverLocalIT {
         assertThat(kwHits.get(0).results().get(0).score).isEqualTo(1.0);
 
         // 3) merge 更新 tag 后：对象仍可被向量检索（证明没清属性/向量——修正的核心）
-        repo.batchUpdateChunkTagID(Map.of(chunkA, "t9"));
+        repo.batchUpdateChunkTagId(Map.of(chunkA, "t9"));
         List<RetrieveResult> byTag = repo.retrieve(vectorParams(new float[] {1f, 0f, 0f}, 5,
                 null, List.of("t9")));
         assertThat(byTag.get(0).results()).hasSize(1);

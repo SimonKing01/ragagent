@@ -208,7 +208,7 @@ public final class PromptCache {
      *
      * <p>session ID 由调用方显式传入（本模块没有请求级上下文可查）。</p>
      */
-    public static String promptCacheSessionID(String contextSessionId, ChatOptions opts) {
+    public static String promptCacheSessionId(String contextSessionId, ChatOptions opts) {
         String explicit = opts == null ? null : opts.getPromptCacheKey();
         if (explicit != null && !explicit.isEmpty()) {
             return clampPromptCacheKey(explicit);
@@ -293,7 +293,7 @@ public final class PromptCache {
      *
      * @param body      出站请求体（就地修改）
      * @param policy    {@link #promptCachePolicyFor} 的结果
-     * @param sessionId {@link #promptCacheSessionID} 的结果
+     * @param sessionId {@link #promptCacheSessionId} 的结果
      * @param retention 缓存保留期；null 视同空串（即不等于 none，照常注入）
      * @return 是否就地改写了 body
      */

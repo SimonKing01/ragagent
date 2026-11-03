@@ -335,8 +335,8 @@ final class SourceRegistry {
     }
 
     /** key→source 空间的唯一分派。 */
-    void registerSourceIDByKey(String key, String value, boolean evidence) {
-        toolCodec.registerSourceIDByKey(key, value, evidence);
+    void registerSourceIdByKey(String key, String value, boolean evidence) {
+        toolCodec.registerSourceIdByKey(key, value, evidence);
     }
 
     /** 只压缩已注册标识为句柄。 */
@@ -363,12 +363,12 @@ final class SourceRegistry {
         Matcher m = LEGACY_CHUNK_TAG.matcher(text);
         while (m.find()) {
             String tag = m.group();
-            String chunkID = firstNonEmptyOf(publicAttr(CHUNK_ATTR, tag), publicAttr(FAQ_ATTR, tag));
-            if (chunkID.isEmpty()) {
+            String chunkId = firstNonEmptyOf(publicAttr(CHUNK_ATTR, tag), publicAttr(FAQ_ATTR, tag));
+            if (chunkId.isEmpty()) {
                 continue;
             }
             ChunkReference ref = new ChunkReference();
-            ref.chunkId = chunkID;
+            ref.chunkId = chunkId;
             ref.knowledgeId = publicAttr(DOCUMENT_ATTR, tag);
             ref.knowledgeBaseId = firstNonEmptyOf(publicAttr(KB_ATTR, tag), publicAttr(PUBLIC_KB_ATTR, tag));
             ref.documentTitle = firstNonEmptyOf(publicAttr(KNOWLEDGE_TITLE_ATTR, tag), publicAttr(DOC_ATTR, tag));
@@ -385,12 +385,12 @@ final class SourceRegistry {
             return text;
         }
         text = replaceAllFunc(PUBLIC_KB_TAG, text, tag -> {
-            String chunkID = publicAttr(PUBLIC_CHUNK_ATTR, tag);
-            if (chunkID.isEmpty()) {
+            String chunkId = publicAttr(PUBLIC_CHUNK_ATTR, tag);
+            if (chunkId.isEmpty()) {
                 return tag;
             }
             ChunkReference ref = new ChunkReference();
-            ref.chunkId = chunkID;
+            ref.chunkId = chunkId;
             ref.knowledgeBaseId = publicAttr(PUBLIC_KB_ATTR, tag);
             ref.documentTitle = publicAttr(DOC_ATTR, tag);
             String handle = registerChunk(ref, evidence);
@@ -441,8 +441,8 @@ final class SourceRegistry {
             StringBuilder valueOut = new StringBuilder();
             ChunkReference chunkRef = chunks.resolve(handle, valueOut);
             if (chunkRef != null) {
-                String chunkID = valueOut.toString();
-                String attrs = "doc=\"" + escapeAttr(chunkRef.documentTitle) + "\" chunk_id=\"" + escapeAttr(chunkID) + "\"";
+                String chunkId = valueOut.toString();
+                String attrs = "doc=\"" + escapeAttr(chunkRef.documentTitle) + "\" chunk_id=\"" + escapeAttr(chunkId) + "\"";
                 if (!chunkRef.knowledgeBaseId.isEmpty()) {
                     attrs += " kb_id=\"" + escapeAttr(chunkRef.knowledgeBaseId) + "\"";
                 }

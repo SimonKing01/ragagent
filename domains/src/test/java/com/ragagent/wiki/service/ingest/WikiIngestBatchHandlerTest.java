@@ -552,9 +552,9 @@ class WikiIngestBatchHandlerTest {
     @DisplayName("KB 查询的空 id 短路")
     void kbLookupEmptyId() {
         WikiIngestBatchHandler h = handler();
-        assertThat(h.getKnowledgeBaseByIDOnly("")).isNull();
-        assertThat(h.getKnowledgeBaseByIDOnly(null)).isNull();
-        assertThat(h.getKnowledgeByIDOnly("")).isNull();
+        assertThat(h.getKnowledgeBaseByIdOnly("")).isNull();
+        assertThat(h.getKnowledgeBaseByIdOnly(null)).isNull();
+        assertThat(h.getKnowledgeByIdOnly("")).isNull();
         verify(kbLookup, never()).knowledgeBaseById(any());
     }
 

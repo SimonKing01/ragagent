@@ -93,8 +93,8 @@ class McpOAuthControllerTest {
         // 若该方法已被"抛异常"的桩命中，桩注册本身就会抛。
         // 另：宽匹配的桩先注册，具体桩后注册才能覆盖它（Mockito 后注册者优先）。
         doThrow(BizException.notFound("MCP service not found"))
-                .when(svc).getMCPServiceByID(anyLong(), anyString());
-        doReturn(service).when(svc).getMCPServiceByID(TENANT_ID, SERVICE_ID);
+                .when(svc).getMCPServiceById(anyLong(), anyString());
+        doReturn(service).when(svc).getMCPServiceById(TENANT_ID, SERVICE_ID);
 
         TenantContext.set(TENANT_ID, PRINCIPAL, "admin", false, "user-1", false);
         TenantContext.setEmbedVisitorId(null);

@@ -280,8 +280,8 @@ final class ThinkPhase {
         Map<String, Boolean> pendingToolCalls = new HashMap<>();
         Map<String, String> thinkingToolIDs = new HashMap<>();
         Map<String, Integer> emittedEventTypes = new HashMap<>();
-        String thinkingID = EventIds.generateEventID("thinking");
-        String answerID = EventIds.generateEventID("answer");
+        String thinkingId = EventIds.generateEventId("thinking");
+        String answerId = EventIds.generateEventId("answer");
 
         ThinkStreamSplitter splitter = new ThinkStreamSplitter();
         AtomicBoolean thinkingOpen = new AtomicBoolean(false);
@@ -289,25 +289,25 @@ final class ThinkPhase {
 
         ThinkChunkEmitter emitFunc = (chunk, fullContent) -> {
             if (chunk.getResponseType() == ResponseType.TOOL_CALL && chunk.getData() != null) {
-                String toolCallID = SteerIntake.mapString(chunk.getData(), "toolCallId");
+                String toolCallId = SteerIntake.mapString(chunk.getData(), "toolCallId");
                 String toolName = SteerIntake.mapString(chunk.getData(), "toolName");
                 @SuppressWarnings("unchecked")
                 Map<String, Object> args = (Map<String, Object>) chunk.getData().get("arguments");
 
-                if (!toolCallID.isEmpty() && !toolName.isEmpty()
-                        && !pendingToolCalls.containsKey(toolCallID)) {
-                    pendingToolCalls.put(toolCallID, Boolean.TRUE);
+                if (!toolCallId.isEmpty() && !toolName.isEmpty()
+                        && !pendingToolCalls.containsKey(toolCallId)) {
+                    pendingToolCalls.put(toolCallId, Boolean.TRUE);
                     emittedEventTypes.merge("tool_call_pending", 1, Integer::sum);
-                    engine.eventBus.emit(new Event(toolCallID + "-tool-call-pending",
+                    engine.eventBus.emit(new Event(toolCallId + "-tool-call-pending",
                             EventType.EVENT_AGENT_TOOL_CALL, sessionId,
-                            new AgentToolCallData(toolCallID, toolName, ActPhase.deepSortedMap(args),
+                            new AgentToolCallData(toolCallId, toolName, ActPhase.deepSortedMap(args),
                                     iteration, ""), null, ""));
-                } else if (!toolCallID.isEmpty() && pendingToolCalls.containsKey(toolCallID)
+                } else if (!toolCallId.isEmpty() && pendingToolCalls.containsKey(toolCallId)
                         && args != null) {
                     emittedEventTypes.merge("tool_call_progress", 1, Integer::sum);
-                    engine.eventBus.emit(new Event(toolCallID + "-tool-call-progress",
+                    engine.eventBus.emit(new Event(toolCallId + "-tool-call-progress",
                             EventType.EVENT_AGENT_TOOL_CALL, sessionId,
-                            new AgentToolCallData(toolCallID, toolName, ActPhase.deepSortedMap(args),
+                            new AgentToolCallData(toolCallId, toolName, ActPhase.deepSortedMap(args),
                                     iteration, ""), null, ""));
                 }
             }
@@ -315,11 +315,11 @@ final class ThinkPhase {
             // thinking 工具的流式思考内容
             if (chunk.getResponseType() == ResponseType.THINKING && chunk.getData() != null) {
                 if ("thinking_tool".equals(SteerIntake.mapString(chunk.getData(), "source"))) {
-                    String toolCallID = SteerIntake.mapString(chunk.getData(), "toolCallId");
-                    String eventID = thinkingToolIDs.computeIfAbsent(toolCallID,
-                            k -> EventIds.generateEventID("thinking-tool"));
+                    String toolCallId = SteerIntake.mapString(chunk.getData(), "toolCallId");
+                    String eventId = thinkingToolIDs.computeIfAbsent(toolCallId,
+                            k -> EventIds.generateEventId("thinking-tool"));
                     emittedEventTypes.merge("thinking_tool_chunk", 1, Integer::sum);
-                    engine.eventBus.emit(new Event(eventID, EventType.EVENT_AGENT_THOUGHT, sessionId,
+                    engine.eventBus.emit(new Event(eventId, EventType.EVENT_AGENT_THOUGHT, sessionId,
                             new AgentThoughtData(chunk.getContent(), iteration, false), null, ""));
                     return;
                 }
@@ -330,10 +330,10 @@ final class ThinkPhase {
             if (chunk.getResponseType() == ResponseType.THINKING) {
                 if (chunk.getContent() != null && !chunk.getContent().isEmpty()) {
                     thinkingOpen.set(true);
-                    emitThought(sessionId, emittedEventTypes, thinkingID, iteration,
+                    emitThought(sessionId, emittedEventTypes, thinkingId, iteration,
                             chunk.getContent(), false);
                 } else if (chunk.isDone() && thinkingOpen.get()) {
-                    emitThought(sessionId, emittedEventTypes, thinkingID, iteration, "", true);
+                    emitThought(sessionId, emittedEventTypes, thinkingId, iteration, "", true);
                     thinkingOpen.set(false);
                 }
                 return;
@@ -345,21 +345,21 @@ final class ThinkPhase {
                 ThinkStreamSplitter.FeedResult parts = splitter.feed(chunk.getContent());
                 if (parts.think() != null && !parts.think().isEmpty()) {
                     thinkingOpen.set(true);
-                    emitThought(sessionId, emittedEventTypes, thinkingID, iteration, parts.think(), false);
+                    emitThought(sessionId, emittedEventTypes, thinkingId, iteration, parts.think(), false);
                 }
-                emitAnswer(sessionId, emittedEventTypes, answerID, parts.answer(), answerStreamed,
-                        thinkingOpen, thinkingID, iteration);
+                emitAnswer(sessionId, emittedEventTypes, answerId, parts.answer(), answerStreamed,
+                        thinkingOpen, thinkingId, iteration);
             }
             if (chunk.isDone()) {
                 ThinkStreamSplitter.FeedResult parts = splitter.flush();
                 if (parts.think() != null && !parts.think().isEmpty()) {
                     thinkingOpen.set(true);
-                    emitThought(sessionId, emittedEventTypes, thinkingID, iteration, parts.think(), false);
+                    emitThought(sessionId, emittedEventTypes, thinkingId, iteration, parts.think(), false);
                 }
-                emitAnswer(sessionId, emittedEventTypes, answerID, parts.answer(), answerStreamed,
-                        thinkingOpen, thinkingID, iteration);
+                emitAnswer(sessionId, emittedEventTypes, answerId, parts.answer(), answerStreamed,
+                        thinkingOpen, thinkingId, iteration);
                 if (thinkingOpen.get()) {
-                    emitThought(sessionId, emittedEventTypes, thinkingID, iteration, "", true);
+                    emitThought(sessionId, emittedEventTypes, thinkingId, iteration, "", true);
                     thinkingOpen.set(false);
                 }
             }
@@ -386,7 +386,7 @@ final class ThinkPhase {
         resp.setFinishReason(finishReason);
         resp.setAnswerStreamed(answerStreamed.get());
         if (answerStreamed.get()) {
-            resp.setAnswerEventId(answerID);
+            resp.setAnswerEventId(answerId);
         }
         if (llmResult.usage != null) {
             resp.setUsage(llmResult.usage);
@@ -395,18 +395,18 @@ final class ThinkPhase {
     }
 
     private void emitThought(String sessionId, Map<String, Integer> emittedEventTypes,
-            String thinkingID, int iteration, String content, boolean done) {
+            String thinkingId, int iteration, String content, boolean done) {
         if ((content == null || content.isEmpty()) && !done) {
             return;
         }
         emittedEventTypes.merge("thought_chunk", 1, Integer::sum);
-        engine.eventBus.emit(new Event(thinkingID, EventType.EVENT_AGENT_THOUGHT, sessionId,
+        engine.eventBus.emit(new Event(thinkingId, EventType.EVENT_AGENT_THOUGHT, sessionId,
                 new AgentThoughtData(content, iteration, done), null, ""));
     }
 
     private void emitAnswer(String sessionId, Map<String, Integer> emittedEventTypes,
-            String answerID, String content, AtomicBoolean answerStreamed,
-            AtomicBoolean thinkingOpen, String thinkingID, int iteration) {
+            String answerId, String content, AtomicBoolean answerStreamed,
+            AtomicBoolean thinkingOpen, String thinkingId, int iteration) {
         if (content == null || content.isEmpty()) {
             return;
         }
@@ -417,12 +417,12 @@ final class ThinkPhase {
         }
         // closeThinking：第一个答案分片前发思考 Done，UI 的思考卡翻成"已完成"。
         if (thinkingOpen.get()) {
-            emitThought(sessionId, emittedEventTypes, thinkingID, iteration, "", true);
+            emitThought(sessionId, emittedEventTypes, thinkingId, iteration, "", true);
             thinkingOpen.set(false);
         }
         answerStreamed.set(true);
         emittedEventTypes.merge("final_answer_chunk", 1, Integer::sum);
-        engine.eventBus.emit(new Event(answerID, EventType.EVENT_AGENT_FINAL_ANSWER, sessionId,
+        engine.eventBus.emit(new Event(answerId, EventType.EVENT_AGENT_FINAL_ANSWER, sessionId,
                 new AgentFinalAnswerData(content, false, false), null, ""));
     }
 

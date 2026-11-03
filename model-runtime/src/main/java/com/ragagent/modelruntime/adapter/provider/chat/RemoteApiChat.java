@@ -210,7 +210,7 @@ public class RemoteApiChat implements LlmChatClient {
         CacheRetention retention = PromptCache.resolveCacheRetention(opts);
         PromptCache.Policy policy = PromptCache.promptCachePolicyFor(provider, baseUrl);
         boolean cacheRewritten = PromptCache.applyPromptCacheToJSONBody(
-                body, policy, PromptCache.promptCacheSessionID(sessionId, opts), retention);
+                body, policy, PromptCache.promptCacheSessionId(sessionId, opts), retention);
 
         // rawPath=true 时流终态事件不带 finish_reason（沿用既有裸 HTTP 路径口径），
         // false 时带上最近一次观察到的 finish_reason。

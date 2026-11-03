@@ -277,13 +277,13 @@ final class DorisWriteOps {
         }, "rewrite is_enabled");
     }
 
-    void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
+    void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
         if (chunkTagMap == null || chunkTagMap.isEmpty()) {
             return;
         }
         DorisCompatMode compatMode = service.resolveCompatModeOrThrow();
         if (!compatMode.usesRewriteChunkUpdates()) {
-            batchUpdateChunkTagIDLegacy(chunkTagMap);
+            batchUpdateChunkTagIdLegacy(chunkTagMap);
             return;
         }
         rewriteChunkRows(new ArrayList<>(chunkTagMap.keySet()), row -> {
@@ -363,7 +363,7 @@ final class DorisWriteOps {
     }
 
 
-    void batchUpdateChunkTagIDLegacy(Map<String, String> chunkTagMap) {
+    void batchUpdateChunkTagIdLegacy(Map<String, String> chunkTagMap) {
         Map<String, List<RowLocation>> mapping = lookupChunkRowKeys(
                 new ArrayList<>(chunkTagMap.keySet()));
         Map<String, List<Map<String, Object>>> byTable = new LinkedHashMap<>();

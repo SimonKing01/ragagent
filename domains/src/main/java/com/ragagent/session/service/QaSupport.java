@@ -43,7 +43,7 @@ public final class QaSupport {
      * 一轮 QA 的可变上下文。
      *
      * <p><b>线程归属</b>：请求输入字段在 {@code executeQA} 之前写完、之后只读；轮次状态
-     * （{@code userMessageID}/{@code assistantMessage}/{@code userCreatedAt}）由落库簇在
+     * （{@code userMessageId}/{@code assistantMessage}/{@code userCreatedAt}）由落库簇在
      * 启动异步 runner 之前写完；附件解析结果由 runner 线程独占写。跨线程传递优先用
      * 不可变快照（如输入条状态快照），不要直接把本对象交给新线程。</p>
      */
@@ -73,7 +73,7 @@ public final class QaSupport {
         public long effectiveTenantId;
         public List<QaRequestsImage> images = new ArrayList<>();
         /** Created user message ID (populated after createUserMessage) */
-        public String userMessageID = "";
+        public String userMessageId = "";
         /** Persisted user message timestamp, echoed on agent_query */
         public java.time.OffsetDateTime userCreatedAt;
         /** Source channel: "web", "api", "im", etc. */
@@ -97,7 +97,7 @@ public final class QaSupport {
 
         /** request snapshot for the input-bar state（persistLastRequestState） */
         public boolean reqAgentEnabled;
-        public String reqAgentID = "";
+        public String reqAgentId = "";
 
         /** server-started follow-up runs（steer backlog）：事件进 StreamManager 但不写 SSE */
         public boolean skipSSE;
@@ -124,7 +124,7 @@ public final class QaSupport {
             req.skillNames = skillNames;
             req.imageUrls = ext.urls;
             req.imageDescription = ext.ocrText;
-            req.userMessageId = userMessageID;
+            req.userMessageId = userMessageId;
             req.webSearchEnabled = webSearchEnabled;
             req.attachments = attachments;
             req.steerSink = steerSink;

@@ -36,7 +36,7 @@ class ConcurrencyEmbedderValidationTest {
             }
 
             @Override
-            public String getModelID() {
+            public String getModelId() {
                 return "fake-1";
             }
         };
@@ -75,7 +75,7 @@ class ConcurrencyEmbedderValidationTest {
             }
 
             @Override
-            public String getModelID() {
+            public String getModelId() {
                 return "fake-1";
             }
         };

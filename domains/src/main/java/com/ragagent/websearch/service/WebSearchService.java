@@ -87,7 +87,7 @@ public class WebSearchService {
     private WebSearchProvider resolveProvider(
             long tenantId, String providerId, WebSearchConfig cfg) {
         if (providerId != null && !providerId.isEmpty()) {
-            WebSearchProviderEntity entity = providerRepo.getByID(tenantId, providerId);
+            WebSearchProviderEntity entity = providerRepo.getById(tenantId, providerId);
             if (entity == null) {
                 throw new IllegalStateException("web search provider not found: " + providerId);
             }

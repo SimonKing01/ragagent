@@ -91,7 +91,7 @@ public class McpToolRegistrationAdapter implements McpToolRegistrationPort {
                     toolApprovalGate,
                     authWaitTimeoutSeconds,
                     tenantId,
-                    mcpServiceService::getMCPServiceByID,
+                    mcpServiceService::getMCPServiceById,
                     new McpExposure.McpMetadataIO(
                             mcpMetadataService::getMCPMetadata,
                             mcpMetadataService::persistMCPMetadata),

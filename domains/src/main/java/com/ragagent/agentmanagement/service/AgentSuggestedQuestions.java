@@ -73,7 +73,7 @@ public final class AgentSuggestedQuestions {
         List<String> scopeTagIds = flattenTagScopeIds(tagScopes);
         TenantAPIKeyScope.authorizeOptionalTagIds(scopeTagIds);
 
-        CustomAgentResult agent = agents.getAgentByID(agentId, locale);
+        CustomAgentResult agent = agents.getAgentById(agentId, locale);
         ObjectNode cfg = agent.config();
 
         List<Object[]> curated = new ArrayList<>(); // [question, source, kbId]

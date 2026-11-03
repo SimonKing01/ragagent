@@ -312,7 +312,7 @@ class MilvusRetrieveRepositoryTest {
         responses.put("POST /v2/vectordb/collections/list",
                 "{\"code\":0,\"data\":[\"weknora_embeddings_2\"]}");
         statuses.put("POST /v2/vectordb/entities/query", 500);
-        repo("weknora_embeddings").batchUpdateChunkTagID(Map.of(CHUNK, "t9"));
+        repo("weknora_embeddings").batchUpdateChunkTagId(Map.of(CHUNK, "t9"));
         assertThat(captured.stream().noneMatch(c -> c.path().endsWith("/entities/upsert")))
                 .isTrue();
     }

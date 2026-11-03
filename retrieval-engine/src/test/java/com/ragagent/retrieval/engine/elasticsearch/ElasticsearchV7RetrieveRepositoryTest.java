@@ -322,7 +322,7 @@ class ElasticsearchV7RetrieveRepositoryTest {
         responder = req -> Resp.json(500, "{\"error\":\"boom\"}");
         assertEquals("elasticsearch update_by_query failed with status: 500",
                 assertThrows(IllegalStateException.class,
-                        () -> r.batchUpdateChunkTagID(Map.of("c1", "t1"))).getMessage());
+                        () -> r.batchUpdateChunkTagId(Map.of("c1", "t1"))).getMessage());
     }
 
     @Test

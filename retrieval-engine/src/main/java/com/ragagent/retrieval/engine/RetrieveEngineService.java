@@ -55,7 +55,7 @@ public interface RetrieveEngineService {
     void batchUpdateChunkEnabledStatus(Map<String, Boolean> chunkStatusMap) throws Exception;
 
     /** 按 ChunkID 批量更新标签。 */
-    void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception;
+    void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception;
 
     /** 按参数检索。 */
     List<RetrieveResult> retrieve(RetrieveParams params) throws Exception;

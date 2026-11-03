@@ -381,7 +381,7 @@ class HybridSearchServiceStoreGroupTest {
         }
 
         @Override
-        public void batchUpdateChunkTagID(Map<String, String> chunkTagMap) {
+        public void batchUpdateChunkTagId(Map<String, String> chunkTagMap) {
         }
 
         @Override

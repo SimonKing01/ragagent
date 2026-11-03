@@ -310,9 +310,9 @@ public class ChunkRepository implements ChunkSearchGateway {
     /**
      * **text-only**（chunk_type='text'）
      * + chunk_index ASC，软删行不可见。摘要/索引管线取「文档正文」都走这里；
-     * summary / parent_text / image 类子块走 {@link #listChunksByKnowledgeIDAndTypes}。
+     * summary / parent_text / image 类子块走 {@link #listChunksByKnowledgeIdAndTypes}。
      */
-    public List<Chunk> listChunksByKnowledgeID(long tenantId, String knowledgeId) {
+    public List<Chunk> listChunksByKnowledgeId(long tenantId, String knowledgeId) {
         return chunkMapper.selectList(new LambdaQueryWrapper<Chunk>()
                 .eq(Chunk::getTenantId, tenantId)
                 .eq(Chunk::getKnowledgeId, knowledgeId)
@@ -324,7 +324,7 @@ public class ChunkRepository implements ChunkSearchGateway {
     /**
      * chunk_type IN + ASC；
      */
-    public List<Chunk> listChunksByKnowledgeIDAndTypes(
+    public List<Chunk> listChunksByKnowledgeIdAndTypes(
             long tenantId, String knowledgeId, List<String> chunkTypes) {
         if (chunkTypes == null || chunkTypes.isEmpty()) {
             return List.of();

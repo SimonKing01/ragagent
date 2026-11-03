@@ -86,12 +86,12 @@ class KnowledgeSearchRecordingTest {
     }
 
     static final class FakeChunks implements ChunkInfoBackend {
-        final Map<String, ChunkFacts> byID = new LinkedHashMap<>();
+        final Map<String, ChunkFacts> byId = new LinkedHashMap<>();
         final Map<String, Long> totals = new LinkedHashMap<>();
 
         @Override
         public ChunkFacts faqChunkById(String chunkId) {
-            return byID.get(chunkId);
+            return byId.get(chunkId);
         }
 
         @Override
@@ -118,12 +118,12 @@ class KnowledgeSearchRecordingTest {
         }
     }
 
-    static SearchResultView result(String id, String knowledgeID, String kb, String title, int idx,
+    static SearchResultView result(String id, String knowledgeId, String kb, String title, int idx,
             String content, double score, int matchType) {
         SearchResultView r = new SearchResultView();
         r.id = id;
         r.content = content;
-        r.knowledgeId = knowledgeID;
+        r.knowledgeId = knowledgeId;
         r.knowledgeBaseId = kb;
         r.knowledgeTitle = title;
         r.chunkIndex = idx;
@@ -168,7 +168,7 @@ class KnowledgeSearchRecordingTest {
                 readNode("{\"standardQuestion\":\"How do I reset the pipeline?\","
                 + "\"similarQuestions\":[\"pipeline reset steps\"],"
                 + "\"answers\":[\"Press the red button.\",\"Wait ten seconds.\"]}"), null);
-        c.byID.put("sf1", faq);
+        c.byId.put("sf1", faq);
         return c;
     }
 
@@ -396,7 +396,7 @@ class KnowledgeSearchRecordingTest {
     @Test
     void knowledgeTarget() {
         FakeBackend svc = kbSvc();
-        svc.hybridFn = (kbID, params) -> new ArrayList<>(List.of(
+        svc.hybridFn = (kbId, params) -> new ArrayList<>(List.of(
                 result("kc1", "skd1", "skb1", "RAG Guide", 0, "Targeted doc result.", 0.029, 0)));
         SearchTarget.SearchTargets targets = new SearchTarget.SearchTargets(List.of(
                 new SearchTarget(SearchTarget.TYPE_KNOWLEDGE, "skb1", 10002,

@@ -12,5 +12,5 @@ public interface Reranker {
 
     String getModelName();
 
-    String getModelID();
+    String getModelId();
 }

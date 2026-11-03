@@ -73,7 +73,7 @@ public class BuiltinAgentRegistry {
         load();
     }
 
-    public static boolean isBuiltinAgentID(String id) {
+    public static boolean isBuiltinAgentId(String id) {
         return id != null && (id.equals("builtin-quick-answer") || id.equals("builtin-smart-reasoning")
                 || id.equals("builtin-wiki-researcher") || id.equals("builtin-deep-researcher")
                 || id.equals("builtin-data-analyst") || id.equals("builtin-knowledge-graph-expert")

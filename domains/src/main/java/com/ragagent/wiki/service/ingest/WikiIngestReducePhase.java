@@ -313,22 +313,22 @@ final class WikiIngestReducePhase {
 
         for (String ref : page.getSourceRefs()) {
             int pipeIdx = ref.indexOf('|');
-            String refKnowledgeID;
+            String refKnowledgeId;
             String refTitle;
             if (pipeIdx > 0) {
-                refKnowledgeID = ref.substring(0, pipeIdx);
+                refKnowledgeId = ref.substring(0, pipeIdx);
                 refTitle = ref.substring(pipeIdx + 1);
             } else {
-                refKnowledgeID = ref;
+                refKnowledgeId = ref;
                 refTitle = ref;
             }
 
-            if (retractKIDs.contains(refKnowledgeID)) {
+            if (retractKIDs.contains(refKnowledgeId)) {
                 continue;
             }
 
             String refContent = batchCtx == null
-                    ? "" : batchCtx.summaryContentByKnowledgeId(refKnowledgeID);
+                    ? "" : batchCtx.summaryContentByKnowledgeId(refKnowledgeId);
             if (!refContent.isEmpty()) {
                 remainingSourcesContent.append("<document>\n<title>").append(refTitle)
                         .append("</title>\n<content>\n").append(refContent)
@@ -346,8 +346,8 @@ final class WikiIngestReducePhase {
         List<String> newRefs = new ArrayList<>();
         for (String ref : page.getSourceRefs()) {
             int pipeIdx = ref.indexOf('|');
-            String refKnowledgeID = pipeIdx > 0 ? ref.substring(0, pipeIdx) : ref;
-            if (!retractKIDs.contains(refKnowledgeID)) {
+            String refKnowledgeId = pipeIdx > 0 ? ref.substring(0, pipeIdx) : ref;
+            if (!retractKIDs.contains(refKnowledgeId)) {
                 newRefs.add(ref);
             }
         }
@@ -362,7 +362,7 @@ final class WikiIngestReducePhase {
         WikiPage page = draft.page;
         // 把 SourceChunks 解析成 chunk 正文：按 knowledge ID 一批查询，让
         // <new_information> 块可以逐字引用 chunk，而不是依赖简短的 Details 改写。
-        Map<String, String> chunkContentByID =
+        Map<String, String> chunkContentById =
                 handler.citePipeline.resolveCitedChunks(tenantId, draft.additions);
         // 一份文档摘要被该文档派生的每个页面共享。在任何页面专属元数据之前渲染一个
         // 确定性的、去重的块，让 provider 的前缀缓存能在并行的 reduce 调用之间复用。
@@ -371,7 +371,7 @@ final class WikiIngestReducePhase {
         for (SlugUpdate add : draft.additions) {
             ExtractedItem item = add.getItem() == null ? new ExtractedItem() : add.getItem();
             String cited = WikiIngestCitePipeline.collectCitedChunkContent(
-                    add.sourceChunksOrEmpty(), chunkContentByID);
+                    add.sourceChunksOrEmpty(), chunkContentById);
             // 用文档级摘要正文把 chunk 框起来，让编辑模型既知道文档讲什么，也知道它
             // 是哪一类文档（简历 vs 公告 vs 产品页 vs 日程）。只有一句话的标题对较长、
             // 多主题的源文档来说太薄了。
@@ -531,11 +531,11 @@ final class WikiIngestReducePhase {
         }
         if (additions != null) {
             for (SlugUpdate add : additions) {
-                for (String chunkID : add.sourceChunksOrEmpty()) {
-                    if (chunkID == null || chunkID.isEmpty() || !seen.add(chunkID)) {
+                for (String chunkId : add.sourceChunksOrEmpty()) {
+                    if (chunkId == null || chunkId.isEmpty() || !seen.add(chunkId)) {
                         continue;
                     }
-                    out.add(chunkID);
+                    out.add(chunkId);
                 }
             }
         }

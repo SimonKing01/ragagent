@@ -19,5 +19,5 @@ public interface Embedder {
 
     int getDimensions();
 
-    String getModelID();
+    String getModelId();
 }

@@ -158,19 +158,19 @@ public final class QaAttachmentResolver {
      */
     private void persistResolvedAttachmentContent(QaRequestContext reqCtx,
             List<MessageAttachment> resolved) {
-        if (reqCtx.userMessageID.isEmpty() || resolved.isEmpty()) {
+        if (reqCtx.userMessageId.isEmpty() || resolved.isEmpty()) {
             return;
         }
         Message msg;
         try {
-            msg = messageService.getMessage(reqCtx.sessionId, reqCtx.userMessageID);
+            msg = messageService.getMessage(reqCtx.sessionId, reqCtx.userMessageId);
         } catch (RuntimeException e) {
-            log.warn("persist attachment content: load user message {} failed", reqCtx.userMessageID, e);
+            log.warn("persist attachment content: load user message {} failed", reqCtx.userMessageId, e);
             return;
         }
         if (msg == null) {
             log.warn("persist attachment content: load user message {} failed: not found",
-                    reqCtx.userMessageID);
+                    reqCtx.userMessageId);
             return;
         }
         Map<String, MessageAttachment> byId = new LinkedHashMap<>();
@@ -200,7 +200,7 @@ public final class QaAttachmentResolver {
         try {
             messageService.updateMessage(msg);
         } catch (RuntimeException e) {
-            log.warn("persist attachment content: update user message {} failed", reqCtx.userMessageID, e);
+            log.warn("persist attachment content: update user message {} failed", reqCtx.userMessageId, e);
         }
     }
     public void waitForAttachments(long tenantId, String sessionId, List<String> ids, long timeoutMs) {

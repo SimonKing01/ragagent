@@ -39,7 +39,7 @@ public final class SteerSinkBridge implements SteerSink {
     private final TenantContextSnapshot tenant;
 
     private final Object mu = new Object();
-    private String lastUserMessageID = "";
+    private String lastUserMessageId = "";
     private int drainedOffset;
     private Set<String> injectedIDs = new LinkedHashSet<>();
 
@@ -175,7 +175,7 @@ public final class SteerSinkBridge implements SteerSink {
         String existing = persistedUserMessageId(sessionId, messageId, steerId);
         if (!existing.isEmpty()) {
             synchronized (mu) {
-                lastUserMessageID = existing;
+                lastUserMessageId = existing;
             }
             return existing;
         }
@@ -219,14 +219,14 @@ public final class SteerSinkBridge implements SteerSink {
             String again = persistedUserMessageId(sessionId, messageId, steerId);
             if (!again.isEmpty()) {
                 synchronized (mu) {
-                    lastUserMessageID = again;
+                    lastUserMessageId = again;
                 }
                 return again;
             }
             return "";
         }
         synchronized (mu) {
-            lastUserMessageID = created.getId();
+            lastUserMessageId = created.getId();
         }
         return created.getId();
     }
@@ -252,7 +252,7 @@ public final class SteerSinkBridge implements SteerSink {
     /** 最近一次落库的 user 消息 id。 */
     public String lastPersistedUserMessageId() {
         synchronized (mu) {
-            return lastUserMessageID;
+            return lastUserMessageId;
         }
     }
 

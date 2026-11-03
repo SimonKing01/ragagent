@@ -93,7 +93,7 @@ class KeywordsVectorHybridRetrieveEngineServiceTest {
         }
 
         @Override
-        public void batchUpdateChunkTagID(Map<String, String> chunkTagMap) {
+        public void batchUpdateChunkTagId(Map<String, String> chunkTagMap) {
         }
 
         @Override
@@ -140,7 +140,7 @@ class KeywordsVectorHybridRetrieveEngineServiceTest {
         }
 
         @Override
-        public String getModelID() {
+        public String getModelId() {
             return "stub-embedder-id";
         }
     }
@@ -396,7 +396,7 @@ class KeywordsVectorHybridRetrieveEngineServiceTest {
         }
 
         @Override
-        public void batchUpdateChunkTagID(Map<String, String> chunkTagMap) {
+        public void batchUpdateChunkTagId(Map<String, String> chunkTagMap) {
         }
 
         @Override
@@ -422,6 +422,6 @@ class KeywordsVectorHybridRetrieveEngineServiceTest {
 
         svc.copyIndices("kb1", Map.of(), Map.of("c1", "c2"), "kb2", 2, "");
         svc.batchUpdateChunkEnabledStatus(Map.of("c1", true));
-        svc.batchUpdateChunkTagID(Map.of("c1", "t1"));
+        svc.batchUpdateChunkTagId(Map.of("c1", "t1"));
     }
 }

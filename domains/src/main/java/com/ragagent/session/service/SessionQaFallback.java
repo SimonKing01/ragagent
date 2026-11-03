@@ -237,7 +237,7 @@ final class SessionQaFallback {
     /** 消费 fallback 流。 */
     void consumeFallbackStream(ChatManage chatManage,
             ChatStream responseChan, Registry modelContext) {
-        String fallbackId = EventIds.generateEventID("fallback");
+        String fallbackId = EventIds.generateEventId("fallback");
         EventBusInterface eventBus = chatManage.getRuntime().getEventBus();
         StringBuilder finalContent = new StringBuilder();
         boolean streamCompleted = false;
@@ -307,7 +307,7 @@ final class SessionQaFallback {
         }
         log.info("Emitting references event with {} results (pre-answer)", chatManage.getMerged().getResults().size());
         Event evt = new Event();
-        evt.setId(EventIds.generateEventID("references"));
+        evt.setId(EventIds.generateEventId("references"));
         evt.setType(EventType.EVENT_AGENT_REFERENCES);
         evt.setSessionId(chatManage.getSessionId());
         evt.setData(new AgentReferencesData(chatManage.getMerged().getResults(), 0));
@@ -328,7 +328,7 @@ final class SessionQaFallback {
             Registry registry = new Registry(false);
             content = registry.decodeOutputText(content);
         }
-        String fallbackId = EventIds.generateEventID("fallback");
+        String fallbackId = EventIds.generateEventId("fallback");
         Event evt = new Event();
         evt.setId(fallbackId);
         evt.setType(EventType.EVENT_AGENT_FINAL_ANSWER);

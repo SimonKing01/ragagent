@@ -42,16 +42,16 @@ class DocToolsRecordingTest {
     // ==================== Fakes ====================
 
     static final class FakeKnowledge implements KnowledgeInfoReader {
-        final Map<String, KnowledgeInfoRow> byID = new LinkedHashMap<>();
-        final Map<String, RuntimeException> byIDErr = new LinkedHashMap<>();
+        final Map<String, KnowledgeInfoRow> byId = new LinkedHashMap<>();
+        final Map<String, RuntimeException> byIdErr = new LinkedHashMap<>();
 
         @Override
         public KnowledgeInfoRow byIdOnly(String knowledgeId) {
-            RuntimeException err = byIDErr.get(knowledgeId);
+            RuntimeException err = byIdErr.get(knowledgeId);
             if (err != null) {
                 throw err;
             }
-            return byID.get(knowledgeId);
+            return byId.get(knowledgeId);
         }
 
         @Override
@@ -145,17 +145,17 @@ class DocToolsRecordingTest {
         FakeKnowledge kn = new FakeKnowledge();
         Map<String, Object> md = new LinkedHashMap<>();
         md.put("作者", "张三");
-        kn.byID.put("d1", new KnowledgeInfoRow("d1", 10002, "kb1", "源文档一", "",
+        kn.byId.put("d1", new KnowledgeInfoRow("d1", 10002, "kb1", "源文档一", "",
                 "file", "upload", "report.pdf", "pdf", 2048, "completed", md));
-        kn.byID.put("d2", new KnowledgeInfoRow("d2", 10002, "kb1", "网页文档", "",
+        kn.byId.put("d2", new KnowledgeInfoRow("d2", 10002, "kb1", "网页文档", "",
                 "url", "https://example.com/a", "", "", 0, "processing", null));
-        kn.byID.put("ds1", new KnowledgeInfoRow("ds1", 10002, "kb1", "小文件", "",
+        kn.byId.put("ds1", new KnowledgeInfoRow("ds1", 10002, "kb1", "小文件", "",
                 "file", "", "a.bin", "bin", 512, "pending", null));
-        kn.byID.put("ds2", new KnowledgeInfoRow("ds2", 10002, "kb1", "无大小", "",
+        kn.byId.put("ds2", new KnowledgeInfoRow("ds2", 10002, "kb1", "无大小", "",
                 "file", "", "b.bin", "bin", 0, "failed", null));
-        kn.byID.put("ds3", new KnowledgeInfoRow("ds3", 10002, "kb1", "三兆文件", "",
+        kn.byId.put("ds3", new KnowledgeInfoRow("ds3", 10002, "kb1", "三兆文件", "",
                 "file", "", "c.bin", "bin", 3 * 1024 * 1024, "success", null));
-        kn.byIDErr.put("d9", new RuntimeException("db exploded"));
+        kn.byIdErr.put("d9", new RuntimeException("db exploded"));
         return kn;
     }
 
@@ -333,11 +333,11 @@ class DocToolsRecordingTest {
         repo.byKnowledge.put("ds3", List.of());
         repo.totals.put("ds3", 3L);
 
-        Map<String, ChunkFacts> byID = new LinkedHashMap<>();
-        byID.put("c1", ChunkProjectionAdapter.factsOf(ChunkRowViews.rowView(c1)));
-        byID.put("c2", ChunkProjectionAdapter.factsOf(ChunkRowViews.rowView(c2)));
+        Map<String, ChunkFacts> byId = new LinkedHashMap<>();
+        byId.put("c1", ChunkProjectionAdapter.factsOf(ChunkRowViews.rowView(c1)));
+        byId.put("c2", ChunkProjectionAdapter.factsOf(ChunkRowViews.rowView(c2)));
 
-        GetDocumentInfoTool tool = new GetDocumentInfoTool(kn, byID::get, repo, kb1Targets());
+        GetDocumentInfoTool tool = new GetDocumentInfoTool(kn, byId::get, repo, kb1Targets());
 
         assertToolResult("info_basic", tool.execute(req("{\"knowledgeIds\":[\"d1\",\"d2\"]}")),
                 rec("get_document_info_info_basic"));
@@ -376,11 +376,11 @@ class DocToolsRecordingTest {
         repo.byKnowledge.put("d0", List.of());
         repo.totals.put("d0", 0L);
 
-        Map<String, ChunkFacts> byID = new LinkedHashMap<>();
-        byID.put("c1", ChunkProjectionAdapter.factsOf(ChunkRowViews.rowView(c1)));
-        byID.put("g9", ChunkProjectionAdapter.factsOf(ChunkRowViews.rowView(textChunk("g9", "d1", "kb1", 5, "单块内容"))));
+        Map<String, ChunkFacts> byId = new LinkedHashMap<>();
+        byId.put("c1", ChunkProjectionAdapter.factsOf(ChunkRowViews.rowView(c1)));
+        byId.put("g9", ChunkProjectionAdapter.factsOf(ChunkRowViews.rowView(textChunk("g9", "d1", "kb1", 5, "单块内容"))));
 
-        ListKnowledgeChunksTool tool = new ListKnowledgeChunksTool(kn, byID::get, repo,
+        ListKnowledgeChunksTool tool = new ListKnowledgeChunksTool(kn, byId::get, repo,
                 new FakeImageCollector(), kb1Targets());
 
         assertToolResult("list_knowledge", tool.execute(req("{\"knowledgeId\":\"d1\",\"limit\":2}")),
@@ -402,7 +402,7 @@ class DocToolsRecordingTest {
         assertToolResult("list_missing", tool.execute(req("{}")),
                 rec("list_knowledge_chunks_list_missing"));
 
-        ListKnowledgeChunksTool kb2Tool = new ListKnowledgeChunksTool(kn, byID::get, repo,
+        ListKnowledgeChunksTool kb2Tool = new ListKnowledgeChunksTool(kn, byId::get, repo,
                 new FakeImageCollector(), kb2OnlyTargets());
         assertToolResult("list_unauthorized", kb2Tool.execute(req("{\"knowledgeId\":\"d1\"}")),
                 rec("list_knowledge_chunks_list_unauthorized"));

@@ -131,7 +131,7 @@ public final class QaSseOrchestrator {
                     QaTerminalMetrics.record(mode, TurnLifecycle.State.CANCELLED);
                     turnFinalizer.runWithTenant(sessionTenantId, stopIdentity, () ->
                             turnFinalizer.completeAssistantMessage(streamCtx.assistantMessage,
-                                    reqCtx.query, reqCtx.userMessageID, sessionTenantId));
+                                    reqCtx.query, reqCtx.userMessageId, sessionTenantId));
                 }
             });
         }));
@@ -160,8 +160,8 @@ public final class QaSseOrchestrator {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("sessionId", reqCtx.sessionId);
         data.put("assistantMessageId", assistantMessageId);
-        if (!reqCtx.userMessageID.isEmpty()) {
-            data.put("userMessageId", reqCtx.userMessageID);
+        if (!reqCtx.userMessageId.isEmpty()) {
+            data.put("userMessageId", reqCtx.userMessageId);
         }
         if (reqCtx.userCreatedAt != null) {
             data.put("userCreatedAt", reqCtx.userCreatedAt.toInstant().toString());

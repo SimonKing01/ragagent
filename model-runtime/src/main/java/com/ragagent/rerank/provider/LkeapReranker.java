@@ -187,7 +187,7 @@ public final class LkeapReranker implements Reranker {
     }
 
     @Override
-    public String getModelID() {
+    public String getModelId() {
         return modelId;
     }
 

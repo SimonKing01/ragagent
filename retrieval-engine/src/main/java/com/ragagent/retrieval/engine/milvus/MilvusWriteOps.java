@@ -201,7 +201,7 @@ final class MilvusWriteOps {
         service.client.upsert(collection, data);
     }
 
-    void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
+    void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
         if (chunkTagMap == null || chunkTagMap.isEmpty()) {
             log.debug("[Milvus] Empty chunk tag map provided, skipping");
             return;

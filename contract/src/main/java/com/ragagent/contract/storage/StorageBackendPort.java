@@ -24,7 +24,7 @@ public interface StorageBackendPort {
 
     /**
      * 租户内 + 未软删，按 id 取后端；无 ⇒ null。
-     * （语义与 storage 域仓储 {@code getByID} 一致：{@code tenant_id = ? AND id = ? AND deleted_at IS NULL}。）
+     * （语义与 storage 域仓储 {@code getById} 一致：{@code tenant_id = ? AND id = ? AND deleted_at IS NULL}。）
      */
     StorageBackendView findById(long tenantId, String id);
 

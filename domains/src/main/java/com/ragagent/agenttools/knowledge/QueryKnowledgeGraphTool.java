@@ -169,14 +169,14 @@ public class QueryKnowledgeGraphTool extends BaseTool {
 
         // 逐 KB 顺序查询，结果按入参序汇集
         Map<String, GraphQueryResult> kbResults = new LinkedHashMap<>();
-        for (String kbID : knowledgeBaseIDs) {
+        for (String kbId : knowledgeBaseIDs) {
             GraphQueryResult r = new GraphQueryResult();
             KnowledgeBaseView kb;
             try {
-                kb = graphSearch.getKnowledgeBaseByIdUnscoped(kbID);
+                kb = graphSearch.getKnowledgeBaseByIdUnscoped(kbId);
             } catch (RuntimeException e) {
                 r.err = "failed to get knowledge base: " + e.getMessage();
-                kbResults.put(kbID, r);
+                kbResults.put(kbId, r);
                 continue;
             }
             if (kb == null || kb.extractConfig() == null
@@ -184,32 +184,32 @@ public class QueryKnowledgeGraphTool extends BaseTool {
                             && (kb.extractConfig().relations() == null
                                     || kb.extractConfig().relations().isEmpty()))) {
                 r.err = "graph extraction not configured";
-                kbResults.put(kbID, r);
+                kbResults.put(kbId, r);
                 continue;
             }
             r.kb = kb;
             List<SearchResultView> results;
             try {
-                results = graphSearch.hybridSearch(kbID, query, 10);
+                results = graphSearch.hybridSearch(kbId, query, 10);
             } catch (RuntimeException e) {
                 r.err = "query failed: " + e.getMessage();
-                kbResults.put(kbID, r);
+                kbResults.put(kbId, r);
                 continue;
             }
             if (scopeEnforced) {
                 try {
                     results = SearchAuth.filterSearchResultsInSearchTargets(
-                            searchTargets, kbID, results,
+                            searchTargets, kbId, results,
                             SearchResultView::knowledgeId, SearchResultView::knowledgeBaseId,
                             tagsFetcher);
                 } catch (RuntimeException e) {
                     r.err = e.getMessage();
-                    kbResults.put(kbID, r);
+                    kbResults.put(kbId, r);
                     continue;
                 }
             }
             r.results = results;
-            kbResults.put(kbID, r);
+            kbResults.put(kbId, r);
         }
 
         // 汇集去重
@@ -218,19 +218,19 @@ public class QueryKnowledgeGraphTool extends BaseTool {
         Map<String, GraphConfigSummary> graphConfigs = new LinkedHashMap<>();
         Map<String, Integer> kbCounts = new LinkedHashMap<>();
 
-        for (String kbID : knowledgeBaseIDs) {
-            GraphQueryResult result = kbResults.get(kbID);
+        for (String kbId : knowledgeBaseIDs) {
+            GraphQueryResult result = kbResults.get(kbId);
             if (result == null) {
                 continue;
             }
             if (result.err != null) {
-                errors.add("KB " + kbID + ": " + result.err);
+                errors.add("KB " + kbId + ": " + result.err);
                 continue;
             }
             if (result.kb != null && result.kb.extractConfig() != null) {
-                graphConfigs.put(kbID, summarizeGraphConfig(result.kb.extractConfig()));
+                graphConfigs.put(kbId, summarizeGraphConfig(result.kb.extractConfig()));
             }
-            kbCounts.put(kbID, result.results == null ? 0 : result.results.size());
+            kbCounts.put(kbId, result.results == null ? 0 : result.results.size());
             if (result.results != null) {
                 for (SearchResultView sr : result.results) {
                     seenChunks.putIfAbsent(sr.id(), sr);

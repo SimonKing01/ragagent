@@ -316,12 +316,12 @@ public class AgentEngine {
     // ── 包内测试/跨段 seam 委托（实现随 ReAct 各段协作者） ──
 
     AgentToolCall runToolCall(ToolCall tc, int i, int iteration, int round,
-            String sessionId, String assistantMessageID, TenantContextSnapshot tenant) {
-        return act.runToolCall(tc, i, iteration, round, sessionId, assistantMessageID, tenant);
+            String sessionId, String assistantMessageId, TenantContextSnapshot tenant) {
+        return act.runToolCall(tc, i, iteration, round, sessionId, assistantMessageId, tenant);
     }
 
-    int drainSteerMessages(AgentState state, MsgRef messagesRef, String sessionId, String messageID) {
-        return steer.drainSteerMessages(state, messagesRef, sessionId, messageID);
+    int drainSteerMessages(AgentState state, MsgRef messagesRef, String sessionId, String messageId) {
+        return steer.drainSteerMessages(state, messagesRef, sessionId, messageId);
     }
 
     WindowOutcome manageContextWindow(List<ChatMessage> messages, int round, int currentTokens) {
@@ -497,7 +497,7 @@ public class AgentEngine {
             log.error("[Agent] Execution failed", e);
             // 顺序契约：终态帧（agentComplete）是 SSE 的退出条件——必须先发错误事件，
             // 否则错误帧落在流关闭之后（客户端只看到"成功收尾"）。
-            eventBus.emit(new Event(EventIds.generateEventID("error"), EventType.EVENT_ERROR,
+            eventBus.emit(new Event(EventIds.generateEventId("error"), EventType.EVENT_ERROR,
                     sessionId, new ErrorData(e.getMessage(), "", "agent_execution", sessionId,
                             "", null), null, ""));
             finishAgentSpan(agentSpan, state, e.getMessage());

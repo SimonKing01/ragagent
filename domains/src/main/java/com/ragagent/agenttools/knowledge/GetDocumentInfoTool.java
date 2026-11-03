@@ -117,19 +117,19 @@ public class GetDocumentInfoTool extends BaseTool {
 
         Map<String, DocInfo> results = new HashMap<>();
 
-        for (String faqIDRaw : faqIDs) {
-            String faqID = faqIDRaw == null ? "" : faqIDRaw.trim();
-            if (faqID.isEmpty()) {
+        for (String faqIdRaw : faqIDs) {
+            String faqId = faqIdRaw == null ? "" : faqIdRaw.trim();
+            if (faqId.isEmpty()) {
                 continue;
             }
             DocInfo info = new DocInfo();
             ChunkFacts chunk;
             try {
-                chunk = SearchAuth.authorizeDomainChunkInSearchTargets(searchTargets, faqID,
+                chunk = SearchAuth.authorizeDomainChunkInSearchTargets(searchTargets, faqId,
                         chunkById, DocChunkSupport.asScopeReader(knowledgeReader));
             } catch (RuntimeException e) {
                 info.err = "FAQ entry is not accessible: " + e.getMessage();
-                results.put("faq:" + faqID, info);
+                results.put("faq:" + faqId, info);
                 continue;
             }
             FaqChunkMetadata meta = null;
@@ -139,70 +139,70 @@ public class GetDocumentInfoTool extends BaseTool {
             info.chunk = chunk;
             info.faqMeta = meta;
             info.chunkCount = 1;
-            results.put("faq:" + faqID, info);
+            results.put("faq:" + faqId, info);
         }
 
-        for (String knowledgeID : knowledgeIDs) {
+        for (String knowledgeId : knowledgeIDs) {
             DocInfo info = new DocInfo();
             KnowledgeInfoRow knowledge;
             try {
-                SearchAuth.authorizeKnowledgeInSearchTargets(searchTargets, knowledgeID,
+                SearchAuth.authorizeKnowledgeInSearchTargets(searchTargets, knowledgeId,
                         DocChunkSupport.asScopeReader(knowledgeReader));
-                knowledge = knowledgeReader == null ? null : knowledgeReader.byIdOnly(knowledgeID);
+                knowledge = knowledgeReader == null ? null : knowledgeReader.byIdOnly(knowledgeId);
             } catch (RuntimeException e) {
                 info.err = "failed to get document info: " + e.getMessage();
-                results.put(knowledgeID, info);
+                results.put(knowledgeId, info);
                 continue;
             }
             if (knowledge == null) {
-                info.err = "failed to get document info: document " + knowledgeID + " not found: empty result";
-                results.put(knowledgeID, info);
+                info.err = "failed to get document info: document " + knowledgeId + " not found: empty result";
+                results.put(knowledgeId, info);
                 continue;
             }
             long total;
             try {
                 ChunkPage page = pagedChunks == null
                         ? null
-                        : pagedChunks.listPaged(knowledge.tenantId(), knowledgeID, 1, 1);
+                        : pagedChunks.listPaged(knowledge.tenantId(), knowledgeId, 1, 1);
                 total = page == null ? 0 : page.total();
             } catch (RuntimeException e) {
                 info.err = "failed to get document info: " + e.getMessage();
-                results.put(knowledgeID, info);
+                results.put(knowledgeId, info);
                 continue;
             }
             info.knowledge = knowledge;
             info.chunkCount = (int) total;
-            results.put(knowledgeID, info);
+            results.put(knowledgeId, info);
         }
 
         int requested = knowledgeIDs.size() + faqIDs.size();
         List<DocInfo> successDocs = new ArrayList<>();
         List<String> errors = new ArrayList<>();
 
-        for (String knowledgeID : knowledgeIDs) {
-            DocInfo result = results.get(knowledgeID);
+        for (String knowledgeId : knowledgeIDs) {
+            DocInfo result = results.get(knowledgeId);
             if (result == null) {
-                errors.add(knowledgeID + ": not found");
+                errors.add(knowledgeId + ": not found");
                 continue;
             }
             if (result.err != null) {
-                errors.add(knowledgeID + ": " + result.err);
+                errors.add(knowledgeId + ": " + result.err);
             } else if (result.knowledge != null) {
                 successDocs.add(result);
             }
         }
-        for (String faqIDRaw : faqIDs) {
-            String faqID = faqIDRaw == null ? "" : faqIDRaw.trim();
-            if (faqID.isEmpty()) {
+        for (String faqIdRaw : faqIDs) {
+            String faqId = faqIdRaw == null ? "" : faqIdRaw.trim();
+            if (faqId.isEmpty()) {
                 continue;
             }
-            DocInfo result = results.get("faq:" + faqID);
+            DocInfo result = results.get("faq:" + faqId);
             if (result == null) {
-                errors.add("faq:" + faqID + ": not found");
+                errors.add("faq:" + faqId + ": not found");
                 continue;
             }
             if (result.err != null) {
-                errors.add("faq:" + faqID + ": " + result.err);
+                errors.add("faq:" + faqId + ": " + result.err);
             } else if (result.chunk != null) {
                 successDocs.add(result);
             }

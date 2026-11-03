@@ -246,12 +246,12 @@ public final class ImFormat {
         if (msg.userName != null && !msg.userName.isEmpty()) {
             b.append(msg.userName);
         } else if (msg.userId != null && !msg.userId.isEmpty()) {
-            b.append("user ").append(shortID(msg.userId));
+            b.append("user ").append(shortId(msg.userId));
         } else {
             b.append("user");
         }
         if (ImTypes.CHAT_TYPE_GROUP.equals(msg.chatType) && !msg.chatId.isEmpty()) {
-            b.append(" · group ").append(shortID(msg.chatId));
+            b.append(" · group ").append(shortId(msg.chatId));
         } else if (ImTypes.CHAT_TYPE_DIRECT.equals(msg.chatType)) {
             b.append(" · dm");
         }
@@ -265,14 +265,14 @@ public final class ImFormat {
     public static String buildThreadSessionTitle(IncomingMessage msg) {
         StringBuilder b = new StringBuilder();
         if (!msg.chatId.isEmpty()) {
-            b.append("chat ").append(shortID(msg.chatId)).append(" · ");
+            b.append("chat ").append(shortId(msg.chatId)).append(" · ");
         }
-        b.append("thread ").append(shortID(msg.threadId));
+        b.append("thread ").append(shortId(msg.threadId));
         return b.toString();
     }
 
     /** id 的最后 8 个**字节**字符（更短则原样）——长平台 ID 在标题里保持可读。 */
-    public static String shortID(String id) {
+    public static String shortId(String id) {
         if (id.length() > 8) {
             return id.substring(id.length() - 8);
         }

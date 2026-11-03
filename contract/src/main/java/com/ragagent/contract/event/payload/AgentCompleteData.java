@@ -6,7 +6,7 @@ import java.util.Map;
 
 /**
  * Agent 完成事件数据。
- * emit 点：FinalizePhase（{@code generateEventID("complete")}），见包注释 emit 表 #16。
+ * emit 点：FinalizePhase（{@code generateEventId("complete")}），见包注释 emit 表 #16。
  *
  * <p>{@code knowledge_refs}/{@code agent_steps}/{@code usage} 空则整键省略
  * （空列表也省略）；{@code total_duration_ms} 恒输出。</p>

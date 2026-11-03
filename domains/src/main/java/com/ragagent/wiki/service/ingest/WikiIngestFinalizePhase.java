@@ -90,7 +90,7 @@ final class WikiIngestFinalizePhase {
             return;
         }
 
-        KnowledgeBaseView kb = handler.getKnowledgeBaseByIDOnly(kbId);
+        KnowledgeBaseView kb = handler.getKnowledgeBaseByIdOnly(kbId);
         if (kb == null) {
             handler.ingestService.clearDeletedKnowledgeBasePendingOps(kbId);
             return;

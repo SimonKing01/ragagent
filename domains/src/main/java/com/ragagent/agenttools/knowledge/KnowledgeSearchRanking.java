@@ -104,11 +104,11 @@ final class KnowledgeSearchRanking {
         // 第一遍：同 ID 只留最高分。必须在多键去重**之前**——否则同 ID 的低分先到
         // 会按 id 键把高分版本 continue 掉，后面的"留最高分"永远看不到它。
         // LinkedHashMap 保该 ID **首次出现**的位置（替换不改变次序）；同分保留先到者（确定 tie-break）。
-        Map<String, ResultWithMeta> bestByID = new LinkedHashMap<>();
+        Map<String, ResultWithMeta> bestById = new LinkedHashMap<>();
         for (ResultWithMeta r : results) {
-            ResultWithMeta existing = bestByID.get(nz(r.sr.id));
+            ResultWithMeta existing = bestById.get(nz(r.sr.id));
             if (existing == null || r.sr.score > existing.sr.score) {
-                bestByID.put(nz(r.sr.id), r);
+                bestById.put(nz(r.sr.id), r);
             }
         }
 
@@ -117,7 +117,7 @@ final class KnowledgeSearchRanking {
         Set<String> contentSig = new LinkedHashSet<>();
         List<ResultWithMeta> uniqueResults = new ArrayList<>();
 
-        for (ResultWithMeta r : bestByID.values()) {
+        for (ResultWithMeta r : bestById.values()) {
             List<String> keys = new ArrayList<>();
             keys.add(nz(r.sr.id));
             if (!nz(r.sr.parentChunkId).isEmpty()) {

@@ -115,9 +115,9 @@ final class RetrievalEngineTestSupport {
         }
 
         @Override
-        public void batchUpdateChunkTagID(Map<String, String> chunkTagMap) {
-            calls.add("batchUpdateChunkTagID");
-            maybeFail("batchUpdateChunkTagID");
+        public void batchUpdateChunkTagId(Map<String, String> chunkTagMap) {
+            calls.add("batchUpdateChunkTagId");
+            maybeFail("batchUpdateChunkTagId");
         }
 
         private void maybeFail(String method) {

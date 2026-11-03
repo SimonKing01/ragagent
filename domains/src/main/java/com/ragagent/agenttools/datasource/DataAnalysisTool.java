@@ -96,18 +96,18 @@ public class DataAnalysisTool extends BaseTool implements Cleanable {
     private final KnowledgeLoader knowledgeLoader;
     private final KnowledgeFileMaterializer materializer;
     private final AnalysisDuckDb duckDb;
-    private final String sessionID;
+    private final String sessionId;
     private final List<String> createdTables = new ArrayList<>();
     private SearchTarget.SearchTargets searchTargets;
     private boolean scopeEnforced;
 
     public DataAnalysisTool(KnowledgeLoader knowledgeLoader, KnowledgeFileMaterializer materializer,
-            AnalysisDuckDb duckDb, String sessionID) {
+            AnalysisDuckDb duckDb, String sessionId) {
         super(ToolDefinitions.TOOL_DATA_ANALYSIS, DESCRIPTION, ToolSchemas.parse(SCHEMA_JSON));
         this.knowledgeLoader = knowledgeLoader;
         this.materializer = materializer;
         this.duckDb = duckDb;
-        this.sessionID = sessionID == null ? "" : sessionID;
+        this.sessionId = sessionId == null ? "" : sessionId;
     }
 
     /** 启用作用域授权（scopeEnforced 独立于列表长度：无 target 全拒）。 */
@@ -138,10 +138,10 @@ public class DataAnalysisTool extends BaseTool implements Cleanable {
         createdTables.clear();
     }
 
-    TableSchema loadFromKnowledgeID(String knowledgeID) {
+    TableSchema loadFromKnowledgeId(String knowledgeId) {
         KnowledgeData knowledge;
         try {
-            knowledge = knowledgeLoader.byIdOnly(knowledgeID);
+            knowledge = knowledgeLoader.byIdOnly(knowledgeId);
         } catch (RuntimeException e) {
             throw new RuntimeException("failed to get knowledge by ID: " + e.getMessage(), e);
         }
@@ -296,12 +296,12 @@ public class DataAnalysisTool extends BaseTool implements Cleanable {
     @Override
     public ToolResult execute(ToolRequest request) {
         JsonNode args = JsonMappers.toJsonNode(request.args());
-        String knowledgeID = args == null ? "" : args.path("knowledgeId").asText("");
+        String knowledgeId = args == null ? "" : args.path("knowledgeId").asText("");
         String sql = args == null ? "" : args.path("sql").asText("");
 
         if (scopeEnforced) {
             try {
-                SearchAuth.authorizeKnowledgeInSearchTargets(searchTargets, knowledgeID,
+                SearchAuth.authorizeKnowledgeInSearchTargets(searchTargets, knowledgeId,
                         knowledgeScopeReader());
             } catch (SearchAuth.ScopeAuthException e) {
                 return failure(e.getMessage());
@@ -310,14 +310,14 @@ public class DataAnalysisTool extends BaseTool implements Cleanable {
 
         TableSchema schema;
         try {
-            schema = loadFromKnowledgeID(knowledgeID);
+            schema = loadFromKnowledgeId(knowledgeId);
         } catch (RuntimeException e) {
-            return failure(String.format("Failed to load knowledge ID '%s': %s", knowledgeID, e.getMessage()));
+            return failure(String.format("Failed to load knowledge ID '%s': %s", knowledgeId, e.getMessage()));
         }
 
         // Replace knowledge ID with table name（含字符串
         // 字面量内出现的 ID 也替换的怪癖照录）。
-        sql = sql.replace(knowledgeID, schema.tableName());
+        sql = sql.replace(knowledgeId, schema.tableName());
         ReconcileResult reconciled = reconcileSQLColumnsWithSchema(sql, schema);
         sql = reconciled.sql();
 
@@ -360,7 +360,7 @@ public class DataAnalysisTool extends BaseTool implements Cleanable {
         data.put("rowCount", results.size());
         data.put("query", sql);
         data.put("displayType", ToolDefinitions.TOOL_DATA_ANALYSIS);
-        data.put("sessionId", sessionID);
+        data.put("sessionId", sessionId);
         result.setData(data);
         return result;
     }

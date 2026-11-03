@@ -145,8 +145,8 @@ final class WikiPageRevisionOps {
         return service.repo.listIssues(kbId, slug, status);
     }
 
-    public void updateIssueStatus(String issueID, String status) {
-        service.repo.updateIssueStatus(issueID, status);
+    public void updateIssueStatus(String issueId, String status) {
+        service.repo.updateIssueStatus(issueId, status);
     }
 
     /**

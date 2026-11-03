@@ -360,8 +360,8 @@ public class KeywordsVectorHybridRetrieveEngineService
     }
 
     @Override
-    public void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
-        indexRepository.batchUpdateChunkTagID(chunkTagMap);
+    public void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
+        indexRepository.batchUpdateChunkTagId(chunkTagMap);
     }
 
     /** 仓库未挂迁移子口即报错。 */

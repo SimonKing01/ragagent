@@ -86,7 +86,7 @@ public class CustomAgentService {
         if (admin) {
             return;
         }
-        CustomAgentEntity row = agentRepo.getByIDAndTenant(id, tenantId());
+        CustomAgentEntity row = agentRepo.getByIdAndTenant(id, tenantId());
         if (row != null) {
             String creator = row.getCreatedBy() == null ? "" : row.getCreatedBy();
             String uid = TenantContext.currentUserId() == null ? "" : TenantContext.currentUserId();
@@ -99,20 +99,20 @@ public class CustomAgentService {
     // ── 查询 ──
 
     /** 查询单个 agent（内建优先 DB，回落注册表）。config 树已补默认。 */
-    public CustomAgentResult getAgentByID(String id, String locale) {
+    public CustomAgentResult getAgentById(String id, String locale) {
         if (id == null || id.isEmpty()) {
             throw new BizException(AppError.badRequest("agent ID cannot be empty"));
         }
         long tenant = tenantId();
-        CustomAgentEntity row = agentRepo.getByIDAndTenant(id, tenant);
+        CustomAgentEntity row = agentRepo.getByIdAndTenant(id, tenant);
         if (row != null) {
             ObjectNode cfg = AgentConfigJson.ensureDefaults(AgentSuggestedQuestions.parse(row.getConfig()));
-            if (BuiltinAgentRegistry.isBuiltinAgentID(id)) {
+            if (BuiltinAgentRegistry.isBuiltinAgentId(id)) {
                 applyLocalization(id, row, locale);
             }
             return new CustomAgentResult(row, cfg);
         }
-        if (BuiltinAgentRegistry.isBuiltinAgentID(id)) {
+        if (BuiltinAgentRegistry.isBuiltinAgentId(id)) {
             ObjectNode built = registry.builtinAgentConfig(id, locale);
             if (built != null) {
                 return virtualAgent(built, id, tenant, true);
@@ -152,7 +152,7 @@ public class CustomAgentService {
         List<CustomAgentResult> prepared = new ArrayList<>();
         for (CustomAgentEntity row : all) {
             ObjectNode cfg = AgentConfigJson.ensureDefaults(AgentSuggestedQuestions.parse(row.getConfig()));
-            if (BuiltinAgentRegistry.isBuiltinAgentID(row.getId())) {
+            if (BuiltinAgentRegistry.isBuiltinAgentId(row.getId())) {
                 builtinInDb.add(row.getId());
                 applyLocalization(row.getId(), row, locale);
             }
@@ -171,7 +171,7 @@ public class CustomAgentService {
             }
         }
         for (CustomAgentResult r : prepared) {
-            if (!BuiltinAgentRegistry.isBuiltinAgentID(r.row().getId())) {
+            if (!BuiltinAgentRegistry.isBuiltinAgentId(r.row().getId())) {
                 result.add(r);
             }
         }
@@ -296,10 +296,10 @@ public class CustomAgentService {
             throw new BizException(AppError.badRequest("agent ID cannot be empty"));
         }
         long tenant = tenantId();
-        if (BuiltinAgentRegistry.isBuiltinAgentID(id)) {
+        if (BuiltinAgentRegistry.isBuiltinAgentId(id)) {
             return updateBuiltinAgent(id, config, tenant);
         }
-        CustomAgentEntity existing = agentRepo.getByIDAndTenant(id, tenant);
+        CustomAgentEntity existing = agentRepo.getByIdAndTenant(id, tenant);
         if (existing == null) {
             throw new BizException(AppError.notFound("Agent not found"));
         }
@@ -322,7 +322,7 @@ public class CustomAgentService {
         if (entry == null) {
             throw new BizException(AppError.notFound("Agent not found"));
         }
-        CustomAgentEntity existing = agentRepo.getByIDAndTenant(id, tenant);
+        CustomAgentEntity existing = agentRepo.getByIdAndTenant(id, tenant);
         if (existing != null) {
             existing.setUpdatedAt(OffsetDateTime.now());
             CustomAgentResult r = persistWithDefaults(existing, config, false);
@@ -367,11 +367,11 @@ public class CustomAgentService {
         if (id == null || id.isEmpty()) {
             throw new BizException(AppError.badRequest("agent ID cannot be empty"));
         }
-        if (BuiltinAgentRegistry.isBuiltinAgentID(id)) {
+        if (BuiltinAgentRegistry.isBuiltinAgentId(id)) {
             throw new BizException(AppError.forbidden("Cannot delete built-in agent"));
         }
         long tenant = tenantId();
-        CustomAgentEntity existing = agentRepo.getByIDAndTenant(id, tenant);
+        CustomAgentEntity existing = agentRepo.getByIdAndTenant(id, tenant);
         if (existing == null) {
             throw new BizException(AppError.notFound("Agent not found"));
         }
@@ -393,7 +393,7 @@ public class CustomAgentService {
         if (id == null || id.isEmpty()) {
             throw new BizException(AppError.badRequest("agent ID cannot be empty"));
         }
-        CustomAgentResult source = getAgentByID(id, locale);
+        CustomAgentResult source = getAgentById(id, locale);
         CustomAgentEntity created = new CustomAgentEntity();
         created.setId(UUID.randomUUID().toString());
         created.setName(source.row().getName() + " (副本)");

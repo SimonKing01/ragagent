@@ -65,7 +65,7 @@ public class StorageBackendRepository {
     }
 
     /** 按 ID 查：不存在返回 empty（不算错误） */
-    public Optional<StorageBackend> getByID(long tenantId, String id) {
+    public Optional<StorageBackend> getById(long tenantId, String id) {
         return jdbc.sql("SELECT " + COLS + " FROM storage_backends "
                         + "WHERE tenant_id = ? AND id = ? AND deleted_at IS NULL")
                 .params(tenantId, id)

@@ -117,23 +117,23 @@ class GlobalEventBusAndAdapterTest {
     void generateEventIdMatchesGoShape() {
         // 形如 "<uuid 前 8 位 hex>-<suffix>"
         // 录制 sample => 286fbbe5-thinking
-        String id = EventIds.generateEventID("thinking");
+        String id = EventIds.generateEventId("thinking");
         assertTrue(id.matches("^[0-9a-f]{8}-thinking$"),
                 "must be 8 lowercase hex chars + '-' + suffix, got: " + id);
     }
 
     @Test
     void generateEventIdSuffixPreservedVerbatim() {
-        assertTrue(EventIds.generateEventID("answer").endsWith("-answer"));
-        assertTrue(EventIds.generateEventID("thinking-tool").matches("^[0-9a-f]{8}-thinking-tool$"));
-        assertTrue(EventIds.generateEventID("x").matches("^[0-9a-f]{8}-x$"));
+        assertTrue(EventIds.generateEventId("answer").endsWith("-answer"));
+        assertTrue(EventIds.generateEventId("thinking-tool").matches("^[0-9a-f]{8}-thinking-tool$"));
+        assertTrue(EventIds.generateEventId("x").matches("^[0-9a-f]{8}-x$"));
     }
 
     @Test
     void generateEventIdIsUniqueAcrossCalls() {
         Set<String> ids = new HashSet<>();
         for (int i = 0; i < 64; i++) {
-            ids.add(EventIds.generateEventID("complete"));
+            ids.add(EventIds.generateEventId("complete"));
         }
         assertEquals(64, ids.size());
     }

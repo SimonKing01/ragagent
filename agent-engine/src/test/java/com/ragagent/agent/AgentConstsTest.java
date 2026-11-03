@@ -95,9 +95,9 @@ class AgentConstsTest {
     }
 
     @Test
-    void generateEventIDIsBridgedNotDuplicated() {
+    void generateEventIdIsBridgedNotDuplicated() {
         // 已收编到 event 包：格式 <uuid前8位>-<suffix>（EventIdsTest 有录制断言）
-        String id = EventIds.generateEventID("thinking");
+        String id = EventIds.generateEventId("thinking");
         assertThat(id).endsWith("-thinking");
         assertThat(id.split("-")[0]).hasSize(8).matches("[0-9a-f]{8}");
     }

@@ -176,7 +176,7 @@ class DorisStreamLoadTest {
                 new FakeRowSpec(List.of("id", "chunk_id"), List.of("row-2", "c2"))));
         DorisRetrieveRepository repo = legacyRepoWith(sql, "root", "pw");
         String big = "x".repeat(600 * 1024);
-        repo.batchUpdateChunkTagID(Map.of("c1", big, "c2", big));
+        repo.batchUpdateChunkTagId(Map.of("c1", big, "c2", big));
 
         assertThat(captured).hasSize(2);
         assertThat(captured.get(0).header("columns")).isEqualTo("id,tag_id");

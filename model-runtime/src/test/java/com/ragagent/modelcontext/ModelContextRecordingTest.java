@@ -746,10 +746,10 @@ class ModelContextRecordingTest {
                 .containsExactlyElementsOf(listOfStrings(rec(R_SOURCES_WEB_DEDUP).get("out")));
 
         SourceRegistry r3 = new SourceRegistry(true);
-        r3.registerSourceIDByKey("sourceRefs", "doc-ref-uuid|Some Title", true);
-        r3.registerSourceIDByKey("url", "res://0001", true);
-        r3.registerSourceIDByKey("url", "https://ok.example/x", true);
-        r3.registerSourceIDByKey("chunkId", "  ", true);
+        r3.registerSourceIdByKey("sourceRefs", "doc-ref-uuid|Some Title", true);
+        r3.registerSourceIdByKey("url", "res://0001", true);
+        r3.registerSourceIdByKey("url", "https://ok.example/x", true);
+        r3.registerSourceIdByKey("chunkId", "  ", true);
         JsonNode keySpaces = rec(R_SOURCES_KEY_SPACES).get("out");
         assertThat(r3.docsHandle("doc-ref-uuid")).isEqualTo(keySpaces.get("doc").asText());
         assertThat(r3.websHandle("https://ok.example/x")).isEqualTo(keySpaces.get("web").asText());

@@ -73,11 +73,11 @@ final class ToolPolicy {
             String mcpRoutingKey,
             boolean mcpDirectoryOutput,
             boolean opaqueOutput,
-            Set<String> sourceIDKeys,
+            Set<String> sourceIdKeys,
             Set<String> sourceTextKeys,
             boolean sourceOutput,
-            Set<String> decodedIssueIDKeys,
-            Set<String> encodedIssueIDKeys,
+            Set<String> decodedIssueIdKeys,
+            Set<String> encodedIssueIdKeys,
             boolean encodeKnownIssueIDs) {
 
         static final ToolHandlePolicy EMPTY = new ToolHandlePolicy("", false, false, Set.of(), Set.of(), false, Set.of(), Set.of(), false);
@@ -85,14 +85,14 @@ final class ToolPolicy {
 
     private static ToolHandlePolicy policy(
             String mcpRoutingKey, boolean mcpDirectoryOutput, boolean opaqueOutput,
-            Set<String> sourceIDKeys, Set<String> sourceTextKeys, boolean sourceOutput,
-            Set<String> decodedIssueIDKeys, Set<String> encodedIssueIDKeys, boolean encodeKnownIssueIDs) {
+            Set<String> sourceIdKeys, Set<String> sourceTextKeys, boolean sourceOutput,
+            Set<String> decodedIssueIdKeys, Set<String> encodedIssueIdKeys, boolean encodeKnownIssueIDs) {
         return new ToolHandlePolicy(mcpRoutingKey, mcpDirectoryOutput, opaqueOutput,
-                sourceIDKeys == null ? Set.of() : sourceIDKeys,
+                sourceIdKeys == null ? Set.of() : sourceIdKeys,
                 sourceTextKeys == null ? Set.of() : sourceTextKeys,
                 sourceOutput,
-                decodedIssueIDKeys == null ? Set.of() : decodedIssueIDKeys,
-                encodedIssueIDKeys == null ? Set.of() : encodedIssueIDKeys,
+                decodedIssueIdKeys == null ? Set.of() : decodedIssueIdKeys,
+                encodedIssueIdKeys == null ? Set.of() : encodedIssueIdKeys,
                 encodeKnownIssueIDs);
     }
 
@@ -145,7 +145,7 @@ final class ToolPolicy {
         if (policy == null) {
             return false;
         }
-        return policy.sourceIDKeys().stream().anyMatch(k -> k.equalsIgnoreCase(key));
+        return policy.sourceIdKeys().stream().anyMatch(k -> k.equalsIgnoreCase(key));
     }
 
     static boolean sourceOutputAllowed(String toolName) {
@@ -199,7 +199,7 @@ final class ToolPolicy {
                     if (policy.sourceTextKeys().contains(key)) {
                         return registry.sources.decodeKnownQuotedText(value);
                     }
-                    if (policy.decodedIssueIDKeys().contains(key) && ISSUE_HANDLE_SHAPE.matcher(value.strip()).matches()) {
+                    if (policy.decodedIssueIdKeys().contains(key) && ISSUE_HANDLE_SHAPE.matcher(value.strip()).matches()) {
                         HandleTable.Resolved resolved = registry.issues.resolve(value);
                         if (resolved.ok()) {
                             return resolved.value();
@@ -225,7 +225,7 @@ final class ToolPolicy {
                     if (policy.sourceTextKeys().contains(key)) {
                         return registry.sources.compactKnownText(value);
                     }
-                    if (policy.decodedIssueIDKeys().contains(key)) {
+                    if (policy.decodedIssueIdKeys().contains(key)) {
                         return registry.issues.encodeKnownText(value);
                     }
                     return value;
@@ -237,7 +237,7 @@ final class ToolPolicy {
             return null;
         }
         ToolHandlePolicy policy = TOOL_HANDLE_POLICIES.get(toolName);
-        if (policy == null || (policy.decodedIssueIDKeys().isEmpty() && policy.sourceTextKeys().isEmpty())) {
+        if (policy == null || (policy.decodedIssueIdKeys().isEmpty() && policy.sourceTextKeys().isEmpty())) {
             return null;
         }
         List<String> unresolved = new ArrayList<>();
@@ -249,7 +249,7 @@ final class ToolPolicy {
                     unresolved.addAll(found);
                 }
             }
-            if (policy.decodedIssueIDKeys().contains(key) && ISSUE_HANDLE_SHAPE.matcher(v).matches()) {
+            if (policy.decodedIssueIdKeys().contains(key) && ISSUE_HANDLE_SHAPE.matcher(v).matches()) {
                 if (!registry.issues.resolve(v).ok()) {
                     unresolved.add(v);
                 }
@@ -274,9 +274,9 @@ final class ToolPolicy {
         if (policy.mcpDirectoryOutput()) {
             return registry.encodeMCPDirectory(output);
         }
-        if (!policy.encodedIssueIDKeys().isEmpty()) {
+        if (!policy.encodedIssueIdKeys().isEmpty()) {
             output = rewriteJSONStringValues(output, (key, value) -> {
-                if (policy.encodedIssueIDKeys().contains(key) && !value.strip().isEmpty()) {
+                if (policy.encodedIssueIdKeys().contains(key) && !value.strip().isEmpty()) {
                     if (ISSUE_HANDLE_SHAPE.matcher(value.strip()).matches()) {
                         // 模型面的 tool 消息会被跨轮回放。绝不能把既有临时句柄当成
                         // 新的持久 issue 身份而分配出 i2/i3 漂移

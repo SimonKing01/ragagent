@@ -142,7 +142,7 @@ public class DatabaseQueryTool extends BaseTool {
     public ToolResult execute(ToolRequest request) {
         JsonNode args = JsonMappers.toJsonNode(request.args());
 
-        long tenantID = tenantIdProvider != null ? tenantIdProvider.getAsLong() : 0;
+        long tenantId = tenantIdProvider != null ? tenantIdProvider.getAsLong() : 0;
 
         // 取 "sql" 参数；空判断无 trim。
         JsonNode sqlNode = args == null ? null : args.get("sql");
@@ -153,7 +153,7 @@ public class DatabaseQueryTool extends BaseTool {
 
         String securedSQL;
         try {
-            securedSQL = validateAndSecureSQL(sql, tenantID);
+            securedSQL = validateAndSecureSQL(sql, tenantId);
         } catch (SqlGuard.SqlGuardException e) {
             // 失败文案即校验器的首条 Message。
             return failure("SQL validation failed: " + e.getMessage());
@@ -210,12 +210,12 @@ public class DatabaseQueryTool extends BaseTool {
     }
 
     /** scope 空 → "no effective Agent knowledge scope is available"。 */
-    String validateAndSecureSQL(String sqlQuery, long tenantID) throws SqlGuard.SqlGuardException {
+    String validateAndSecureSQL(String sqlQuery, long tenantId) throws SqlGuard.SqlGuardException {
         List<SqlGuard.SearchScope> searchScopes = searchScopesFromTargets(searchTargets);
         if (searchScopes.isEmpty()) {
             throw new SqlGuard.SqlGuardException(scopeUnavailableResult());
         }
-        return SqlGuard.validateAndSecure(sqlQuery, tenantID, searchScopes);
+        return SqlGuard.validateAndSecure(sqlQuery, tenantId, searchScopes);
     }
 
     private static SqlGuard.SqlValidationResult scopeUnavailableResult() {

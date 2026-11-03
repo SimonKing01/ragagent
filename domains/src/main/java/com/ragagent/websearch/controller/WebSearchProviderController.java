@@ -195,7 +195,7 @@ public class WebSearchProviderController {
     // ── POST /{id}/test（Admin+）：已存 provider 连通性 ─────────────────
 
     @PostMapping("/{id}/test")
-    public ResponseEntity<?> testProviderByID(@PathVariable("id") String id) {
+    public ResponseEntity<?> testProviderById(@PathVariable("id") String id) {
         long tenantId = requireTenant();
         WebSearchProviderTestTarget target = service.getTestTarget(tenantId, id);
         if (target == null) {

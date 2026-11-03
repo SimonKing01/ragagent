@@ -20,8 +20,8 @@ public class VectorStoreRepository {
     }
 
     /** 按 (tenant, id) 取一条（含租户过滤与 config 解密）。 */
-    public VectorStore getByID(long tenantId, String id) {
-        return mapper.getByID(tenantId, id);
+    public VectorStore getById(long tenantId, String id) {
+        return mapper.getById(tenantId, id);
     }
 
     public List<VectorStore> list(long tenantId) {

@@ -236,22 +236,22 @@ public class GrepChunksTool extends BaseTool {
             List<String> targetKnowledgeIDs = targetScope.knowledgeIds();
             List<String> targetTagIDs = targetScope.tagIds();
             if (targetTagIDs != null && !targetTagIDs.isEmpty()) {
-                long tenantID = target.tenantId();
-                if (tenantID == 0) {
-                    tenantID = searchTargets.getTenantIdForKb(target.knowledgeBaseId());
+                long tenantId = target.tenantId();
+                if (tenantId == 0) {
+                    tenantId = searchTargets.getTenantIdForKb(target.knowledgeBaseId());
                 }
                 List<String> tagIDs = targetTagIDs;
-                if (tagIDs.isEmpty() || tenantID == 0) {
+                if (tagIDs.isEmpty() || tenantId == 0) {
                     continue;
                 }
                 // scopeKey = kb:tenant:tagIDs（\0 连接标签）
-                String scopeKey = target.knowledgeBaseId() + ":" + tenantID + ":"
+                String scopeKey = target.knowledgeBaseId() + ":" + tenantId + ":"
                         + String.join("\u0000", tagIDs);
                 if (!seenTagScope.add(scopeKey)) {
                     continue;
                 }
                 scope.tagTargets.add(new SearchTarget(SearchTarget.TYPE_KNOWLEDGE_BASE,
-                        target.knowledgeBaseId(), tenantID, null, tagIDs, null, false));
+                        target.knowledgeBaseId(), tenantId, null, tagIDs, null, false));
             } else if (targetKnowledgeIDs != null && !targetKnowledgeIDs.isEmpty()) {
                 for (String kid : targetKnowledgeIDs) {
                     if (seenKnowledge.add(kid)) {
@@ -276,8 +276,8 @@ public class GrepChunksTool extends BaseTool {
 
     /** 按知识聚合的 grep 结果。 */
     static final class KnowledgeAggregation {
-        String knowledgeID;
-        String knowledgeBaseID;
+        String knowledgeId;
+        String knowledgeBaseId;
         String knowledgeTitle;
         String faqQuestion = "";
         int chunkHitCount;
@@ -305,16 +305,16 @@ public class GrepChunksTool extends BaseTool {
 
         Map<String, KnowledgeAggregation> aggregated = new LinkedHashMap<>();
         for (GrepChunkHit chunk : results) {
-            String knowledgeID = GrepChunkHit.nz(chunk.knowledgeId);
-            if (knowledgeID.isEmpty()) {
-                knowledgeID = "chunk-" + GrepChunkHit.nz(chunk.id);
+            String knowledgeId = GrepChunkHit.nz(chunk.knowledgeId);
+            if (knowledgeId.isEmpty()) {
+                knowledgeId = "chunk-" + GrepChunkHit.nz(chunk.id);
             }
 
-            KnowledgeAggregation entry = aggregated.get(knowledgeID);
+            KnowledgeAggregation entry = aggregated.get(knowledgeId);
             if (entry == null) {
                 entry = new KnowledgeAggregation();
-                entry.knowledgeID = knowledgeID;
-                entry.knowledgeBaseID = GrepChunkHit.nz(chunk.knowledgeBaseId);
+                entry.knowledgeId = knowledgeId;
+                entry.knowledgeBaseId = GrepChunkHit.nz(chunk.knowledgeBaseId);
                 String title = GrepChunkHit.nz(chunk.knowledgeTitle);
                 if (title.trim().isEmpty()) {
                     title = "Untitled";
@@ -324,7 +324,7 @@ public class GrepChunksTool extends BaseTool {
                 for (String qKey : queryKeys) {
                     entry.patternCounts.put(qKey, 0);
                 }
-                aggregated.put(knowledgeID, entry);
+                aggregated.put(knowledgeId, entry);
             }
 
             entry.chunkHitCount++;
@@ -429,8 +429,8 @@ public class GrepChunksTool extends BaseTool {
         List<Map<String, Object>> out = new ArrayList<>(entries.size());
         for (KnowledgeAggregation e : entries) {
             Map<String, Object> m = new LinkedHashMap<>();
-            m.put("knowledgeId", e.knowledgeID);
-            m.put("knowledgeBaseId", e.knowledgeBaseID);
+            m.put("knowledgeId", e.knowledgeId);
+            m.put("knowledgeBaseId", e.knowledgeBaseId);
             m.put("knowledgeTitle", e.knowledgeTitle);
             if (!e.faqQuestion.isEmpty()) {
                 m.put("faqQuestion", e.faqQuestion);
@@ -582,7 +582,7 @@ public class GrepChunksTool extends BaseTool {
             boolean seen = !seenChunks.add(GrepChunkHit.nz(r.id));
 
             String id = GrepChunkHit.nz(r.id);
-            String knowledgeID = GrepChunkHit.nz(r.knowledgeId);
+            String knowledgeId = GrepChunkHit.nz(r.knowledgeId);
             String knowledgeTitle = GrepChunkHit.nz(r.knowledgeTitle);
             if (isFAQ) {
                 if (seen) {
@@ -599,13 +599,13 @@ public class GrepChunksTool extends BaseTool {
             } else if (seen) {
                 b.append(String.format(Locale.ROOT,
                         "<chunk chunkId=\"%s\" knowledgeId=\"%s\" knowledgeTitle=\"%s\"%s chunkIndex=\"%d\" score=\"%.3f\" already_seen=\"true\">\n",
-                        FaqSnippet.xmlEscape(id), FaqSnippet.xmlEscape(knowledgeID),
+                        FaqSnippet.xmlEscape(id), FaqSnippet.xmlEscape(knowledgeId),
                         FaqSnippet.xmlEscape(knowledgeTitle),
                         extraAttr, r.chunkIndex, r.matchScore));
             } else {
                 b.append(String.format(Locale.ROOT,
                         "<chunk chunkId=\"%s\" knowledgeId=\"%s\" knowledgeTitle=\"%s\"%s chunkIndex=\"%d\" score=\"%.3f\">\n",
-                        FaqSnippet.xmlEscape(id), FaqSnippet.xmlEscape(knowledgeID),
+                        FaqSnippet.xmlEscape(id), FaqSnippet.xmlEscape(knowledgeId),
                         FaqSnippet.xmlEscape(knowledgeTitle),
                         extraAttr, r.chunkIndex, r.matchScore));
             }

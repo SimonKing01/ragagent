@@ -412,20 +412,20 @@ public class KnowledgeSearchTool extends BaseTool {
     /** 取各 KB 的类型（未知/取不到跳过）。 */
     Map<String, String> getKnowledgeBaseTypes(List<String> kbIDs) {
         Map<String, String> kbTypeMap = new LinkedHashMap<>();
-        for (String kbID : kbIDs) {
-            if (kbID.isEmpty() || kbTypeMap.containsKey(kbID)) {
+        for (String kbId : kbIDs) {
+            if (kbId.isEmpty() || kbTypeMap.containsKey(kbId)) {
                 continue;
             }
             KBView kb;
             try {
-                kb = backend.getKnowledgeBaseById(kbID);
+                kb = backend.getKnowledgeBaseById(kbId);
             } catch (RuntimeException e) {
                 continue; // warn 后跳过
             }
             if (kb == null) {
                 continue;
             }
-            kbTypeMap.put(kbID, nz(kb.type()));
+            kbTypeMap.put(kbId, nz(kb.type()));
         }
         return kbTypeMap;
     }

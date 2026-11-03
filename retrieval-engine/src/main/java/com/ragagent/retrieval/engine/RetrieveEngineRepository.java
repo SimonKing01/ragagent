@@ -56,7 +56,7 @@ public interface RetrieveEngineRepository {
     void batchUpdateChunkEnabledStatus(Map<String, Boolean> chunkStatusMap) throws Exception;
 
     /** 按 ChunkID 批量更新标签。 */
-    void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception;
+    void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception;
 
     // ── 检索 ────────────────────────────────────────────────────────────────
 

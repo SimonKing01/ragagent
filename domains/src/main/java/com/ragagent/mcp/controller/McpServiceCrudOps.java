@@ -105,7 +105,7 @@ final class McpServiceCrudOps {
         long tenantId = McpServiceController.requireTenant();
         McpService service;
         try {
-            service = ctrl.mcpServiceService.getMCPServiceByID(tenantId, McpServiceController.sanitize(id));
+            service = ctrl.mcpServiceService.getMCPServiceById(tenantId, McpServiceController.sanitize(id));
         } catch (RuntimeException e) {
             log.debug("MCP service not found, service_id={}", McpServiceController.sanitize(id));
             throw BizException.notFound("MCP service not found");
@@ -286,7 +286,7 @@ final class McpServiceCrudOps {
         // 重新读回：拾取服务端的合并结果（CustomHeaders 保留等），并用"无秘密"的 DTO 响应
         McpService stored;
         try {
-            stored = ctrl.mcpServiceService.getMCPServiceByID(tenantId, serviceId);
+            stored = ctrl.mcpServiceService.getMCPServiceById(tenantId, serviceId);
         } catch (RuntimeException e) {
             throw BizException.internal("Failed to fetch updated MCP service: " + McpServiceController.rawMessage(e));
         }

@@ -250,7 +250,7 @@ final class SourceToolCodec {
     private void registerToolArgumentValue(String key, JsonNode value, java.util.function.Predicate<String> allowed) {
         if (value.isTextual()) {
             if (allowed.test(key)) {
-                registerSourceIDByKey(key, value.asText(), false);
+                registerSourceIdByKey(key, value.asText(), false);
             }
         } else if (value.isArray()) {
             for (JsonNode item : value) {
@@ -267,7 +267,7 @@ final class SourceToolCodec {
      * key→source 空间的唯一分派，由 sourceKeySpaces 驱动，
      * 注册与解码的键集合（以及 web 引用的 http/https 守卫）不会漂移。
      */
-    void registerSourceIDByKey(String key, String value, boolean evidence) {
+    void registerSourceIdByKey(String key, String value, boolean evidence) {
         value = value == null ? "" : value.strip();
         if (value.isEmpty() || SourceRegistry.SHORT_SOURCE_HANDLE.matcher(value).matches()) {
             return;
@@ -425,7 +425,7 @@ final class SourceToolCodec {
 
 
     /** 注册与解码的键→空间分派（转发注册段；ModelOutput 直呼 registry 的同签名）。 */
-    void registerSourceIDByKeyForward(String key, String value, boolean evidence) {
-        registerSourceIDByKey(key, value, evidence);
+    void registerSourceIdByKeyForward(String key, String value, boolean evidence) {
+        registerSourceIdByKey(key, value, evidence);
     }
 }

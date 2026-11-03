@@ -61,14 +61,14 @@ public class ResourceRepository {
     }
 
     /** NotFound → empty（不是错误）。 */
-    public Optional<StoredResource> getByID(String id) {
+    public Optional<StoredResource> getById(String id) {
         return jdbc.sql("SELECT " + COLS + " FROM resources WHERE id = ? AND state = ?")
                 .params(id, StoredResource.STATE_ACTIVE)
                 .query(new ResourceMapper())
                 .optional();
     }
 
-    /** NotFound → empty，同 {@link #getByID}。 */
+    /** NotFound → empty，同 {@link #getById}。 */
     public Optional<StoredResource> getByHandle(String handle) {
         return jdbc.sql("SELECT " + COLS + " FROM resources WHERE handle = ? AND state = ?")
                 .params(handle, StoredResource.STATE_ACTIVE)

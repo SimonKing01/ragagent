@@ -215,7 +215,7 @@ final class QdrantWriteOps {
     }
 
     /** 批量改标签：按 tagID 分组 → 每集合逐组 SetPayload。 */
-    void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
+    void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
         if (chunkTagMap == null || chunkTagMap.isEmpty()) {
             log.debug("[Qdrant] Empty chunk tag map provided, skipping");
             return;

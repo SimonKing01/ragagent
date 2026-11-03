@@ -82,9 +82,9 @@ final class FaqBatchOps {
                                     + ": " + e.getMessage());
                     return;
                 }
-                String tagID;
+                String tagId;
                 try {
-                    tagID = service.faqGuard.resolveTagID(job.kbId(), entry);
+                    tagId = service.faqGuard.resolveTagId(job.kbId(), entry);
                 } catch (RuntimeException e) {
                     service.markImportFailed(job, progress,
                             "FAQ import failed: failed to resolve tag for entry at index " + entryIdx
@@ -100,7 +100,7 @@ final class FaqBatchOps {
                 chunk.setContent(service.faqChunkCodec.buildFAQChunkContent(meta, indexMode));
                 chunk.setIsEnabled(isEnabled);
                 chunk.setChunkType("faq");
-                chunk.setTagId(tagID);
+                chunk.setTagId(tagId);
                 chunk.setStatus(1); // stored
                 if (entry.id() != null && entry.id() > 0) {
                     chunk.setSeqId(entry.id());
@@ -146,19 +146,19 @@ final class FaqBatchOps {
                 FaqChunkMetadata meta = service.faqChunkCodec.sanitizedFaqMetadata(chunk);
                 String standardQ = meta == null || meta.standardQuestion == null
                         ? "" : meta.standardQuestion;
-                long tagID = 0;
+                long tagId = 0;
                 String tagName = "";
                 if (chunk.getTagId() != null && !chunk.getTagId().isEmpty()) {
                     KnowledgeTag tag = tagRepository
                             .listTagsByIds(job.tenantId(), List.of(chunk.getTagId()))
                             .stream().findFirst().orElse(null);
                     if (tag != null) {
-                        tagID = tag.getSeqId();
+                        tagId = tag.getSeqId();
                         tagName = tag.getName();
                     }
                 }
                 successEntries.add(new FaqSuccessEntry(valid.get(k),
-                        chunk.getSeqId() == null ? 0 : chunk.getSeqId(), tagID, tagName, standardQ));
+                        chunk.getSeqId() == null ? 0 : chunk.getSeqId(), tagId, tagName, standardQ));
             }
 
             actualProcessed += end - i;

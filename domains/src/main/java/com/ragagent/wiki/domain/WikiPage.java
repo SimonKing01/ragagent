@@ -185,7 +185,7 @@ public class WikiPage {
         }
         List<String> ids = new ArrayList<>(sourceRefs.size());
         for (String ref : sourceRefs) {
-            String id = WikiCategoryPaths.sourceKnowledgeID(ref);
+            String id = WikiCategoryPaths.sourceKnowledgeId(ref);
             if (!id.isEmpty()) {
                 ids.add(id);
             }

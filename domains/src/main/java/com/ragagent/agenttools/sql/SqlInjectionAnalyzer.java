@@ -160,14 +160,14 @@ final class SqlInjectionAnalyzer {
 
     /** 注入 tenant 条件（tablesInQuery 出现序遍历，条件序确定）。 */
     static String injectTenantConditions(String sql, Map<String, String> tablesInQuery,
-            long tenantID) {
+            long tenantId) {
         List<String> conditions = new ArrayList<>();
         for (Map.Entry<String, String> e : tablesInQuery.entrySet()) {
             if (SqlGuard.ALLOWED_TABLES.containsKey(e.getKey()) || TENANT_TABLES.containsKey(e.getKey())) {
                 if ("tenants".equals(e.getKey())) {
-                    conditions.add(String.format("%s.id = %d", e.getValue(), tenantID));
+                    conditions.add(String.format("%s.id = %d", e.getValue(), tenantId));
                 } else {
-                    conditions.add(String.format("%s.tenant_id = %d", e.getValue(), tenantID));
+                    conditions.add(String.format("%s.tenant_id = %d", e.getValue(), tenantId));
                 }
             }
         }
@@ -265,7 +265,7 @@ final class SqlInjectionAnalyzer {
     }
 
     /** scope 内条件 AND、scope 间 OR。 */
-    static String buildScopeClause(String alias, String knowledgeIDColumn, SqlGuard.SearchScope scope) {
+    static String buildScopeClause(String alias, String knowledgeIdColumn, SqlGuard.SearchScope scope) {
         if (scope.knowledgeBaseId() == null || scope.knowledgeBaseId().isEmpty()) {
             return "";
         }
@@ -273,13 +273,13 @@ final class SqlInjectionAnalyzer {
         conditions.add(String.format("%s.knowledge_base_id = %s", alias, quoteString(scope.knowledgeBaseId())));
         if (scope.knowledgeIds() != null && !scope.knowledgeIds().isEmpty()) {
             conditions.add(String.format("%s.%s IN (%s)",
-                    alias, knowledgeIDColumn, String.join(", ", quoteStringSlice(scope.knowledgeIds()))));
+                    alias, knowledgeIdColumn, String.join(", ", quoteStringSlice(scope.knowledgeIds()))));
         }
         if (scope.tagIds() != null && !scope.tagIds().isEmpty()) {
             conditions.add(String.format(
                     "EXISTS (SELECT 1 FROM knowledge_tag_relations ktr WHERE ktr.knowledge_id = %s.%s"
                             + " AND ktr.tag_id IN (%s))",
-                    alias, knowledgeIDColumn, String.join(", ", quoteStringSlice(scope.tagIds()))));
+                    alias, knowledgeIdColumn, String.join(", ", quoteStringSlice(scope.tagIds()))));
         }
         if (conditions.size() == 1) {
             return conditions.get(0);

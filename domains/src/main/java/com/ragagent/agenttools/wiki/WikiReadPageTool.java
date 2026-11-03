@@ -115,27 +115,27 @@ public class WikiReadPageTool extends BaseTool {
                             + " while resolving allowed KB " + kbId);
                     continue;
                 }
-                String actualKBID = kbId;
+                String actualKBId = kbId;
 
                 boolean passesScope;
                 try {
                     passesScope = WikiScope.pagePassesWikiScope(page, sc, tagsFetcher);
                 } catch (RuntimeException e) {
                     errs.add("Failed to validate wiki scope for '" + slug + "' in KB "
-                            + actualKBID + ": " + e.getMessage());
+                            + actualKBId + ": " + e.getMessage());
                     continue;
                 }
                 if (!passesScope) {
-                    filteredOut.computeIfAbsent(slug, k -> new ArrayList<>()).add(actualKBID);
+                    filteredOut.computeIfAbsent(slug, k -> new ArrayList<>()).add(actualKBId);
                     continue;
                 }
 
                 hitPages.add(page);
-                hitKbs.add(actualKBID);
-                routes.rememberPage(page, actualKBID);
-                foundKBs.computeIfAbsent(slug, k -> new ArrayList<>()).add(actualKBID);
-                registerLinkedSlugs(foundKBs, page, actualKBID);
-                seenLinks.add(seenLinkKey(actualKBID, slug));
+                hitKbs.add(actualKBId);
+                routes.rememberPage(page, actualKBId);
+                foundKBs.computeIfAbsent(slug, k -> new ArrayList<>()).add(actualKBId);
+                registerLinkedSlugs(foundKBs, page, actualKBId);
+                seenLinks.add(seenLinkKey(actualKBId, slug));
             }
 
             if (hitPages.isEmpty()) {

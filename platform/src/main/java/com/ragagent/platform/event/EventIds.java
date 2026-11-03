@@ -18,7 +18,7 @@ public final class EventIds {
      * @param suffix 类型后缀，如 {@code "thinking"} / {@code "answer"} / {@code "complete"}
      * @return {@code <uuid前8位>-<suffix>}
      */
-    public static String generateEventID(String suffix) {
+    public static String generateEventId(String suffix) {
         return UUID.randomUUID().toString().substring(0, 8) + "-" + suffix;
     }
 

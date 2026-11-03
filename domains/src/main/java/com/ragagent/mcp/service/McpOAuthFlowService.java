@@ -78,7 +78,7 @@ public class McpOAuthFlowService {
 
         McpService service;
         try {
-            service = svc.getMCPServiceByID(tenantId, serviceId);
+            service = svc.getMCPServiceById(tenantId, serviceId);
         } catch (RuntimeException e) {
             service = null;
         }

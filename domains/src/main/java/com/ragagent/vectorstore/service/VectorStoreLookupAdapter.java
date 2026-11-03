@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 /**
  * {@link VectorStoreLookup} 的 vectorstore 侧实现。
  *
- * <p>直接委托既有仓储的 {@code getByID(tenantId, storeId)}（含其租户过滤与解密的
+ * <p>直接委托既有仓储的 {@code getById(tenantId, storeId)}（含其租户过滤与解密的
  * 类型处理器），不复制任何查询逻辑。</p>
  */
 @Component
@@ -25,7 +25,7 @@ public class VectorStoreLookupAdapter implements VectorStoreLookup {
 
     @Override
     public VectorStoreView byId(long tenantId, String storeId) {
-        VectorStore store = repository.getByID(tenantId, storeId);
+        VectorStore store = repository.getById(tenantId, storeId);
         if (store == null) {
             return null;
         }

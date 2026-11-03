@@ -292,7 +292,7 @@ final class OpenSearchWriteOps {
     }
 
     /** 批量改标签：tag 字典序、组内 id 排序。 */
-    void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
+    void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
         if (chunkTagMap == null || chunkTagMap.isEmpty()) {
             return;
         }

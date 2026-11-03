@@ -124,7 +124,7 @@ public class KnowledgeSummaryService {
         if (kb.getSummaryModelId() == null || kb.getSummaryModelId().isEmpty()) {
             throw new BizException(AppError.badRequest("summary model is not configured"));
         }
-        List<Chunk> allChunks = chunkRepo.listChunksByKnowledgeID(KnowledgeTenants.tenantId(), id);
+        List<Chunk> allChunks = chunkRepo.listChunksByKnowledgeId(KnowledgeTenants.tenantId(), id);
         List<Chunk> textChunks = new ArrayList<>();
         for (Chunk chunk : allChunks) {
             if ("text".equals(chunk.getChunkType()) && chunk.isIsEnabled()) {
@@ -187,7 +187,7 @@ public class KnowledgeSummaryService {
             }
             // allChunks 是 text-only，永远不含已有 summary chunk——必须按类型另查
             //
-            List<Chunk> existingSummaries = chunkRepo.listChunksByKnowledgeIDAndTypes(
+            List<Chunk> existingSummaries = chunkRepo.listChunksByKnowledgeIdAndTypes(
                     KnowledgeTenants.tenantId(), id, List.of("summary"));
             List<Chunk> summaryChunks = new ArrayList<>();
             for (Chunk chunk : existingSummaries) {

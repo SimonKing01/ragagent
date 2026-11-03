@@ -169,7 +169,7 @@ public class McpServiceController {
         // 这两处直接抛业务异常后返回，不经过 mcpMetadataAppError。
         // 若把它们放进 try，自己抛出的 403 会被 default 分支改写成 400。
         if (refresh) {
-            var service = mcpServiceService.getMCPServiceByID(tenant, serviceId);
+            var service = mcpServiceService.getMCPServiceById(tenant, serviceId);
             if ((service.getAuthConfig() == null || !service.getAuthConfig().isOAuth())
                     && !mayWriteSharedMCPMetadata()) {
                 throw BizException.forbidden(

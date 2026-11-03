@@ -263,7 +263,7 @@ class WeaviateRetrieveRepositoryTest {
 
         // 逐对象失败只记日志
         statuses.put("PATCH /v1/objects/Weknora_embeddings_3/" + CHUNK, 500);
-        repo.batchUpdateChunkTagID(Map.of(CHUNK, "t9"));
+        repo.batchUpdateChunkTagId(Map.of(CHUNK, "t9"));
     }
 
     // ── 检索 ────────────────────────────────────────────────────────────────

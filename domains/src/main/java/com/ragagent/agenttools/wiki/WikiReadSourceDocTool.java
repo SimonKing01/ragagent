@@ -82,8 +82,8 @@ public class WikiReadSourceDocTool extends BaseTool {
     public ToolResult execute(ToolRequest request) {
         JsonNode args = JsonMappers.toJsonNode(request.args());
 
-        String knowledgeID = args.path("knowledgeId").asText("").trim();
-        if (knowledgeID.isEmpty()) {
+        String knowledgeId = args.path("knowledgeId").asText("").trim();
+        if (knowledgeId.isEmpty()) {
             return failure("knowledge_id is required");
         }
         String query = args.path("query").asText("");
@@ -94,15 +94,15 @@ public class WikiReadSourceDocTool extends BaseTool {
         if (searchTargets != null) {
             try {
                 SearchAuth.authorizeKnowledgeInSearchTargets(
-                        searchTargets, knowledgeID, DocChunkSupport.asScopeReader(knowledgeReader));
+                        searchTargets, knowledgeId, DocChunkSupport.asScopeReader(knowledgeReader));
             } catch (RuntimeException e) {
                 return failure("Document not found: " + e.getMessage());
             }
             // 授权用适配视图丢了富字段，重新取一次（seam 无状态，结果一致）
-            knowledge = knowledgeReader == null ? null : knowledgeReader.byIdOnly(knowledgeID);
+            knowledge = knowledgeReader == null ? null : knowledgeReader.byIdOnly(knowledgeId);
         } else {
             try {
-                knowledge = knowledgeReader == null ? null : knowledgeReader.byIdOnly(knowledgeID);
+                knowledge = knowledgeReader == null ? null : knowledgeReader.byIdOnly(knowledgeId);
             } catch (RuntimeException e) {
                 return failure("Document not found: " + e.getMessage());
             }
@@ -114,7 +114,7 @@ public class WikiReadSourceDocTool extends BaseTool {
         StringBuilder sb = new StringBuilder();
         sb.append("<sourceDocument>\n<metadata>\n");
         sb.append("<title>").append(knowledge.title()).append("</title>\n");
-        sb.append("<knowledgeId>").append(knowledgeID).append("</knowledgeId>\n");
+        sb.append("<knowledgeId>").append(knowledgeId).append("</knowledgeId>\n");
 
         boolean hasRange = startChunkIndex > 0;
         Pattern re = null;
@@ -166,7 +166,7 @@ public class WikiReadSourceDocTool extends BaseTool {
             m.put("chunkIndex", chunk.chunkIndex());
             m.put("chunkType", chunk.chunkType());
             m.put("content", content);
-            m.put("knowledgeId", knowledgeID);
+            m.put("knowledgeId", knowledgeId);
             m.put("knowledgeBase", knowledgeBaseId);
             m.put("knowledgeTitle", knowledgeTitle);
             formattedChunks.add(m);
@@ -181,7 +181,7 @@ public class WikiReadSourceDocTool extends BaseTool {
         while (true) {
             ChunkPage result;
             try {
-                result = pagedChunks.listPaged(tenantId, knowledgeID, page, pageSize);
+                result = pagedChunks.listPaged(tenantId, knowledgeId, page, pageSize);
             } catch (RuntimeException e) {
                 return failure("Failed to list chunks: " + e.getMessage());
             }
@@ -317,7 +317,7 @@ public class WikiReadSourceDocTool extends BaseTool {
         toolResult.setOutput(sb.toString());
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("displayType", "knowledge_chunks_list");
-        data.put("knowledgeId", knowledgeID);
+        data.put("knowledgeId", knowledgeId);
         data.put("knowledgeTitle", knowledgeTitle);
         data.put("totalChunks", totalChunks);
         data.put("fetchedChunks", formattedChunks.size());

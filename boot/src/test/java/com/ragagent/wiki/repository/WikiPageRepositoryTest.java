@@ -316,7 +316,7 @@ class WikiPageRepositoryTest {
         assertThatThrownBy(() -> folderRepo.deleteFolder("kb-f", "f-ai"))
                 .isInstanceOf(WikiFolderNotEmptyException.class);
         folderRepo.deleteFolder("kb-f", "f-people");
-        assertThatThrownBy(() -> folderRepo.getFolderByID("kb-f", "f-people"))
+        assertThatThrownBy(() -> folderRepo.getFolderById("kb-f", "f-people"))
                 .isInstanceOf(WikiFolderNotFoundException.class);
         assertThatThrownBy(() -> folderRepo.deleteFolder("kb-f", "f-nope"))
                 .isInstanceOf(WikiFolderNotFoundException.class);
@@ -344,11 +344,11 @@ class WikiPageRepositoryTest {
         List<WikiFolder> all = folderRepo.listAllFolders("kb-f");
         assertThat(all).extracting(WikiFolder::getPath).containsExactly("AI", "Ops", "AI/LLM");
 
-        WikiFolder f2 = folderRepo.getFolderByID("kb-f", "f-2");
+        WikiFolder f2 = folderRepo.getFolderById("kb-f", "f-2");
         f2.setName("LLM 应用");
         f2.setPath("AI/LLM 应用");
         folderRepo.updateFolder(f2);
-        assertThat(folderRepo.getFolderByID("kb-f", "f-2").getName()).isEqualTo("LLM 应用");
+        assertThat(folderRepo.getFolderById("kb-f", "f-2").getName()).isEqualTo("LLM 应用");
 
         WikiFolder stale = mkFolder("f-missing", "", "x", "x", 1);
         assertThatThrownBy(() -> folderRepo.updateFolder(stale))

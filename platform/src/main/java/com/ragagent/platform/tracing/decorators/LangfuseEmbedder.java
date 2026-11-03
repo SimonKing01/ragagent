@@ -36,7 +36,7 @@ public final class LangfuseEmbedder implements Embedder {
             return inner.embed(text);
         }
         Map<String, Object> metadata = new LinkedHashMap<>();
-        metadata.put("model_id", inner.getModelID());
+        metadata.put("model_id", inner.getModelId());
         metadata.put("dimensions", inner.getDimensions());
         Generation gen = manager.startGeneration(new LangfuseManager.GenerationOptions(
                 "embedding.embed", inner.getModelName(), text, metadata, null));
@@ -72,7 +72,7 @@ public final class LangfuseEmbedder implements Embedder {
         // 不发送全量文本（Langfuse 会截断，但网络成本真实）：只留短预览
         input.put("preview", LangfusePayloads.previewTexts(texts, 5));
         Map<String, Object> metadata = new LinkedHashMap<>();
-        metadata.put("model_id", inner.getModelID());
+        metadata.put("model_id", inner.getModelId());
         metadata.put("dimensions", inner.getDimensions());
         metadata.put("batch_size", texts.size());
         Generation gen = manager.startGeneration(new LangfuseManager.GenerationOptions(
@@ -109,7 +109,7 @@ public final class LangfuseEmbedder implements Embedder {
     }
 
     @Override
-    public String getModelID() {
-        return inner.getModelID();
+    public String getModelId() {
+        return inner.getModelId();
     }
 }

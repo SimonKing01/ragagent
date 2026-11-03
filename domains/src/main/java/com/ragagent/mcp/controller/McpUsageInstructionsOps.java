@@ -94,7 +94,7 @@ final class McpUsageInstructionsOps {
 
         McpService service;
         try {
-            service = ctrl.mcpServiceService.getMCPServiceByID(tenant, serviceId);
+            service = ctrl.mcpServiceService.getMCPServiceById(tenant, serviceId);
         } catch (RuntimeException e) {
             throw BizException.notFound("MCP service not found");
         }

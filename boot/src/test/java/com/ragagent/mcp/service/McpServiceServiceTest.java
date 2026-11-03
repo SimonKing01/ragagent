@@ -395,7 +395,7 @@ class McpServiceServiceTest {
     void getReturnsRawCredentials() {
         String id = seed("real-api", "real-token");
 
-        McpService got = svc.getMCPServiceByID(1L, id);
+        McpService got = svc.getMCPServiceById(1L, id);
 
         assertNotNull(got.getAuthConfig());
         assertEquals("real-api", got.getAuthConfig().getApiKey(),
@@ -417,7 +417,7 @@ class McpServiceServiceTest {
     @Test
     void getByIdHidesOtherTenantsRows() {
         String id = seed("real-api", "real-token");
-        assertThrows(BizException.class, () -> svc.getMCPServiceByID(2L, id));
+        assertThrows(BizException.class, () -> svc.getMCPServiceById(2L, id));
     }
 
     @Test

@@ -37,7 +37,7 @@ import org.springframework.context.ApplicationEventPublisher;
  * <p><b>现场</b>：上传文档后 {@code parse_status=failed}、{@code error_message} 为
  * {@code error code: 1003, error message: Model not found}，span 表显示 docreader / chunking
  * 都 done、**embedding 阶段失败**。根因：向量化
- * （{@code ChunkVectorIndexer.resolveEmbeddingModel} → {@code ModelService.getModelByID}）与
+ * （{@code ChunkVectorIndexer.resolveEmbeddingModel} → {@code ModelService.getModelById}）与
  * 富化都按<b>租户可见性</b>过滤（{@code tenant_id = 当前租户 OR is_builtin}），而 worker
  * 虚拟线程没有 HTTP Filter 链填 {@link TenantContext} ⇒ 空租户（按 0 查）看不到
  * <b>用户自建模型</b>（{@code is_builtin = false}）⇒ 1003。</p>

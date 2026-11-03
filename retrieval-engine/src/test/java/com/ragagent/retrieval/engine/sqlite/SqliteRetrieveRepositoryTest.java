@@ -293,7 +293,7 @@ class SqliteRetrieveRepositoryTest {
         assertThat(repo.retrieve(vectorParams(new float[] {1f, 0f, 0f}, List.of("kb1"), 5))
                 .get(0).results()).hasSize(1);
 
-        repo.batchUpdateChunkTagID(Map.of(chunk, "tag-7"));
+        repo.batchUpdateChunkTagId(Map.of(chunk, "tag-7"));
         RetrieveParams byTag = vectorParams(new float[] {1f, 0f, 0f}, null, 5);
         byTag.tagIds = List.of("tag-7");
         assertThat(repo.retrieve(byTag).get(0).results()).hasSize(1);
@@ -334,7 +334,7 @@ class SqliteRetrieveRepositoryTest {
         String chunk = UUID.randomUUID().toString();
         repo.batchSave(List.of(info(chunk, "srcKb", "k1")),
                 embeddings(chunk, new float[] {1f, 0f, 0f}));
-        repo.batchUpdateChunkTagID(Map.of(chunk, "t1"));
+        repo.batchUpdateChunkTagId(Map.of(chunk, "t1"));
 
         repo.moveKnowledgeIndices("srcKb", "targetKb", "k1", List.of(), 3, "document");
 

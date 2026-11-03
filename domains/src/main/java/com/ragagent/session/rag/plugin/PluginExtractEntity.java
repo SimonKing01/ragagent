@@ -71,9 +71,9 @@ public final class PluginExtractEntity implements Plugin {
         }
 
         // 收集全部 KB ID（含共享 KB 文档）
-        Map<String, Boolean> kbIDSet = new LinkedHashMap<>();
+        Map<String, Boolean> kbIdSet = new LinkedHashMap<>();
         for (String id : chatManage.getKnowledgeBaseIds()) {
-            kbIDSet.put(id, Boolean.TRUE);
+            kbIdSet.put(id, Boolean.TRUE);
         }
 
         Map<String, String> knowledgeToKBMap = new LinkedHashMap<>();
@@ -86,14 +86,14 @@ public final class PluginExtractEntity implements Plugin {
                 return next.next();
             }
             for (KnowledgeDocumentFacts k : knowledges) {
-                kbIDSet.put(k.knowledgeBaseId(), Boolean.TRUE);
+                kbIdSet.put(k.knowledgeBaseId(), Boolean.TRUE);
                 knowledgeToKBMap.put(k.id(), k.knowledgeBaseId());
             }
         }
 
         List<KnowledgeBaseView> kbs;
         try {
-            kbs = knowledgeBaseRepo.getKnowledgeBaseByIds(new ArrayList<>(kbIDSet.keySet()));
+            kbs = knowledgeBaseRepo.getKnowledgeBaseByIds(new ArrayList<>(kbIdSet.keySet()));
         } catch (RuntimeException e) {
             return next.next();
         }

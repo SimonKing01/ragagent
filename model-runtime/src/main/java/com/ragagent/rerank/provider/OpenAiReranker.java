@@ -104,7 +104,7 @@ public final class OpenAiReranker implements Reranker {
     }
 
     @Override
-    public String getModelID() {
+    public String getModelId() {
         return modelId;
     }
 }

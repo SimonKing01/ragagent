@@ -168,7 +168,7 @@ public class VectorStoreController {
     }
 
     @PostMapping("/{id}/test")
-    public ResponseEntity<?> testStoreByID(@PathVariable("id") String id) {
+    public ResponseEntity<?> testStoreById(@PathVariable("id") String id) {
         long tenantId = requireTenant();
         String version = service.testResponse(tenantId, id);
         if (version == null) {

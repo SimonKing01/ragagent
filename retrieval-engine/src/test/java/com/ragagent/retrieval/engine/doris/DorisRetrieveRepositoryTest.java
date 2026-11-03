@@ -603,7 +603,7 @@ class DorisRetrieveRepositoryTest {
         assertThat(insert.args()).containsExactly("r1", "content", "s1", 0, "c1", "k1",
                 "srcKb", "", false);
 
-        repo.batchUpdateChunkTagID(Map.of("c2", "t9"));
+        repo.batchUpdateChunkTagId(Map.of("c2", "t9"));
         Call tagInsert = sql.executed.get(sql.executed.size() - 1);
         assertThat(tagInsert.sql()).contains("INSERT");
         assertThat(tagInsert.args()).containsExactly("r2", "content", "s2", 0, "c2", "k1",

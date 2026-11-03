@@ -175,12 +175,12 @@ class WikiDomainTest {
 
     @Test
     void wikiSourceKnowledgeIdExtraction() {
-        assertThat(WikiCategoryPaths.sourceKnowledgeID("doc-1|排班手册")).isEqualTo("doc-1");
-        assertThat(WikiCategoryPaths.sourceKnowledgeID("doc-1")).isEqualTo("doc-1");
-        assertThat(WikiCategoryPaths.sourceKnowledgeID("  doc-1 | title ")).isEqualTo("doc-1");
-        assertThat(WikiCategoryPaths.sourceKnowledgeID("")).isEqualTo("");
+        assertThat(WikiCategoryPaths.sourceKnowledgeId("doc-1|排班手册")).isEqualTo("doc-1");
+        assertThat(WikiCategoryPaths.sourceKnowledgeId("doc-1")).isEqualTo("doc-1");
+        assertThat(WikiCategoryPaths.sourceKnowledgeId("  doc-1 | title ")).isEqualTo("doc-1");
+        assertThat(WikiCategoryPaths.sourceKnowledgeId("")).isEqualTo("");
         // 前导竖线（index 0）不切分——首个分隔竖线必须出现在 index > 0 处
-        assertThat(WikiCategoryPaths.sourceKnowledgeID("|doc-1")).isEqualTo("|doc-1");
+        assertThat(WikiCategoryPaths.sourceKnowledgeId("|doc-1")).isEqualTo("|doc-1");
 
         WikiPage page = new WikiPage();
         page.setSourceRefs(List.of("doc-1|手册", "doc-2"));

@@ -405,7 +405,7 @@ public class SessionKnowledgeQaService {
         }
 
         // Create default retrieval parameters — prefer tenant RetrievalConfig
-        String userId = SessionService.sessionUserIDForLookup();
+        String userId = SessionService.sessionUserIdForLookup();
         RetrievalConfigView rc = new RetrievalConfigView(null);
         try {
             JsonNode retrieval = JsonMappers.toJsonNode(tenantService.retrievalConfig(tenantId));

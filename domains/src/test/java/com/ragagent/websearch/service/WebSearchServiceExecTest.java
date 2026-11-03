@@ -53,7 +53,7 @@ class WebSearchServiceExecTest {
         WebSearchProviderRepository repo = mock(WebSearchProviderRepository.class);
         WebSearchProviderEntity stored = entity("prov-1", "bocha");
         stored.getParameters().setApiKey("stored-key");
-        when(repo.getByID(anyLong(), anyString())).thenReturn(stored);
+        when(repo.getById(anyLong(), anyString())).thenReturn(stored);
 
         WebSearchProviderRegistry registry = new WebSearchProviderRegistry();
         // 注入 stub provider（经注册表工厂）
@@ -87,7 +87,7 @@ class WebSearchServiceExecTest {
     @Test
     void searchFiltersBranchRequiresSupport() {
         WebSearchProviderRepository repo = mock(WebSearchProviderRepository.class);
-        when(repo.getByID(anyLong(), anyString())).thenReturn(entity("prov-2", "bocha"));
+        when(repo.getById(anyLong(), anyString())).thenReturn(entity("prov-2", "bocha"));
         WebSearchProviderRegistry registry = new WebSearchProviderRegistry();
         registry.register("bocha", params -> new com.ragagent.websearch.provider.WebSearchProvider() {
             @Override
@@ -122,7 +122,7 @@ class WebSearchServiceExecTest {
     @Test
     void resolveProviderErrorBranches() {
         WebSearchProviderRepository repo = mock(WebSearchProviderRepository.class);
-        when(repo.getByID(anyLong(), anyString())).thenReturn(null);
+        when(repo.getById(anyLong(), anyString())).thenReturn(null);
         WebSearchService service = new WebSearchService(new WebSearchProviderRegistry(), repo, 5);
 
         // providerID 非空但实体缺失

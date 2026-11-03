@@ -65,7 +65,7 @@ public class WikiFolderRepository {
         folders.insert(folder);
     }
 
-    public WikiFolder getFolderByID(String kbId, String id) {
+    public WikiFolder getFolderById(String kbId, String id) {
         WikiFolder folder = folders.selectFolderById(kbId, id);
         if (folder == null) {
             throw new WikiFolderNotFoundException();
@@ -76,8 +76,8 @@ public class WikiFolderRepository {
     /**
      * 找不到时抛 {@link WikiFolderNotFoundException}（find-or-create 依赖这个判别）。
      */
-    public WikiFolder getChildFolderByName(String kbId, String parentID, String name) {
-        WikiFolder folder = folders.selectChildByName(kbId, parentID, name);
+    public WikiFolder getChildFolderByName(String kbId, String parentId, String name) {
+        WikiFolder folder = folders.selectChildByName(kbId, parentId, name);
         if (folder == null) {
             throw new WikiFolderNotFoundException();
         }
@@ -85,8 +85,8 @@ public class WikiFolderRepository {
     }
 
     /** sort_order ASC, name ASC */
-    public List<WikiFolder> listChildFolders(String kbId, String parentID) {
-        return folders.listChildFolders(kbId, parentID);
+    public List<WikiFolder> listChildFolders(String kbId, String parentId) {
+        return folders.listChildFolders(kbId, parentId);
     }
 
     /** depth ASC, path ASC */
@@ -119,8 +119,8 @@ public class WikiFolderRepository {
     }
 
     /** 直接挂在文件夹下的活跃页面数（排除归档） */
-    public long countPagesInFolder(String kbId, String folderID) {
-        return pages.countPagesInFolder(kbId, folderID, WikiConstants.STATUS_ARCHIVED);
+    public long countPagesInFolder(String kbId, String folderId) {
+        return pages.countPagesInFolder(kbId, folderId, WikiConstants.STATUS_ARCHIVED);
     }
 
     /**
@@ -147,7 +147,7 @@ public class WikiFolderRepository {
     }
 
     /** 文件夹名冲突判定辅助（重名约束由唯一索引 + service 层负责；此处保留最小入口） */
-    public boolean folderNameExists(String kbId, String parentID, String name) {
-        return folders.selectChildByName(kbId, parentID, name) != null;
+    public boolean folderNameExists(String kbId, String parentId, String name) {
+        return folders.selectChildByName(kbId, parentId, name) != null;
     }
 }

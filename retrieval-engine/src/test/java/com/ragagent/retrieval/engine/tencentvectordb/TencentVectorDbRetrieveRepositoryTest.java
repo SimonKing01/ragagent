@@ -351,12 +351,12 @@ class TencentVectorDbRetrieveRepositoryTest {
                 .isEqualTo("chunk_id in (\"" + CHUNK + "\")");
         assertThat(update.path("update").path("is_enabled").asLong()).isEqualTo(0L);
 
-        repo.batchUpdateChunkTagID(Map.of(CHUNK, "t9"));
+        repo.batchUpdateChunkTagId(Map.of(CHUNK, "t9"));
         assertThat(last("/document/update").json().path("update").path("tag_id").asText())
                 .isEqualTo("t9");
 
         statuses.put("POST /document/update", 500);
-        assertThatThrownBy(() -> repo.batchUpdateChunkTagID(Map.of(CHUNK, "t1")))
+        assertThatThrownBy(() -> repo.batchUpdateChunkTagId(Map.of(CHUNK, "t1")))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("update chunks in weknora_embeddings_3");
     }

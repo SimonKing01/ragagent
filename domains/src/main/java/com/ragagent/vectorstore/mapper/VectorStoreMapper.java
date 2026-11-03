@@ -33,7 +33,7 @@ public interface VectorStoreMapper {
             @Result(column = "index_config", property = "indexConfig",
                     typeHandler = IndexConfigTypeHandler.class)
     })
-    VectorStore getByID(@Param("tenantId") long tenantId, @Param("id") String id);
+    VectorStore getById(@Param("tenantId") long tenantId, @Param("id") String id);
 
     /** 列表按 created_at DESC（newest first） */
     @Select("SELECT " + COLS + " FROM vector_stores "

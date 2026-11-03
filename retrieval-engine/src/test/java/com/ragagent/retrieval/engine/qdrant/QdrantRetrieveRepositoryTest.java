@@ -374,7 +374,7 @@ class QdrantRetrieveRepositoryTest {
         repo.batchUpdateChunkEnabledStatus(status);
         Map<String, String> tags = new LinkedHashMap<>();
         tags.put("c3", "t9");
-        repo.batchUpdateChunkTagID(tags);
+        repo.batchUpdateChunkTagId(tags);
 
         List<Captured> payloads = captured.stream().filter(c -> c.method().equals("POST")
                 && c.path().equals("/collections/weknora_embeddings_2/points/payload")).toList();

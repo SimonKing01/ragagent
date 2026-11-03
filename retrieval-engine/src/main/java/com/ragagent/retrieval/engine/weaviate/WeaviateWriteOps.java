@@ -216,7 +216,7 @@ final class WeaviateWriteOps {
         log.info("[Weaviate] Batch update chunk enabled status completed");
     }
 
-    void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
+    void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
         if (chunkTagMap == null || chunkTagMap.isEmpty()) {
             log.debug("[Weaviate] Empty chunk tag map provided, skipping");
             return;

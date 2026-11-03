@@ -433,8 +433,8 @@ public class ElasticsearchV8RetrieveRepository
         writeOps.batchUpdateChunkEnabledStatus(chunkStatusMap);
     }
 
-    public void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
-        writeOps.batchUpdateChunkTagID(chunkTagMap);
+    public void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
+        writeOps.batchUpdateChunkTagId(chunkTagMap);
     }
 
     public void copyIndices(String sourceKnowledgeBaseId,

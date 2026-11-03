@@ -259,10 +259,10 @@ class WikiPageServiceTest {
         assertThat(deleted).containsExactlyInAnyOrder(
                 "empty-leaf", "empty-chain-leaf", "empty-chain");
 
-        assertThat(folderRepo.getFolderByID(kbId, "topic"))
+        assertThat(folderRepo.getFolderById(kbId, "topic"))
                 .as("ancestor with another occupied child must remain").isNotNull();
-        assertThat(folderRepo.getFolderByID(kbId, "occupied-leaf")).isNotNull();
-        assertThat(folderRepo.getFolderByID(kbId, "unrelated-empty"))
+        assertThat(folderRepo.getFolderById(kbId, "occupied-leaf")).isNotNull();
+        assertThat(folderRepo.getFolderById(kbId, "unrelated-empty"))
                 .as("empty folders outside the affected chains must remain").isNotNull();
     }
 
@@ -460,7 +460,7 @@ class WikiPageServiceTest {
         WikiFolder child = folderRepo.getChildFolderByName(kbId, parent.getId(), "Child");
         svc.deleteFolder(kbId, child.getId());
         svc.deleteFolder(kbId, parent.getId());
-        assertThatThrownBy(() -> folderRepo.getFolderByID(kbId, parent.getId()))
+        assertThatThrownBy(() -> folderRepo.getFolderById(kbId, parent.getId()))
                 .isInstanceOf(WikiFolderNotFoundException.class);
     }
 
@@ -491,10 +491,10 @@ class WikiPageServiceTest {
 
         svc.renameOrMoveFolder(kbId, parent.getId(), "New", "", false);
 
-        assertThat(folderRepo.getFolderByID(kbId, parent.getId()).getPath()).isEqualTo("New");
-        assertThat(folderRepo.getFolderByID(kbId, parent.getId()).getDepth()).isEqualTo(1);
-        assertThat(folderRepo.getFolderByID(kbId, child.getId()).getPath()).isEqualTo("New/Leaf");
-        assertThat(folderRepo.getFolderByID(kbId, child.getId()).getDepth()).isEqualTo(2);
+        assertThat(folderRepo.getFolderById(kbId, parent.getId()).getPath()).isEqualTo("New");
+        assertThat(folderRepo.getFolderById(kbId, parent.getId()).getDepth()).isEqualTo(1);
+        assertThat(folderRepo.getFolderById(kbId, child.getId()).getPath()).isEqualTo("New/Leaf");
+        assertThat(folderRepo.getFolderById(kbId, child.getId()).getDepth()).isEqualTo(2);
         WikiPage p1 = repo.getBySlug(kbId, "entity/p1");
         assertThat(p1.getCategoryPath()).containsExactly("New", "Leaf");
         assertThat(p1.getWikiPath()).isEqualTo("entity/New/Leaf/P1");
@@ -518,7 +518,7 @@ class WikiPageServiceTest {
                 svc.findOrCreateFolderPath(kbId, 1L, List.of("AI", "RAG"));
         assertThat(r.path()).containsExactly("AI", "RAG");
         assertThat(r.folderId()).isNotEmpty();
-        assertThat(folderRepo.getFolderByID(kbId, r.folderId()).getPath()).isEqualTo("AI/RAG");
+        assertThat(folderRepo.getFolderById(kbId, r.folderId()).getPath()).isEqualTo("AI/RAG");
 
         // 二次调用必须复用，不重复创建
         assertThat(svc.findOrCreateFolderPath(kbId, 1L, List.of("AI", "RAG")).folderId())
@@ -846,13 +846,13 @@ class WikiPageServiceTest {
                 WikiConstants.STATUS_PUBLISHED, null, now));
     }
 
-    private void createFolder(String kbId, String id, String parentID, String name, String path,
+    private void createFolder(String kbId, String id, String parentId, String name, String path,
                               int depth, OffsetDateTime now) {
         WikiFolder f = new WikiFolder();
         f.setId(id);
         f.setTenantId(1L);
         f.setKnowledgeBaseId(kbId);
-        f.setParentId(parentID);
+        f.setParentId(parentId);
         f.setName(name);
         f.setPath(path);
         f.setDepth(depth);

@@ -242,7 +242,7 @@ final class NotionMarkdown {
             }
             case "link_to_page": {
                 // 页面标题在块数据里拿不到，只能渲染成链接
-                String pageId = extractLinkToPageID(block.rawContent);
+                String pageId = extractLinkToPageId(block.rawContent);
                 b.append("[Page ").append(pageId).append("](https://notion.so/")
                         .append(pageId.replace("-", "")).append(")\n\n");
                 break;
@@ -601,7 +601,7 @@ final class NotionMarkdown {
     }
 
     /** 取 {@code link_to_page.page_id}；取不到回空串。 */
-    static String extractLinkToPageID(JsonNode raw) {
+    static String extractLinkToPageId(JsonNode raw) {
         if (raw == null || !raw.isObject()) {
             return "";
         }

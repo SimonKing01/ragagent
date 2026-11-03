@@ -251,9 +251,9 @@ public class CompositeRetrieveEngine {
     }
 
     /** 扇出批量改标签。 */
-    public void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
+    public void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
         rethrowFirst(execPerEngine(info ->
-                info.engine.batchUpdateChunkTagID(chunkTagMap)));
+                info.engine.batchUpdateChunkTagId(chunkTagMap)));
     }
 
     /**

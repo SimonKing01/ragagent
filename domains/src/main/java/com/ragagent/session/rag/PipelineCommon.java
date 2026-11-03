@@ -219,7 +219,7 @@ public final class PipelineCommon {
      * 任务跑在虚拟线程上。
      *
      * <p>ThreadLocal 不跨线程，这里在提交线程快照 TenantContext、任务线程回放——
-     * 否则下游读 TenantContext 的代码（如 getModelByID → tenantId()=0）会静默拿到空上下文。</p>
+     * 否则下游读 TenantContext 的代码（如 getModelById → tenantId()=0）会静默拿到空上下文。</p>
      */
     public static Map<String, PluginError> runParallel(ParallelTask... tasks) {
         Map<String, PluginError> errs = new HashMap<>();

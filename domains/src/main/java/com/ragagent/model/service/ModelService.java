@@ -54,7 +54,7 @@ public class ModelService implements ModelFactsPort  {
      */
     @Override
     public ModelFacts findFacts(String modelId) {
-        Model m = getModelByID(modelId);
+        Model m = getModelById(modelId);
         if (m == null) {
             return null;
         }
@@ -132,7 +132,7 @@ public class ModelService implements ModelFactsPort  {
      * @throws ModelNotFoundException 不存在
      * @throws BizException 500（1007）状态异常
      */
-    public Model getModelByID(String id) {
+    public Model getModelById(String id) {
         if (id == null || id.isEmpty()) {
             throw new BizException(new AppError(1000, "model ID cannot be empty", null, 500));
         }
@@ -469,7 +469,7 @@ public class ModelService implements ModelFactsPort  {
     }
 
     public ModelDetailResponse getModelResponse(String id, boolean canViewIntegrationSecrets) {
-        Model model = getModelByID(id);
+        Model model = getModelById(id);
         return ModelDetailResponse.from(model, canViewIntegrationSecrets,
                 canManageBuiltin(model));
     }
@@ -483,7 +483,7 @@ public class ModelService implements ModelFactsPort  {
 
     public ModelDetailResponse updateModelResponse(String id, UpdateModelRequest req,
             boolean canViewIntegrationSecrets) {
-        Model model = getModelByID(id);
+        Model model = getModelById(id);
         if (req.name() != null && !req.name().isEmpty()) {
             model.setName(req.name());
         }
@@ -518,7 +518,7 @@ public class ModelService implements ModelFactsPort  {
     }
 
     public ModelCredentialsResponse credentialsResponse(String id) {
-        Model model = getModelByID(id);
+        Model model = getModelById(id);
         return ModelCredentialsResponse.of(
                 !model.getParameters().getApiKey().isEmpty(),
                 !model.getParameters().getAppSecret().isEmpty());
@@ -533,7 +533,7 @@ public class ModelService implements ModelFactsPort  {
     }
 
     public ModelDebugTarget getDebugTarget(String id) {
-        return ModelDebugTarget.from(getModelByID(id));
+        return ModelDebugTarget.from(getModelById(id));
     }
 
     private static boolean canManageBuiltin(Model model) {

@@ -118,7 +118,7 @@ public final class QaTurnFinalizer {
             agentEnabled = SessionKnowledgeQaService.isAgentMode(reqCtx.agentConfig);
         }
         SessionLastRequestState state = new SessionLastRequestState();
-        state.setAgentId(QaSupport.orEmpty(reqCtx.reqAgentID));
+        state.setAgentId(QaSupport.orEmpty(reqCtx.reqAgentId));
         state.setAgentEnabled(agentEnabled);
         state.setModelId(reqCtx.summaryModelId);
         state.setKnowledgeBaseIds(copy(reqCtx.knowledgeBaseIds));

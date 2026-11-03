@@ -171,7 +171,7 @@ final class FaqBatchFieldUpdater {
                     boundEngine.batchUpdateChunkEnabledStatus(enabledUpdates);
                 }
                 if (!tagUpdates.isEmpty()) {
-                    boundEngine.batchUpdateChunkTagID(tagUpdates);
+                    boundEngine.batchUpdateChunkTagId(tagUpdates);
                 }
             } catch (RuntimeException e) {
                 throw e;

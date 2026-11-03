@@ -95,7 +95,7 @@ public final class QaTurnExecutor {
         // agent 模式的 query 帧由 setupSSEStream 内的 writeAgentQueryEvent 直写流；
         // 不向空 EventBus 发事件（该实例无任何订阅者）。
 
-        boolean createdUser = reqCtx.userMessageID.isEmpty();
+        boolean createdUser = reqCtx.userMessageId.isEmpty();
         boolean createdAssistant =
                 reqCtx.assistantMessage == null || reqCtx.assistantMessage.getId().isEmpty();
         persistTurnOrFail(reqCtx);
@@ -220,7 +220,7 @@ public final class QaTurnExecutor {
                             failed ? "failed" : "completed", sessionId);
                     turnFinalizer.runWithTenant(normalSessionTenantId, () -> {
                         turnFinalizer.completeAssistantMessage(am, reqCtx.query,
-                                reqCtx.userMessageID, normalSessionTenantId);
+                                reqCtx.userMessageId, normalSessionTenantId);
                         if (!failed) {
                             Event done = new Event();
                             done.setType(EventType.EVENT_AGENT_COMPLETE);
@@ -318,11 +318,11 @@ public final class QaTurnExecutor {
                             Set<String> injected = streamCtx.steerSink != null
                                     ? streamCtx.steerSink.injectedIds() : Set.of();
                             steerCoordinator.discardSteerBacklog(sessionId, am.getId(), injected);
-                            turnFinalizer.completeAssistantMessage(am, reqCtx.query, reqCtx.userMessageID, sessionTenant);
+                            turnFinalizer.completeAssistantMessage(am, reqCtx.query, reqCtx.userMessageId, sessionTenant);
                         } else {
                             boolean kicked = steerCoordinator.kickNextRunFromSteerBacklog(
                                     reqCtx, streamCtx, this::runFollowUp);
-                            turnFinalizer.completeAssistantMessage(am, reqCtx.query, reqCtx.userMessageID, sessionTenant);
+                            turnFinalizer.completeAssistantMessage(am, reqCtx.query, reqCtx.userMessageId, sessionTenant);
                             if (!kicked) {
                                 steerCoordinator.kickNextRunFromSteerBacklog(reqCtx, streamCtx, this::runFollowUp);
                             }
@@ -368,7 +368,7 @@ public final class QaTurnExecutor {
         Long sessionTenant = reqCtx.session.getTenantId();
         turnFinalizer.runWithTenant(sessionTenant,
                 () -> turnFinalizer.completeAssistantMessage(
-                        am, reqCtx.query, reqCtx.userMessageID, sessionTenant));
+                        am, reqCtx.query, reqCtx.userMessageId, sessionTenant));
     }
 
     private void runFollowUp(QaRequestContext followUp) {
@@ -391,7 +391,7 @@ public final class QaTurnExecutor {
             long sessionTenant = followUp.session == null ? 0 : followUp.session.getTenantId();
             if (followUp.assistantMessage != null && !amId.isEmpty() && sessionTenant != 0) {
                 turnFinalizer.runWithTenant(sessionTenant, () -> turnFinalizer.completeAssistantMessage(
-                        followUp.assistantMessage, followUp.query, followUp.userMessageID, sessionTenant));
+                        followUp.assistantMessage, followUp.query, followUp.userMessageId, sessionTenant));
             }
         } catch (RuntimeException e) {
             log.warn("follow-up completion recovery failed", e);
@@ -432,22 +432,22 @@ public final class QaTurnExecutor {
             am.setCreatedAt(OffsetDateTime.now());
             reqCtx.assistantMessage = am;
         }
-        if (reqCtx.userMessageID.isEmpty() && reqCtx.assistantMessage.getId().isEmpty()) {
+        if (reqCtx.userMessageId.isEmpty() && reqCtx.assistantMessage.getId().isEmpty()) {
             // 两条消息同事务写入：任一失败一起回滚，避免孤儿 user 行
             List<MessageAttachment> userMessageAttachments = new ArrayList<>(reqCtx.attachments);
             userMessageAttachments.addAll(reqCtx.attachmentMetas);
             Message[] created = messageService.createTurnMessages(
                     buildUserMessage(reqCtx, userMessageAttachments), reqCtx.assistantMessage);
-            reqCtx.userMessageID = created[0].getId();
+            reqCtx.userMessageId = created[0].getId();
             reqCtx.userCreatedAt = created[0].getCreatedAt();
             reqCtx.assistantMessage = created[1];
             return;
         }
-        if (reqCtx.userMessageID.isEmpty()) {
+        if (reqCtx.userMessageId.isEmpty()) {
             List<MessageAttachment> userMessageAttachments = new ArrayList<>(reqCtx.attachments);
             userMessageAttachments.addAll(reqCtx.attachmentMetas);
             Message userMsg = messageService.createMessage(buildUserMessage(reqCtx, userMessageAttachments));
-            reqCtx.userMessageID = userMsg.getId();
+            reqCtx.userMessageId = userMsg.getId();
             reqCtx.userCreatedAt = userMsg.getCreatedAt();
         }
         if (reqCtx.assistantMessage.getId().isEmpty()) {
@@ -485,12 +485,12 @@ public final class QaTurnExecutor {
     }
     private void rollbackTurnMessages(QaRequestContext reqCtx, boolean user, boolean assistant) {
         String sessionId = reqCtx.sessionId;
-        if (user && !reqCtx.userMessageID.isEmpty()) {
+        if (user && !reqCtx.userMessageId.isEmpty()) {
             try {
-                messageService.deleteMessage(sessionId, reqCtx.userMessageID);
-                reqCtx.userMessageID = "";
+                messageService.deleteMessage(sessionId, reqCtx.userMessageId);
+                reqCtx.userMessageId = "";
             } catch (RuntimeException e) {
-                log.warn("turn rollback failed for user message {}", reqCtx.userMessageID, e);
+                log.warn("turn rollback failed for user message {}", reqCtx.userMessageId, e);
             }
         }
         if (assistant && reqCtx.assistantMessage != null && !reqCtx.assistantMessage.getId().isEmpty()) {

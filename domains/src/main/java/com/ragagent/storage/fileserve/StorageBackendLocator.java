@@ -34,7 +34,7 @@ final class StorageBackendLocator {
             id = tenant.defaultStorageBackendId() == null ? "" : tenant.defaultStorageBackendId().trim();
         }
         if (!id.isEmpty()) {
-            StorageBackend backend = backendRepo.getByID(tenant.tenantId(), id).orElse(null);
+            StorageBackend backend = backendRepo.getById(tenant.tenantId(), id).orElse(null);
             if (backend == null) {
                 return new Result(null, "storage backend not found");
             }

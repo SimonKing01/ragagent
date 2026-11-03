@@ -164,7 +164,7 @@ final class MessageSearch {
         items = fetchPartnerMessages(items);
 
         // Step 5：按 request_id 合并成 Q&A 对
-        List<MessageSearchGroupItem> grouped = groupByRequestID(items);
+        List<MessageSearchGroupItem> grouped = groupByRequestId(items);
 
         if (grouped.size() > limit) {
             grouped = new ArrayList<>(grouped.subList(0, limit));
@@ -535,7 +535,7 @@ final class MessageSearch {
      * 无 request_id 的消息按**消息 id** 独立成组；
      * 组间保持首次出现序（分数排名即展示序）。
      */
-    private static List<MessageSearchGroupItem> groupByRequestID(List<SearchItem> items) {
+    private static List<MessageSearchGroupItem> groupByRequestId(List<SearchItem> items) {
         Map<String, MessageSearchGroupItem> groups = new LinkedHashMap<>();
         for (SearchItem item : items) {
             String key = item.requestId() == null || item.requestId().isEmpty()

@@ -75,7 +75,7 @@ final class WikiIngestRunSupport {
     void runIngestBody(WikiIngestPayload payload, WikiIngestBatchHandler.Stats stats) {
         String kbId = payload.knowledgeBaseId();
 
-        KnowledgeBaseView kb = handler.getKnowledgeBaseByIDOnly(kbId);
+        KnowledgeBaseView kb = handler.getKnowledgeBaseByIdOnly(kbId);
         if (kb == null) {
             stats.exitStatus = "kb_deleted";
             handler.ingestService.clearDeletedKnowledgeBasePendingOps(kbId);

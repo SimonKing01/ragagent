@@ -353,7 +353,7 @@ class LangfuseModelDecoratorsTest {
         }
 
         @Override
-        public String getModelID() {
+        public String getModelId() {
             return "emb-1";
         }
     }
@@ -379,7 +379,7 @@ class LangfuseModelDecoratorsTest {
         }
 
         @Override
-        public String getModelID() {
+        public String getModelId() {
             return "rr-1";
         }
     }

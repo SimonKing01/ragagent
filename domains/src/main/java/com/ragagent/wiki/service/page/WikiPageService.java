@@ -82,7 +82,7 @@ public interface WikiPageService {
     /** 结果：可能被改写的正文 + 是否发生改写 */
     record RepairResult(String content, boolean changed) {}
 
-    WikiPage getPageByID(String id);
+    WikiPage getPageById(String id);
 
     /** 过滤 + 分页 */
     WikiPageListResponse listPages(WikiPageListRequest req);
@@ -128,9 +128,9 @@ public interface WikiPageService {
 
     List<WikiPage> listByType(String kbId, String pageType);
 
-    List<WikiPage> listPagesBySourceRef(String kbId, String knowledgeID);
+    List<WikiPage> listPagesBySourceRef(String kbId, String knowledgeId);
 
-    List<String> listSlugsBySourceRef(String kbId, String knowledgeID);
+    List<String> listSlugsBySourceRef(String kbId, String knowledgeId);
 
     /** 一次 IN 查询拿瘦投影 */
     Map<String, WikiPageLite> listBySlugs(String kbId, List<String> slugs);
@@ -169,18 +169,18 @@ public interface WikiPageService {
      * parentID（"" = 根）的直接子文件夹，
      * PageCount 是<b>递归</b>的子树计数。
      */
-    List<WikiFolderNode> listChildFolders(String kbId, String parentID, List<String> pageTypes);
+    List<WikiFolderNode> listChildFolders(String kbId, String parentId, List<String> pageTypes);
 
     WikiFolder getFolder(String kbId, String id);
 
     /** 同名兄弟已存在 → 冲突 */
-    WikiFolder createFolder(String kbId, Long tenantID, String parentID, String name);
+    WikiFolder createFolder(String kbId, Long tenantId, String parentId, String name);
 
     /**
      * 改名 / 换父节点，并重算整棵
      * 子树的物化 path/depth 与子树下每个页面的缓存 category_path。
      */
-    WikiFolder renameOrMoveFolder(String kbId, String id, String newName, String newParentID,
+    WikiFolder renameOrMoveFolder(String kbId, String id, String newName, String newParentId,
                                   boolean moveParent);
 
     /** 只能删空文件夹 */
@@ -194,13 +194,13 @@ public interface WikiPageService {
      */
     List<String> pruneEmptyFolderChains(String kbId, List<String> folderIDs);
 
-    FindOrCreateResult findOrCreateFolderPath(String kbId, Long tenantID, List<String> path);
+    FindOrCreateResult findOrCreateFolderPath(String kbId, Long tenantId, List<String> path);
 
     /** 叶子文件夹 id 与其清洗后的完整路径 */
     record FindOrCreateResult(String folderId, List<String> path) {}
 
     /** 把页面移入文件夹并刷新缓存路径 */
-    WikiPage movePage(String kbId, String slug, String folderID);
+    WikiPage movePage(String kbId, String slug, String folderId);
 
     // ── 修订历史 ──
 
@@ -224,5 +224,5 @@ public interface WikiPageService {
 
     List<WikiPageIssue> listIssues(String kbId, String slug, String status);
 
-    void updateIssueStatus(String issueID, String status);
+    void updateIssueStatus(String issueId, String status);
 }

@@ -27,26 +27,26 @@ final class KnowledgeSearchOutputFormatter {
         this.tool = tool;
     }
 
-    FaqChunkMetadata getFAQMetadata(String chunkID, Map<String, FaqChunkMetadata> cache) {
-        if (chunkID.isEmpty() || tool.chunkBackend == null) {
+    FaqChunkMetadata getFAQMetadata(String chunkId, Map<String, FaqChunkMetadata> cache) {
+        if (chunkId.isEmpty() || tool.chunkBackend == null) {
             return null;
         }
-        if (cache.containsKey(chunkID)) {
-            return cache.get(chunkID);
+        if (cache.containsKey(chunkId)) {
+            return cache.get(chunkId);
         }
         ChunkFacts chunk;
         try {
-            chunk = tool.chunkBackend.faqChunkById(chunkID);
+            chunk = tool.chunkBackend.faqChunkById(chunkId);
         } catch (RuntimeException e) {
-            cache.put(chunkID, null);
+            cache.put(chunkId, null);
             return null;
         }
         if (chunk == null) {
-            cache.put(chunkID, null);
+            cache.put(chunkId, null);
             return null;
         }
         FaqChunkMetadata meta = FaqSnippet.faqMetadata(chunk);
-        cache.put(chunkID, meta);
+        cache.put(chunkId, meta);
         return meta;
     }
 
@@ -125,16 +125,16 @@ final class KnowledgeSearchOutputFormatter {
 
         ob.append("<retrievalStatistics>\n");
         for (Map.Entry<String, Set<Integer>> e : knowledgeChunkMap.entrySet()) {
-            String knowledgeID = e.getKey();
-            long totalChunks = knowledgeTotalMap.getOrDefault(knowledgeID, 0L);
+            String knowledgeId = e.getKey();
+            long totalChunks = knowledgeTotalMap.getOrDefault(knowledgeId, 0L);
             int retrievedCount = e.getValue().size();
-            String title = knowledgeTitleMap.getOrDefault(knowledgeID, "");
+            String title = knowledgeTitleMap.getOrDefault(knowledgeId, "");
             if (totalChunks > 0) {
                 long remaining = totalChunks - retrievedCount;
                 double percentage = retrievedCount / (double) totalChunks * 100;
                 ob.append(String.format(Locale.ROOT,
                         "<documentStat knowledgeId=\"%s\" title=\"%s\" totalChunks=\"%d\" retrieved=\"%d\" remaining=\"%d\" coverage=\"%.1f%%\" />\n",
-                        FaqSnippet.xmlEscape(knowledgeID), FaqSnippet.xmlEscape(title), totalChunks,
+                        FaqSnippet.xmlEscape(knowledgeId), FaqSnippet.xmlEscape(title), totalChunks,
                         retrievedCount, remaining, percentage));
             }
         }
@@ -312,13 +312,13 @@ final class KnowledgeSearchOutputFormatter {
 
     /** 单篇文档的总 chunk 数；租户不可解析或后端失败回 0。 */
     private long totalChunksFor(ResultWithMeta result) {
-        long effectiveTenantID = tool.searchTargets == null ? 0
+        long effectiveTenantId = tool.searchTargets == null ? 0
                 : tool.searchTargets.getTenantIdForKb(nz(result.sr.knowledgeBaseId));
-        if (effectiveTenantID == 0) {
+        if (effectiveTenantId == 0) {
             return 0L;
         }
         try {
-            return tool.chunkBackend.totalChunks(effectiveTenantID, nz(result.sr.knowledgeId));
+            return tool.chunkBackend.totalChunks(effectiveTenantId, nz(result.sr.knowledgeId));
         } catch (RuntimeException e) {
             return 0L;
         }

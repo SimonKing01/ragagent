@@ -125,7 +125,7 @@ public class McpServiceManagement {
     }
 
     /** **返回未脱敏实体**；不存在 → "MCP service not found" */
-    public McpService getMCPServiceByID(long tenantId, String id) {
+    public McpService getMCPServiceById(long tenantId, String id) {
         McpService service = mcpServiceRepo.getByIdForTenant(tenantId, id);
         if (service == null) {
             throw BizException.notFound("MCP service not found");
@@ -134,7 +134,7 @@ public class McpServiceManagement {
     }
 
     /** 裸查询：不存在返回 null（内部/可选场景用） */
-    public McpService findByID(long tenantId, String id) {
+    public McpService findById(long tenantId, String id) {
         return mcpServiceRepo.getByIdForTenant(tenantId, id);
     }
 
@@ -373,7 +373,7 @@ public class McpServiceManagement {
 
     /** 临时客户端；OAuth 服务接上按 principal 的 token 存储 */
     public McpTestResult testMCPService(long tenantId, String id) {
-        McpService service = getMCPServiceByID(tenantId, id);
+        McpService service = getMCPServiceById(tenantId, id);
 
         McpClientConfig config = new McpClientConfig(service);
         if (service.getAuthConfig() != null && service.getAuthConfig().isOAuth()) {
@@ -437,7 +437,7 @@ public class McpServiceManagement {
 
     /** 走缓存连接（manager 负责 connect + initialize） */
     public List<McpTool> getMCPServiceTools(long tenantId, String id) {
-        McpService service = getMCPServiceByID(tenantId, id);
+        McpService service = getMCPServiceById(tenantId, id);
         McpClient client;
         try {
             client = clients().getOrCreateClient(McpContext.none(), service);
@@ -452,7 +452,7 @@ public class McpServiceManagement {
     }
 
     public List<McpResource> getMCPServiceResources(long tenantId, String id) {
-        McpService service = getMCPServiceByID(tenantId, id);
+        McpService service = getMCPServiceById(tenantId, id);
         McpClient client;
         try {
             client = clients().getOrCreateClient(McpContext.none(), service);
@@ -480,7 +480,7 @@ public class McpServiceManagement {
      * <p>写成功后必须关连接：否则下一次上游调用仍带旧凭据。</p>
      */
     public McpCredentialsState credentialsState(long tenantId, String id) {
-        return state(getMCPServiceByID(tenantId, id));
+        return state(getMCPServiceById(tenantId, id));
     }
 
     public McpCredentialsState updateCredentialsState(long tenantId, String id,
@@ -499,7 +499,7 @@ public class McpServiceManagement {
     }
 
     public McpService updateMCPCredentials(long tenantId, String id, String apiKey, String token) {
-        McpService existing = getMCPServiceByID(tenantId, id);
+        McpService existing = getMCPServiceById(tenantId, id);
         if (existing.isIsBuiltin()) {
             throw BizException.internal("builtin MCP services cannot have credentials modified");
         }
@@ -537,7 +537,7 @@ public class McpServiceManagement {
      * @param field 只接受 "apiKey" / "token"，其它值报 unknown credential field
      */
     public void clearMCPCredential(long tenantId, String id, String field) {
-        McpService existing = getMCPServiceByID(tenantId, id);
+        McpService existing = getMCPServiceById(tenantId, id);
         if (existing.isIsBuiltin()) {
             throw BizException.internal("builtin MCP services cannot have credentials modified");
         }

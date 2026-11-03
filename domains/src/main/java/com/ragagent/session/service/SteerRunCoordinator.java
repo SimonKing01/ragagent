@@ -122,7 +122,7 @@ public class SteerRunCoordinator {
         followUp.assistantMessage.setRequestId(followUp.requestId);
         followUp.assistantMessage.setCreatedAt(java.time.OffsetDateTime.now());
         followUp.suggestionAttribution = null;
-        followUp.userMessageID = "";
+        followUp.userMessageId = "";
         followUp.steerSink = null;
         followUp.images = new java.util.ArrayList<>();
         followUp.attachments = new java.util.ArrayList<>();
@@ -143,7 +143,7 @@ public class SteerRunCoordinator {
             userMsg.setChannel(followUp.channel);
             userMsg.setMentionedItems(followUp.mentionedItems);
             Message createdUser = messageService.createMessage(userMsg);
-            followUp.userMessageID = createdUser.getId();
+            followUp.userMessageId = createdUser.getId();
             followUp.userCreatedAt = createdUser.getCreatedAt();
             Message createdAssistant = messageService.createMessage(followUp.assistantMessage);
             followUp.assistantMessage = createdAssistant;
@@ -204,8 +204,8 @@ public class SteerRunCoordinator {
 
     private void rollback(QaSupport.QaRequestContext followUp) {
         try {
-            if (!followUp.userMessageID.isEmpty()) {
-                messageService.deleteMessage(followUp.sessionId, followUp.userMessageID);
+            if (!followUp.userMessageId.isEmpty()) {
+                messageService.deleteMessage(followUp.sessionId, followUp.userMessageId);
             }
             if (followUp.assistantMessage != null && !followUp.assistantMessage.getId().isEmpty()) {
                 messageService.deleteMessage(followUp.sessionId, followUp.assistantMessage.getId());
@@ -237,7 +237,7 @@ public class SteerRunCoordinator {
         copy.mentionedItems = new java.util.ArrayList<>(src.mentionedItems);
         copy.effectiveTenantId = src.effectiveTenantId;
         copy.images = src.images;
-        copy.userMessageID = src.userMessageID;
+        copy.userMessageId = src.userMessageId;
         copy.userCreatedAt = src.userCreatedAt;
         copy.channel = src.channel;
         copy.attachments = src.attachments;
@@ -247,7 +247,7 @@ public class SteerRunCoordinator {
         copy.resourceRewriter = src.resourceRewriter;
         copy.steerSink = src.steerSink;
         copy.reqAgentEnabled = src.reqAgentEnabled;
-        copy.reqAgentID = src.reqAgentID;
+        copy.reqAgentId = src.reqAgentId;
         copy.skipSSE = src.skipSSE;
         return copy;
     }

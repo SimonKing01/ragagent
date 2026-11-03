@@ -27,19 +27,19 @@ public final class SubtreeChildIds {
     /**
      * 构造一个子项的 external_id。
      *
-     * @param parentExternalID 父节点的 external_id
+     * @param parentExternalId 父节点的 external_id
      * @param kind             短判别串（{@code "file"} / {@code "image"}）
      * @param token            源系统给子项的 id（假定不含 {@code '#'}）
      * @return {@code "<parentExternalID>#<kind>#<token>"}
      */
-    public static String subtreeChildId(String parentExternalID, String kind, String token) {
-        return parentExternalID + "#" + kind + "#" + token;
+    public static String subtreeChildId(String parentExternalId, String kind, String token) {
+        return parentExternalId + "#" + kind + "#" + token;
     }
 
     /**
      * 匹配某个父节点**全部**子项的 external_id 前缀。
      */
-    public static String subtreeChildPrefix(String parentExternalID) {
-        return parentExternalID + "#";
+    public static String subtreeChildPrefix(String parentExternalId) {
+        return parentExternalId + "#";
     }
 }

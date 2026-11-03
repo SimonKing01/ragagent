@@ -513,8 +513,8 @@ public class MilvusRetrieveRepository
     }
 
     @Override
-    public void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
-        writeOps.batchUpdateChunkTagID(chunkTagMap);
+    public void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
+        writeOps.batchUpdateChunkTagId(chunkTagMap);
     }
 
     @Override

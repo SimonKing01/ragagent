@@ -100,9 +100,9 @@ class RssPureFunctionsTest {
     @Test
     void itemExternalIdMatchesGo() {
         // ("https://a.com/feed", "guid-1") -> "https://a.com/feed:guid-1"; ("", "") -> ":"
-        assertThat(RssUtil.itemExternalID("https://a.com/feed", "guid-1"))
+        assertThat(RssUtil.itemExternalId("https://a.com/feed", "guid-1"))
                 .isEqualTo("https://a.com/feed:guid-1");
-        assertThat(RssUtil.itemExternalID("", "")).isEqualTo(":");
+        assertThat(RssUtil.itemExternalId("", "")).isEqualTo(":");
     }
 
     // ── firstNonEmpty ─────────────────────────────────────────────────────
@@ -362,8 +362,8 @@ class RssPureFunctionsTest {
 
     @Test
     void differentFeedsWithSameGuidGetDifferentExternalIds() {
-        assertThat(RssUtil.itemExternalID("https://a/f", "g")).isNotEqualTo(
-                RssUtil.itemExternalID("https://b/f", "g"));
+        assertThat(RssUtil.itemExternalId("https://a/f", "g")).isNotEqualTo(
+                RssUtil.itemExternalId("https://b/f", "g"));
     }
 
     // ── 列表不可变性的小护栏（RssCursor.toMap 的返回） ─────────────────────

@@ -269,7 +269,7 @@ public class PgVectorEngineRepository
 
     /** 按 ChunkID 批量更新 chunk 标签。 */
     @Override
-    public void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
+    public void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
         writeSvc.batchUpdateChunkTagId(chunkTagMap);
     }
 

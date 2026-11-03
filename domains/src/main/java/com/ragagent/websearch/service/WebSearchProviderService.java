@@ -39,8 +39,8 @@ public class WebSearchProviderService {
         this.ssrfGuard = ssrfGuard;
     }
 
-    public WebSearchProviderEntity getByID(long tenantId, String id) {
-        return repo.getByID(tenantId, id);
+    public WebSearchProviderEntity getById(long tenantId, String id) {
+        return repo.getById(tenantId, id);
     }
 
     public List<WebSearchProviderEntity> list(long tenantId) {
@@ -55,7 +55,7 @@ public class WebSearchProviderService {
 
     /** {@code null} = provider 不存在。 */
     public WebSearchProviderResponse getResponse(long tenantId, String id, boolean canViewSecrets) {
-        WebSearchProviderEntity entity = repo.getByID(tenantId, id);
+        WebSearchProviderEntity entity = repo.getById(tenantId, id);
         return entity == null ? null : WebSearchProviderResponse.from(entity, canViewSecrets);
     }
 
@@ -78,7 +78,7 @@ public class WebSearchProviderService {
     public WebSearchProviderResponse updateResponse(long tenantId, String id, String name,
             String description, WebSearchProviderParams parameters, Boolean isDefault,
             boolean canViewSecrets) {
-        WebSearchProviderEntity existing = repo.getByID(tenantId, id);
+        WebSearchProviderEntity existing = repo.getById(tenantId, id);
         if (existing == null) {
             return null;
         }
@@ -100,13 +100,13 @@ public class WebSearchProviderService {
         updated.setParameters(merged);
         updated.setDefault(isDefault != null && isDefault);
         update(updated);
-        WebSearchProviderEntity refreshed = repo.getByID(tenantId, id);
+        WebSearchProviderEntity refreshed = repo.getById(tenantId, id);
         return refreshed == null ? null : WebSearchProviderResponse.from(refreshed, canViewSecrets);
     }
 
     /** {@code null} = provider 不存在。 */
     public WebSearchProviderTestTarget getTestTarget(long tenantId, String id) {
-        WebSearchProviderEntity entity = repo.getByID(tenantId, id);
+        WebSearchProviderEntity entity = repo.getById(tenantId, id);
         return entity == null ? null : WebSearchProviderTestTarget.from(entity);
     }
 
@@ -158,7 +158,7 @@ public class WebSearchProviderService {
 
     /** 更新凭据：key 缺失/为空/与现值相同 → 不写库；返回写完后的“已配置”状态。 */
     public boolean updateCredentials(long tenantId, String id, String apiKey) {
-        WebSearchProviderEntity existing = repo.getByID(tenantId, id);
+        WebSearchProviderEntity existing = repo.getById(tenantId, id);
         if (existing == null) {
             throw failed("web search provider not found");
         }
@@ -173,7 +173,7 @@ public class WebSearchProviderService {
 
     /** 查询凭据状态：{@code null} = provider 不存在（控制器据此回 404）。 */
     public Boolean credentialConfigured(long tenantId, String id) {
-        WebSearchProviderEntity existing = repo.getByID(tenantId, id);
+        WebSearchProviderEntity existing = repo.getById(tenantId, id);
         if (existing == null) {
             return null;
         }
@@ -189,7 +189,7 @@ public class WebSearchProviderService {
         if (!"apiKey".equals(field)) {
             throw failed("unknown credential field: " + field);
         }
-        WebSearchProviderEntity existing = repo.getByID(tenantId, id);
+        WebSearchProviderEntity existing = repo.getById(tenantId, id);
         if (existing == null) {
             throw failed("web search provider not found");
         }

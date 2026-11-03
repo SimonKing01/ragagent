@@ -39,13 +39,13 @@ final class SteerIntake {
      *
      * @return 注入条数
      */
-    int drainSteerMessages(AgentState state, AgentEngine.MsgRef messagesRef, String sessionId, String messageID) {
+    int drainSteerMessages(AgentState state, AgentEngine.MsgRef messagesRef, String sessionId, String messageId) {
         if (engine.steerSink == null) {
             return 0;
         }
         List<Map<String, Object>> events;
         try {
-            events = engine.steerSink.pollSteer(sessionId, messageID, 0);
+            events = engine.steerSink.pollSteer(sessionId, messageId, 0);
         } catch (RuntimeException e) {
             log.warn("[Agent] Steer poll failed at round {}", state.getCurrentRound() + 1, e);
             return 0;
@@ -60,21 +60,21 @@ final class SteerIntake {
             if (content.isEmpty()) {
                 continue;
             }
-            String steerID = mapString(evt, "id");
-            String userMessageID = engine.steerSink.persistSteerMessage(sessionId, messageID, steerID,
+            String steerId = mapString(evt, "id");
+            String userMessageId = engine.steerSink.persistSteerMessage(sessionId, messageId, steerId,
                     content, evt.get("mentionedItems"), mapString(evt, "channel"));
-            if (userMessageID == null || userMessageID.isEmpty()) {
-                log.warn("[Agent] Steer persist failed for {}, leaving event pending", steerID);
+            if (userMessageId == null || userMessageId.isEmpty()) {
+                log.warn("[Agent] Steer persist failed for {}, leaving event pending", steerId);
                 continue;
             }
             messagesRef.items.add(new ChatMessage("user", steerMessageContent(content)));
             if (state.getPendingSteerMessages() == null) {
                 state.setPendingSteerMessages(new ArrayList<>());
             }
-            state.getPendingSteerMessages().add(userMessageID);
-            engine.eventBus.emit(new Event(EventIds.generateEventID("injected"),
+            state.getPendingSteerMessages().add(userMessageId);
+            engine.eventBus.emit(new Event(EventIds.generateEventId("injected"),
                     EventType.EVENT_USER_MESSAGE_INJECTED, sessionId,
-                    new UserMessageInjectedData(steerID, content, messageID, userMessageID), null, ""));
+                    new UserMessageInjectedData(steerId, content, messageId, userMessageId), null, ""));
             injected++;
         }
         if (injected > 0) {

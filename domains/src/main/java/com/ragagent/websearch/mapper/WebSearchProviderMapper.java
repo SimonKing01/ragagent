@@ -33,7 +33,7 @@ public interface WebSearchProviderMapper {
             @Result(column = "parameters", property = "parameters",
                     typeHandler = WebSearchParamsTypeHandler.class)
     })
-    WebSearchProviderEntity getByID(@Param("tenantId") long tenantId, @Param("id") String id);
+    WebSearchProviderEntity getById(@Param("tenantId") long tenantId, @Param("id") String id);
 
     /** 列表查询：created_at ASC */
     @Select("SELECT " + COLS + " FROM web_search_providers "

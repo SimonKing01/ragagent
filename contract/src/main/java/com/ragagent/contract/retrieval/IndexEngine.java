@@ -47,7 +47,7 @@ public interface IndexEngine {
     void batchUpdateChunkEnabledStatus(Map<String, Boolean> chunkStatusMap) throws Exception;
 
     /** 批量改标签。 */
-    void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception;
+    void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception;
 
     /** 估算这些条目的存储体量。 */
     long estimateStorageSize(Embedder embedder, List<IndexDocument> documents);

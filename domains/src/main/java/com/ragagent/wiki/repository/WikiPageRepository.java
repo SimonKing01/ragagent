@@ -221,7 +221,7 @@ public class WikiPageRepository {
 
     // ── 页面读取 ──
 
-    public WikiPage getByID(String id) {
+    public WikiPage getById(String id) {
         WikiPage page = pages.selectLiveById(id);
         if (page == null) {
             throw new WikiPageNotFoundException();
@@ -343,8 +343,8 @@ public class WikiPageRepository {
      * 找出引用了指定 source knowledge id 的页面。
      * 两种历史形态（"knowledgeID" 与 "knowledgeID|title"）都覆盖。
      */
-    public List<WikiPage> listBySourceRef(String kbId, String sourceKnowledgeID) {
-        SourceRefNeedle n = WikiSourceRefs.of(sourceKnowledgeID);
+    public List<WikiPage> listBySourceRef(String kbId, String sourceKnowledgeId) {
+        SourceRefNeedle n = WikiSourceRefs.of(sourceKnowledgeId);
         return pages.listBySourceRef(kbId, postgres, n.getNeedle(), n.getExactLike(), n.getPrefixLike());
     }
 
@@ -352,8 +352,8 @@ public class WikiPageRepository {
      * 同一谓词，只取 slug 列，
      * 用于 ingest 的 "before" 快照路径。
      */
-    public List<String> listSlugsBySourceRef(String kbId, String sourceKnowledgeID) {
-        SourceRefNeedle n = WikiSourceRefs.of(sourceKnowledgeID);
+    public List<String> listSlugsBySourceRef(String kbId, String sourceKnowledgeId) {
+        SourceRefNeedle n = WikiSourceRefs.of(sourceKnowledgeId);
         return pages.listSlugsBySourceRef(kbId, postgres, n.getNeedle(), n.getExactLike(),
                 n.getPrefixLike());
     }
@@ -407,7 +407,7 @@ public class WikiPageRepository {
         Map<String, String> out = new LinkedHashMap<>();
         for (WikiPageMapper.SummaryRow row : rows) {
             for (String ref : row.getSourceRefs()) {
-                String refKid = WikiCategoryPaths.sourceKnowledgeID(ref);
+                String refKid = WikiCategoryPaths.sourceKnowledgeId(ref);
                 if (!kidSet.contains(refKid)) {
                     continue;
                 }
@@ -593,7 +593,7 @@ public class WikiPageRepository {
         }
     }
 
-    public void deleteByID(String id) {
+    public void deleteById(String id) {
         if (pages.softDeleteById(id, OffsetDateTime.now()) == 0) {
             throw new WikiPageNotFoundException();
         }
@@ -639,15 +639,15 @@ public class WikiPageRepository {
     // ── 修订历史 ──
 
     /** 最新在前，content 省略，附总数 */
-    public RevisionList listRevisions(String kbId, String pageID, int limit, int offset) {
-        long total = revisions.countRevisions(kbId, pageID);
-        List<WikiPageRevision> rows = revisions.listRevisions(kbId, pageID, limit, offset);
+    public RevisionList listRevisions(String kbId, String pageId, int limit, int offset) {
+        long total = revisions.countRevisions(kbId, pageId);
+        List<WikiPageRevision> rows = revisions.listRevisions(kbId, pageId, limit, offset);
         return new RevisionList(rows == null ? List.of() : rows, total);
     }
 
     /** 带 content 的单条快照 */
-    public WikiPageRevision getRevision(String kbId, String pageID, int version) {
-        WikiPageRevision rev = revisions.selectRevision(kbId, pageID, version);
+    public WikiPageRevision getRevision(String kbId, String pageId, int version) {
+        WikiPageRevision rev = revisions.selectRevision(kbId, pageId, version);
         if (rev == null) {
             throw new WikiPageNotFoundException();
         }
@@ -659,15 +659,15 @@ public class WikiPageRepository {
      * 硬上限无视作者。pageID 为空是 no-op。
      */
     public void pruneRevisions(WikiRevisionPruneRequest req) {
-        if (req.pageID() == null || req.pageID().isEmpty()) {
+        if (req.pageId() == null || req.pageId().isEmpty()) {
             return;
         }
         if (req.keepFromVersion() > 0
                 && req.prunableSources() != null && !req.prunableSources().isEmpty()) {
-            revisions.pruneBySources(req.pageID(), req.keepFromVersion(), req.prunableSources());
+            revisions.pruneBySources(req.pageId(), req.keepFromVersion(), req.prunableSources());
         }
         if (req.hardKeepFromVersion() > 0) {
-            revisions.pruneBelowVersion(req.pageID(), req.hardKeepFromVersion());
+            revisions.pruneBelowVersion(req.pageId(), req.hardKeepFromVersion());
         }
     }
 
@@ -675,11 +675,11 @@ public class WikiPageRepository {
      * 硬删整页历史。
      * pageID 为空是 no-op（否则会变成全表删除——护栏 + 测试钉住）。
      */
-    public void deleteRevisionsByPage(String pageID) {
-        if (pageID == null || pageID.isEmpty()) {
+    public void deleteRevisionsByPage(String pageId) {
+        if (pageId == null || pageId.isEmpty()) {
             return;
         }
-        revisions.deleteByPageId(pageID);
+        revisions.deleteByPageId(pageId);
     }
 
     // ── 页面问题 ──
@@ -701,8 +701,8 @@ public class WikiPageRepository {
     }
 
     /** 单列更新，不判存在性 */
-    public void updateIssueStatus(String issueID, String status) {
-        issues.updateIssueStatus(issueID, status);
+    public void updateIssueStatus(String issueId, String status) {
+        issues.updateIssueStatus(issueId, status);
     }
 
 }

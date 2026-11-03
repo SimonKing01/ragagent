@@ -92,14 +92,14 @@ public final class PluginMemoryRecall implements Plugin {
      * 尽力而为的事件（emit 失败只告警不断流）。
      * EventMemoryRecalled 的 Data = MemoryRecalledData{Memories}。
      */
-    static void emitMemoryRecalled(EventBusInterface bus, String sessionID,
+    static void emitMemoryRecalled(EventBusInterface bus, String sessionId,
                                    List<PipelineUsedMemoryView> used) {
         if (bus == null || used == null || used.isEmpty()) {
             return;
         }
         Event evt = new Event();
         evt.setType(EventType.EVENT_MEMORY_RECALLED);
-        evt.setSessionId(sessionID);
+        evt.setSessionId(sessionId);
         evt.setData(new MemoryRecalledData(used));
         try {
             bus.emit(evt);

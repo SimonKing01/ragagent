@@ -59,7 +59,7 @@ public final class ConcurrencyEmbedder implements Embedder, EmbedderPooler {
         if (governor == null) {
             return Release.NOOP;
         }
-        return governor.gateNamedN(inner.getModelID(), inner.getModelName(), limit);
+        return governor.gateNamedN(inner.getModelId(), inner.getModelName(), limit);
     }
 
     @Override
@@ -73,7 +73,7 @@ public final class ConcurrencyEmbedder implements Embedder, EmbedderPooler {
     }
 
     @Override
-    public String getModelID() {
-        return inner.getModelID();
+    public String getModelId() {
+        return inner.getModelId();
     }
 }

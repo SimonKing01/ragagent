@@ -127,9 +127,9 @@ public final class ImageInfoEnricher {
                     if (!"image_ocr".equals(gc.chunkType()) && !"image_caption".equals(gc.chunkType())) {
                         continue;
                     }
-                    String parentTextID = textToParent.get(gc.parentChunkId());
-                    if (parentTextID != null) {
-                        addChildInfo(aggMap, parentTextID, gc);
+                    String parentTextId = textToParent.get(gc.parentChunkId());
+                    if (parentTextId != null) {
+                        addChildInfo(aggMap, parentTextId, gc);
                     }
                 }
             }
@@ -147,7 +147,7 @@ public final class ImageInfoEnricher {
 
     /** URL（空则 OriginalURL）去重 + 非空 OCR/Caption 字段覆盖。 */
     private static void addChildInfo(Map<String, Map<String, ImageInfo>> aggMap,
-                                     String targetID,
+                                     String targetId,
                                      ChunkFacts child) {
         if (child.imageInfo() == null || child.imageInfo().isEmpty()) {
             return;
@@ -156,7 +156,7 @@ public final class ImageInfoEnricher {
         if (infos == null || infos.isEmpty()) {
             return;
         }
-        Map<String, ImageInfo> agg = aggMap.computeIfAbsent(targetID, k -> new LinkedHashMap<>());
+        Map<String, ImageInfo> agg = aggMap.computeIfAbsent(targetId, k -> new LinkedHashMap<>());
         for (ImageInfo info : infos) {
             String key = info.getUrl().isEmpty() ? info.getOriginalUrl() : info.getUrl();
             if (key.isEmpty()) {

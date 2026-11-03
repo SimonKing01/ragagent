@@ -147,8 +147,8 @@ public final class PluginChatCompletionStream implements Plugin {
                                       ChatStream responseQueue) {
         StreamDecoder answerDecoder = modelContext.streamDecoder();
         StreamDecoder thinkingDecoder = modelContext.streamDecoder();
-        String thinkingID = String.format("%s-thinking", UUID.randomUUID().toString().substring(0, 8));
-        String answerID = String.format("%s-answer", UUID.randomUUID().toString().substring(0, 8));
+        String thinkingId = String.format("%s-thinking", UUID.randomUUID().toString().substring(0, 8));
+        String answerId = String.format("%s-answer", UUID.randomUUID().toString().substring(0, 8));
         AtomicBoolean thinkingOpen = new AtomicBoolean(false);
         AtomicBoolean answerCompleted = new AtomicBoolean(false);
 
@@ -161,7 +161,7 @@ public final class PluginChatCompletionStream implements Plugin {
                 //
                 // A3：这是"提前离开"（不是读到终态）⇒ 关流，让 provider 调用与 permit 一起停。
                 responseQueue.close();
-                endStream(eventBus, chatManage, thinkingID, answerID,
+                endStream(eventBus, chatManage, thinkingId, answerId,
                         thinkingDecoder, answerDecoder, thinkingOpen, answerCompleted, true);
                 Map<String, Object> f = new LinkedHashMap<>();
                 f.put("sessionId", chatManage.getSessionId());
@@ -190,7 +190,7 @@ public final class PluginChatCompletionStream implements Plugin {
                 }
                 if (response.isDone()) {
                     // ERROR+done 是终态元素：收束并退出（错误事件已先发；终态帧同样要补）
-                    endStream(eventBus, chatManage, thinkingID, answerID,
+                    endStream(eventBus, chatManage, thinkingId, answerId,
                             thinkingDecoder, answerDecoder, thinkingOpen, answerCompleted, true);
                     return;
                 }
@@ -205,7 +205,7 @@ public final class PluginChatCompletionStream implements Plugin {
                 if (!content.isEmpty()) {
                     thinkingOpen.set(true);
                     Event evt = new Event();
-                    evt.setId(thinkingID);
+                    evt.setId(thinkingId);
                     evt.setType(EventType.EVENT_AGENT_THOUGHT);
                     evt.setSessionId(chatManage.getSessionId());
                     AgentThoughtData data = new AgentThoughtData();
@@ -218,7 +218,7 @@ public final class PluginChatCompletionStream implements Plugin {
                     }
                 }
                 if (response.isDone()) {
-                    closeThinking(eventBus, chatManage, thinkingID, thinkingOpen);
+                    closeThinking(eventBus, chatManage, thinkingId, thinkingOpen);
                 }
                 // THINKING+done 是生产者中途补的 thinking-done 标记，其后仍有分片，继续消费
                 continue;
@@ -234,9 +234,9 @@ public final class PluginChatCompletionStream implements Plugin {
                     content += answerDecoder.flush();
                     answerCompleted.set(true);
                 }
-                closeThinking(eventBus, chatManage, thinkingID, thinkingOpen);
+                closeThinking(eventBus, chatManage, thinkingId, thinkingOpen);
                 Event evt = new Event();
-                evt.setId(answerID);
+                evt.setId(answerId);
                 evt.setType(EventType.EVENT_AGENT_FINAL_ANSWER);
                 evt.setSessionId(chatManage.getSessionId());
                 AgentFinalAnswerData data = new AgentFinalAnswerData();
@@ -249,8 +249,8 @@ public final class PluginChatCompletionStream implements Plugin {
                 }
                 if (response.isDone()) {
                     // ANSWER+done 是终态元素：flush 尾巴后收束
-                    flushDecoders(eventBus, chatManage, thinkingID, answerID, thinkingDecoder, answerDecoder);
-                    closeThinking(eventBus, chatManage, thinkingID, thinkingOpen);
+                    flushDecoders(eventBus, chatManage, thinkingId, answerId, thinkingDecoder, answerDecoder);
+                    closeThinking(eventBus, chatManage, thinkingId, thinkingOpen);
                     return;
                 }
             }
@@ -265,13 +265,13 @@ public final class PluginChatCompletionStream implements Plugin {
      * 只 flush 不补终态 ⇒ assistant 停在未完成、SSE 永远轮询。</p>
      */
     static void endStream(EventBusInterface eventBus, PipelineState chatManage,
-                                  String thinkingID, String answerID,
+                                  String thinkingId, String answerId,
                                   StreamDecoder thinkingDecoder, StreamDecoder answerDecoder,
                                   AtomicBoolean thinkingOpen, AtomicBoolean answerCompleted,
                                   boolean failed) {
-        flushDecoders(eventBus, chatManage, thinkingID, answerID, thinkingDecoder, answerDecoder);
-        emitTerminalAnswer(eventBus, chatManage, answerID, answerCompleted, failed);
-        closeThinking(eventBus, chatManage, thinkingID, thinkingOpen);
+        flushDecoders(eventBus, chatManage, thinkingId, answerId, thinkingDecoder, answerDecoder);
+        emitTerminalAnswer(eventBus, chatManage, answerId, answerCompleted, failed);
+        closeThinking(eventBus, chatManage, thinkingId, thinkingOpen);
     }
 
     /**
@@ -279,12 +279,12 @@ public final class PluginChatCompletionStream implements Plugin {
      * {@code failed=true} 时带 outcome=FAILED：终态帧只表示流关闭，收尾方据此判失败。
      */
     static void emitTerminalAnswer(EventBusInterface eventBus, PipelineState chatManage,
-                                           String answerID, AtomicBoolean answerCompleted, boolean failed) {
+                                           String answerId, AtomicBoolean answerCompleted, boolean failed) {
         if (!answerCompleted.compareAndSet(false, true)) {
             return;
         }
         Event evt = new Event();
-        evt.setId(answerID);
+        evt.setId(answerId);
         evt.setType(EventType.EVENT_AGENT_FINAL_ANSWER);
         evt.setSessionId(chatManage.getSessionId());
         AgentFinalAnswerData data = new AgentFinalAnswerData();
@@ -311,12 +311,12 @@ public final class PluginChatCompletionStream implements Plugin {
     }
 
     private static void closeThinking(EventBusInterface eventBus, PipelineState chatManage,
-                                      String thinkingID, AtomicBoolean thinkingOpen) {
+                                      String thinkingId, AtomicBoolean thinkingOpen) {
         if (!thinkingOpen.compareAndSet(true, false)) {
             return;
         }
         Event evt = new Event();
-        evt.setId(thinkingID);
+        evt.setId(thinkingId);
         evt.setType(EventType.EVENT_AGENT_THOUGHT);
         evt.setSessionId(chatManage.getSessionId());
         AgentThoughtData data = new AgentThoughtData();
@@ -333,12 +333,12 @@ public final class PluginChatCompletionStream implements Plugin {
      * 正常收束与取消路径都必须调用。
      */
     private static void flushDecoders(EventBusInterface eventBus, PipelineState chatManage,
-                                      String thinkingID, String answerID,
+                                      String thinkingId, String answerId,
                                       StreamDecoder thinkingDecoder, StreamDecoder answerDecoder) {
         String thinkingTail = thinkingDecoder.flush();
         if (!thinkingTail.isEmpty()) {
             Event evt = new Event();
-            evt.setId(thinkingID);
+            evt.setId(thinkingId);
             evt.setType(EventType.EVENT_AGENT_THOUGHT);
             evt.setSessionId(chatManage.getSessionId());
             AgentThoughtData data = new AgentThoughtData();
@@ -352,7 +352,7 @@ public final class PluginChatCompletionStream implements Plugin {
         String answerTail = answerDecoder.flush();
         if (!answerTail.isEmpty()) {
             Event evt = new Event();
-            evt.setId(answerID);
+            evt.setId(answerId);
             evt.setType(EventType.EVENT_AGENT_FINAL_ANSWER);
             evt.setSessionId(chatManage.getSessionId());
             AgentFinalAnswerData data = new AgentFinalAnswerData();

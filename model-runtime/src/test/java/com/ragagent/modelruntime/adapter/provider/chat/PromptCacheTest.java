@@ -209,7 +209,7 @@ class PromptCacheTest {
     @Test
     void promptCacheKeyFromSession() {
         ChatOptions opts = new ChatOptions();
-        String sessionId = PromptCache.promptCacheSessionID("sess-live", opts);
+        String sessionId = PromptCache.promptCacheSessionId("sess-live", opts);
         assertEquals("sess-live", sessionId);
 
         ObjectNode body = body("gpt-4o");
@@ -223,16 +223,16 @@ class PromptCacheTest {
     void promptCacheSessionIdPrecedence() {
         ChatOptions opts = new ChatOptions();
         opts.setPromptCacheKey("explicit-key");
-        assertEquals("explicit-key", PromptCache.promptCacheSessionID("sess-live", opts));
+        assertEquals("explicit-key", PromptCache.promptCacheSessionId("sess-live", opts));
 
         opts.setPromptCacheKey("k".repeat(80));
-        assertEquals("k".repeat(64), PromptCache.promptCacheSessionID("sess-live", opts));
+        assertEquals("k".repeat(64), PromptCache.promptCacheSessionId("sess-live", opts));
 
         opts.setPromptCacheKey("");
-        assertEquals("s".repeat(64), PromptCache.promptCacheSessionID("s".repeat(80), opts));
+        assertEquals("s".repeat(64), PromptCache.promptCacheSessionId("s".repeat(80), opts));
 
-        assertEquals("", PromptCache.promptCacheSessionID(null, new ChatOptions()));
-        assertEquals("", PromptCache.promptCacheSessionID("", new ChatOptions()));
+        assertEquals("", PromptCache.promptCacheSessionId(null, new ChatOptions()));
+        assertEquals("", PromptCache.promptCacheSessionId("", new ChatOptions()));
         assertEquals(CacheRetention.SHORT, PromptCache.resolveCacheRetention(null));
         assertEquals(CacheRetention.SHORT, PromptCache.resolveCacheRetention(new ChatOptions()));
         opts.setCacheRetention(CacheRetention.LONG);

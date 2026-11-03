@@ -163,7 +163,7 @@ public class WikiIngestBatchHandler implements WikiIngestTaskHandler {
      * <p>软删过滤显式写 {@code deleted_at IS NULL}（soft delete 不用
      * {@code @TableLogic}）。此处<b>不</b>按租户过滤（沿用既有查询语义）。</p>
      */
-    KnowledgeBaseView getKnowledgeBaseByIDOnly(String kbId) {
+    KnowledgeBaseView getKnowledgeBaseByIdOnly(String kbId) {
         if (kbId == null || kbId.isEmpty()) {
             return null;
         }
@@ -173,7 +173,7 @@ public class WikiIngestBatchHandler implements WikiIngestTaskHandler {
     /**
      * 按 id 取知识文档，未找到返回 {@code null}。
      */
-    KnowledgeView getKnowledgeByIDOnly(String knowledgeId) {
+    KnowledgeView getKnowledgeByIdOnly(String knowledgeId) {
         if (knowledgeId == null || knowledgeId.isEmpty()) {
             return null;
         }
@@ -184,9 +184,9 @@ public class WikiIngestBatchHandler implements WikiIngestTaskHandler {
      * <b>只取 text 类型</b>、按 {@code chunk_index ASC}。
      *
      * <p>本方法按设计只取 text；需要 summary / parent_text /
-     * image 的调用方走 {@code ChunkRepository#listChunksByKnowledgeIDAndTypes}。</p>
+     * image 的调用方走 {@code ChunkRepository#listChunksByKnowledgeIdAndTypes}。</p>
      */
-    List<ChunkView> listTextChunksByKnowledgeID(long tenantId, String knowledgeId) {
+    List<ChunkView> listTextChunksByKnowledgeId(long tenantId, String knowledgeId) {
         return chunkPort.textChunks(tenantId, knowledgeId);
     }
 
@@ -418,7 +418,7 @@ public class WikiIngestBatchHandler implements WikiIngestTaskHandler {
         Stats stats = new Stats();
         try {
             // 批次跑在队列线程上，没有 HTTP Filter 链填过 TenantContext，而模型解析
-            // （ModelService.getModelByID 按租户可见性过滤）需要它——这里显式进入租户作用域。
+            // （ModelService.getModelById 按租户可见性过滤）需要它——这里显式进入租户作用域。
             try (TenantScopes.TenantScope ignored =
                          WikiBatchSupport.enterTenantScope(payload.tenantId())) {
                 run.runIngest(payload, stats);

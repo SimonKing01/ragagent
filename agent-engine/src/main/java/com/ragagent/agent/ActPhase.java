@@ -152,7 +152,7 @@ final class ActPhase {
 
     /** 本轮全部工具调用入口。 */
     void executeToolCalls(ChatResponse response, AgentStep step, int iteration,
-            String sessionId, String assistantMessageID) {
+            String sessionId, String assistantMessageId) {
         if (response.getToolCalls() == null || response.getToolCalls().isEmpty()) {
             return;
         }
@@ -171,12 +171,12 @@ final class ActPhase {
         log.info("[Agent][Round-{}] Executing {} tool call(s)", round, n);
 
         if (engine.config.isParallelToolCalls() && n >= 2) {
-            executeToolCallsParallel(response, step, iteration, sessionId, assistantMessageID);
+            executeToolCallsParallel(response, step, iteration, sessionId, assistantMessageId);
             return;
         }
         for (int i = 0; i < n; i++) {
             executeSingleToolCall(response.getToolCalls().get(i), i, step, iteration, round,
-                    sessionId, assistantMessageID);
+                    sessionId, assistantMessageId);
         }
     }
 
@@ -206,7 +206,7 @@ final class ActPhase {
      * 租户/主体在引擎线程解析成显式值传入虚拟线程——不共享 ThreadLocal。
      */
     private void executeToolCallsParallel(ChatResponse response, AgentStep step, int iteration,
-            String sessionId, String assistantMessageID) {
+            String sessionId, String assistantMessageId) {
         int round = iteration + 1;
         List<ToolCall> calls = response.getToolCalls();
         TenantContextSnapshot tenant = TenantContextSnapshot.capture();
@@ -214,7 +214,7 @@ final class ActPhase {
         // 结果按调用序返回（乱序完成也稳定回填）；屏障调用借快照在引擎线程执行。
         List<AgentToolCall> results = ToolBatchExecutor.execute(calls, round,
                 tenant, (idx, call, inWorker) -> runToolCall(call, idx, iteration, round, sessionId,
-                        assistantMessageID, inWorker ? null : tenant));
+                        assistantMessageId, inWorker ? null : tenant));
 
         for (AgentToolCall toolCall : results) {
             step.getToolCalls().add(toolCall);
@@ -249,8 +249,8 @@ final class ActPhase {
     }
 
     private void executeSingleToolCall(ToolCall tc, int i, AgentStep step,
-            int iteration, int round, String sessionId, String assistantMessageID) {
-        AgentToolCall toolCall = runToolCall(tc, i, iteration, round, sessionId, assistantMessageID, null);
+            int iteration, int round, String sessionId, String assistantMessageId) {
+        AgentToolCall toolCall = runToolCall(tc, i, iteration, round, sessionId, assistantMessageId, null);
         step.getToolCalls().add(toolCall);
         emitToolOutcome(toolCall, iteration, sessionId);
     }
@@ -260,16 +260,16 @@ final class ActPhase {
      * tenant 为 null 时用当前线程上下文（顺序路径）。
      */
     AgentToolCall runToolCall(ToolCall tc, int i, int iteration, int round,
-            String sessionId, String assistantMessageID, TenantContextSnapshot tenant) {
+            String sessionId, String assistantMessageId, TenantContextSnapshot tenant) {
         if (tenant == null) {
             // 顺序路径：直接用当前线程上下文（引擎线程）
-            return runToolCallInner(tc, i, iteration, round, sessionId, assistantMessageID);
+            return runToolCallInner(tc, i, iteration, round, sessionId, assistantMessageId);
         }
         // 借用快照执行：并发执行的子线程传 null（子线程自行 replay/clear），
         // 突变屏障分支在**主线程**以非 null 快照调用——TenantScope 保存-恢复，
         // 否则引擎线程的租户/身份会被清掉，后续轮次的模型/KB 解析全部失败。
         return TenantScope.supply(tenant,
-                () -> runToolCallInner(tc, i, iteration, round, sessionId, assistantMessageID));
+                () -> runToolCallInner(tc, i, iteration, round, sessionId, assistantMessageId));
     }
 
     /** 参数解析结果：{@code Ok} 可执行；{@code Failed} 已是可直接返回的失败调用。 */
@@ -347,7 +347,7 @@ final class ActPhase {
     }
 
     private AgentToolCall runToolCallInner(ToolCall tc, int i, int iteration,
-            int round, String sessionId, String assistantMessageID) {
+            int round, String sessionId, String assistantMessageId) {
         log.info("[Agent][Round-{}][Tool {}] tenantId={}", round, tc.getFunction().getName(),
                 TenantContext.currentTenantId());
         tc.setId(NormalizeToolCallId.normalize(tc.getId(), tc.getFunction().getName(), i));
@@ -419,7 +419,7 @@ final class ActPhase {
                 tc.getFunction().getArguments());
         // 取消语义（不带每工具超时的父取消源）：approvalCancellation=null
         // 时回落外层取消源；人工审批长等待经 ApprovalBridge 桥接，不受工具超时限制。
-        ToolExecContext toolExecCtx = new ToolExecContext(sessionId, assistantMessageID, "",
+        ToolExecContext toolExecCtx = new ToolExecContext(sessionId, assistantMessageId, "",
                 tc.getId(), TenantContext.currentPrincipal() == null ? ""
                         : TenantContext.currentPrincipal().id(),
                 engine.eventBus, null, execTimeout.toMillis());

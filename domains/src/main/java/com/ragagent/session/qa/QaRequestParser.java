@@ -168,7 +168,7 @@ public final class QaRequestParser {
         rc.mentionedItems = QaSupport.convertMentionedItems(request.mentionedItems());
         rc.channel = request.channel;
         rc.reqAgentEnabled = request.agentEnabled;
-        rc.reqAgentID = request.agentId;
+        rc.reqAgentId = request.agentId;
         return new ParsedRequest(rc, request);
     }
 

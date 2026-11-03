@@ -15,8 +15,8 @@ public class CustomAgentRepository {
         this.mapper = mapper;
     }
 
-    public CustomAgentEntity getByIDAndTenant(String id, long tenantId) {
-        return mapper.getByIDAndTenant(id, tenantId);
+    public CustomAgentEntity getByIdAndTenant(String id, long tenantId) {
+        return mapper.getByIdAndTenant(id, tenantId);
     }
 
     public List<CustomAgentEntity> listByTenant(long tenantId) {

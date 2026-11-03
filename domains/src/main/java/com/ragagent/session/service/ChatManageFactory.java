@@ -27,7 +27,7 @@ final class ChatManageFactory {
         ChatManage cm = new ChatManage();
         cm.setQuery(req.query);
         cm.setSessionId(sessionId);
-        cm.setUserId(SessionService.sessionUserIDForLookup());
+        cm.setUserId(SessionService.sessionUserIdForLookup());
         cm.setTenantId(tenantId);
         cm.setImages(req.imageUrls);
         cm.setAttachments(PipelineViews.ofAttachments(req.attachments));

@@ -148,7 +148,7 @@ final class TencentVectorDbWriteOps {
         }
     }
 
-    void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
+    void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
         if (chunkTagMap == null || chunkTagMap.isEmpty()) {
             return;
         }

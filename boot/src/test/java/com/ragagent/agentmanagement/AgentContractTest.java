@@ -133,7 +133,7 @@ class AgentContractTest {
     void virtualBuiltinAgentCarriesConfigOnRow() {
         TenantContext.set(10005L, null, "owner", false, AGU, false);
         try {
-            var result = customAgentService.getAgentByID("builtin-smart-reasoning", null);
+            var result = customAgentService.getAgentById("builtin-smart-reasoning", null);
             assertTrue(result.row().getConfig() != null
                             && result.row().getConfig().contains("\"smart-reasoning\""),
                     "虚拟内建行的 config 字符串必须落上（运行时消费面重新 parse row.getConfig()）");

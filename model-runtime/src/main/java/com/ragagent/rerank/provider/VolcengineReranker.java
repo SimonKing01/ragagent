@@ -203,7 +203,7 @@ public     static final int MAX_DOCUMENTS = 50;
     }
 
     @Override
-    public String getModelID() {
+    public String getModelId() {
         return modelId;
     }
 

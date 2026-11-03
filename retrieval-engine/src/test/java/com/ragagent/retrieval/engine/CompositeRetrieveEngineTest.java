@@ -125,7 +125,7 @@ class CompositeRetrieveEngineTest {
         engine.deleteByKnowledgeIdList(List.of("k1"), 3, "file");
         engine.copyIndices("kb1", Map.of(), Map.of(), "kb2", 3, "file");
         engine.batchUpdateChunkEnabledStatus(Map.of("c1", true));
-        engine.batchUpdateChunkTagID(Map.of("c1", "t1"));
+        engine.batchUpdateChunkTagId(Map.of("c1", "t1"));
 
         for (FakeEngineService svc : List.of(a, b)) {
             assertTrue(svc.calls.contains("index"), svc.engineType());
@@ -134,7 +134,7 @@ class CompositeRetrieveEngineTest {
             assertTrue(svc.calls.contains("deleteBySourceIdList"), svc.engineType());
             assertTrue(svc.calls.contains("deleteByKnowledgeIdList"), svc.engineType());
             assertTrue(svc.calls.contains("batchUpdateChunkEnabledStatus"), svc.engineType());
-            assertTrue(svc.calls.contains("batchUpdateChunkTagID"), svc.engineType());
+            assertTrue(svc.calls.contains("batchUpdateChunkTagId"), svc.engineType());
         }
     }
 

@@ -233,7 +233,7 @@ final class ReActIteration {
                 state.setFinalAnswer("I'm sorry, I was unable to generate a response. Please try again.");
                 state.setComplete(true);
                 state.getRoundSteps().add(verdict.step);
-                engine.finalize.closeAnswerStream(sessionId, verdict.answerID);
+                engine.finalize.closeAnswerStream(sessionId, verdict.answerId);
                 return AgentEngine.IterOutcome.BREAK;
             }
             // 循环结束注入：本轮收束期间排进来的用户消息让 agent 继续而不是收束答案。
@@ -260,7 +260,7 @@ final class ReActIteration {
             state.setFinalAnswer(verdict.finalAnswer);
             state.setComplete(true);
             state.getRoundSteps().add(verdict.step);
-            engine.finalize.closeAnswerStream(sessionId, verdict.answerID);
+            engine.finalize.closeAnswerStream(sessionId, verdict.answerId);
             return AgentEngine.IterOutcome.BREAK;
         }
 

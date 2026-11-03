@@ -99,7 +99,7 @@ public     void setSupportsDimensionOverride(boolean supported) {
     }
 
     @Override
-    public String getModelID() {
+    public String getModelId() {
         return modelId;
     }
 }

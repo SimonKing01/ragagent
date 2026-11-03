@@ -37,14 +37,14 @@ public class KnowledgeTagBatchService {
     }
 
     @Transactional
-    public void updateTagBatch(String authorizedKBID, Map<String, List<String>> updates) {
+    public void updateTagBatch(String authorizedKBId, Map<String, List<String>> updates) {
         if (updates == null || updates.isEmpty()) {
             return;
         }
         List<String> knowledgeIDs = new ArrayList<>(updates.keySet());
         knowledgeIDs.sort(String::compareTo);
         // 授权 KB = 显式 kb_id；无 kb_id 时 = 首条（排序后最靠前的）knowledge 所属 KB
-        String grantedKbId = authorizedKBID;
+        String grantedKbId = authorizedKBId;
         if (grantedKbId == null || grantedKbId.isEmpty()) {
             Knowledge first = access.getKnowledge(knowledgeIDs.get(0));
             grantedKbId = first.getKnowledgeBaseId();
@@ -52,29 +52,29 @@ public class KnowledgeTagBatchService {
         List<Knowledge> knowledgeList = folderService.loadKnowledgeWriteBatch(knowledgeIDs, grantedKbId);
         long tenantId = knowledgeList.get(0).getTenantId();
 
-        if (authorizedKBID != null && !authorizedKBID.isEmpty()) {
+        if (authorizedKBId != null && !authorizedKBId.isEmpty()) {
             if (knowledgeList.size() != updates.size()) {
                 throw BizException.forbidden("some knowledge IDs are not accessible in the authorized scope");
             }
             for (Knowledge k : knowledgeList) {
-                if (!k.getKnowledgeBaseId().equals(authorizedKBID)) {
+                if (!k.getKnowledgeBaseId().equals(authorizedKBId)) {
                     throw BizException.forbidden("knowledge " + k.getId()
                             + " does not belong to authorized knowledge base");
                 }
             }
         }
         // 收集 + 校验标签
-        Set<String> tagIDSet = new TreeSet<>();
+        Set<String> tagIdSet = new TreeSet<>();
         for (List<String> tagIDs : updates.values()) {
-            for (String tagID : tagIDs) {
-                if (tagID != null && !tagID.isEmpty()) {
-                    tagIDSet.add(tagID);
+            for (String tagId : tagIDs) {
+                if (tagId != null && !tagId.isEmpty()) {
+                    tagIdSet.add(tagId);
                 }
             }
         }
         Map<String, KnowledgeTag> tagMap = new HashMap<>();
-        if (!tagIDSet.isEmpty()) {
-            List<KnowledgeTag> tags = tagRepository.listTagsByIds(tenantId, List.copyOf(tagIDSet));
+        if (!tagIdSet.isEmpty()) {
+            List<KnowledgeTag> tags = tagRepository.listTagsByIds(tenantId, List.copyOf(tagIdSet));
             for (KnowledgeTag tag : tags) {
                 tagMap.put(tag.getId(), tag);
             }
@@ -84,22 +84,22 @@ public class KnowledgeTagBatchService {
             if (tagIDs == null) {
                 continue;
             }
-            for (String tagID : tagIDs) {
-                if (tagID == null || tagID.isEmpty()) {
+            for (String tagId : tagIDs) {
+                if (tagId == null || tagId.isEmpty()) {
                     continue;
                 }
-                KnowledgeTag tag = tagMap.get(tagID);
+                KnowledgeTag tag = tagMap.get(tagId);
                 if (tag == null) {
-                    throw BizException.badRequest("标签 " + tagID + " 不存在");
+                    throw BizException.badRequest("标签 " + tagId + " 不存在");
                 }
                 if (tag.getTenantId() == null || tag.getTenantId() != tenantId
                         || !tag.getKnowledgeBaseId().equals(k.getKnowledgeBaseId())) {
-                    throw BizException.badRequest("标签 " + tagID + " 不属于知识库 " + k.getKnowledgeBaseId());
+                    throw BizException.badRequest("标签 " + tagId + " 不属于知识库 " + k.getKnowledgeBaseId());
                 }
             }
         }
-        for (String knowledgeID : knowledgeIDs) {
-            setKnowledgeTags(knowledgeID, updates.get(knowledgeID));
+        for (String knowledgeId : knowledgeIDs) {
+            setKnowledgeTags(knowledgeId, updates.get(knowledgeId));
         }
     }
 
@@ -110,9 +110,9 @@ public class KnowledgeTagBatchService {
             return;
         }
         Set<String> seen = new LinkedHashSet<>();
-        for (String tagID : tagIDs) {
-            if (tagID != null && !tagID.isEmpty() && seen.add(tagID)) {
-                tagRepository.insertRelation(knowledgeId, tagID);
+        for (String tagId : tagIDs) {
+            if (tagId != null && !tagId.isEmpty() && seen.add(tagId)) {
+                tagRepository.insertRelation(knowledgeId, tagId);
             }
         }
     }

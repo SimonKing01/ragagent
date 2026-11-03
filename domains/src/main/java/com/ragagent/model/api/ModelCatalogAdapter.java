@@ -40,13 +40,13 @@ public class ModelCatalogAdapter implements ModelCatalogPort {
 
     @Override
     public ModelRowView findModel(String modelId) {
-        return ModelRowViews.of(modelService.getModelByID(modelId));
+        return ModelRowViews.of(modelService.getModelById(modelId));
     }
 
     @Override
     public java.util.Optional<ModelRowView> findModelOrEmpty(String modelId) {
         try {
-            return java.util.Optional.ofNullable(ModelRowViews.of(modelService.getModelByID(modelId)));
+            return java.util.Optional.ofNullable(ModelRowViews.of(modelService.getModelById(modelId)));
         } catch (ModelService.ModelNotFoundException e) {
             return java.util.Optional.empty();
         }
@@ -59,7 +59,7 @@ public class ModelCatalogAdapter implements ModelCatalogPort {
 
     @Override
     public ModelView getModelRow(String id) {
-        return toView(modelService.getModelByID(id));
+        return toView(modelService.getModelById(id));
     }
 
     @Override

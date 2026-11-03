@@ -372,12 +372,12 @@ class RerankRecordingTest {
         s1.put("scores", scores(cm.getRerank().getResults()));
         assertRec("wiki_boost", "boost", json(s1));
 
-        int callsBefore = kbSvc.byIDOnlyCalls;
+        int callsBefore = kbSvc.byIdOnlyCalls;
         ChatManage cm2 = new ChatManage();
         cm2.getRerank().setResults(new ArrayList<>(List.of(cand("d", "x", "k", 0.5))));
         p.onEvent(PipelineEventType.CHUNK_RERANK, cm2, () -> null);
         Map<String, Object> s2 = new LinkedHashMap<>();
-        s2.put("kb_calls", kbSvc.byIDOnlyCalls - callsBefore);
+        s2.put("kb_calls", kbSvc.byIdOnlyCalls - callsBefore);
         s2.put("scores", scores(cm2.getRerank().getResults()));
         assertRec("wiki_boost", "no_wiki_chunk", json(s2));
 

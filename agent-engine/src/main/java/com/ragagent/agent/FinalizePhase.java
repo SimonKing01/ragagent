@@ -39,11 +39,11 @@ final class FinalizePhase {
     }
 
     /** 自然停答案真正收束时发 Done:true；循环结束注入跳过它（客户端不掉 isReplying）。 */
-    void closeAnswerStream(String sessionID, String answerId) {
+    void closeAnswerStream(String sessionId, String answerId) {
         if (engine.eventBus == null || answerId == null || answerId.isEmpty()) {
             return;
         }
-        engine.eventBus.emit(new Event(answerId, EventType.EVENT_AGENT_FINAL_ANSWER, sessionID,
+        engine.eventBus.emit(new Event(answerId, EventType.EVENT_AGENT_FINAL_ANSWER, sessionId,
                 new AgentFinalAnswerData("", true, false), null, ""));
     }
 
@@ -70,8 +70,8 @@ final class FinalizePhase {
                         + "unperformed action succeeded."));
 
         // 整个最终答案流共用一个 ID
-        String answerID = EventIds.generateEventID("answer");
-        log.debug("[Agent][FinalAnswer] AnswerID: {}", answerID);
+        String answerId = EventIds.generateEventId("answer");
+        log.debug("[Agent][FinalAnswer] AnswerID: {}", answerId);
         AtomicBoolean answerDoneEmitted = new AtomicBoolean(false);
 
         int budget = engine.clampCompletionBudgetToContext(engine.tokenEstimator.estimateMessages(messages));
@@ -92,7 +92,7 @@ final class FinalizePhase {
             }
             if (chunk.getContent() != null && !chunk.getContent().isEmpty()) {
                 log.debug("[Agent][FinalAnswer] Emitting answer chunk: {} chars", chunk.getContent().length());
-                engine.eventBus.emit(new Event(answerID, EventType.EVENT_AGENT_FINAL_ANSWER, sessionId,
+                engine.eventBus.emit(new Event(answerId, EventType.EVENT_AGENT_FINAL_ANSWER, sessionId,
                         new AgentFinalAnswerData(chunk.getContent(), chunk.isDone(), false), null, ""));
                 if (chunk.isDone()) {
                     answerDoneEmitted.set(true);
@@ -101,7 +101,7 @@ final class FinalizePhase {
         });
 
         if (!answerDoneEmitted.get()) {
-            engine.eventBus.emit(new Event(answerID, EventType.EVENT_AGENT_FINAL_ANSWER, sessionId,
+            engine.eventBus.emit(new Event(answerId, EventType.EVENT_AGENT_FINAL_ANSWER, sessionId,
                     new AgentFinalAnswerData("", true, false), null, ""));
         }
 
@@ -163,7 +163,7 @@ final class FinalizePhase {
                 state.getKnowledgeRefs() == null ? List.of() : state.getKnowledgeRefs());
 
         // complete 事件的 SessionID 恒为 ""（既有消费者的线格式约定）。
-        engine.eventBus.emit(new Event(EventIds.generateEventID("complete"), EventType.EVENT_AGENT_COMPLETE,
+        engine.eventBus.emit(new Event(EventIds.generateEventId("complete"), EventType.EVENT_AGENT_COMPLETE,
                 sessionId, new AgentCompleteData("", state.getRoundSteps().size(),
                         state.getFinalAnswer(), knowledgeRefsInterface, alwaysPresentList(steps),
                         turnUsageOf(state),

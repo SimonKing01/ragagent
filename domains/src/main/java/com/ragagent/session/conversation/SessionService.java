@@ -93,7 +93,7 @@ public class SessionService {
      * 共享 agent 流水线
      * 先解析出会话属主租户时，保持那次内部查询是**租户范围**的（返回空 owner）。
      */
-    public static String sessionUserIDForLookup() {
+    public static String sessionUserIdForLookup() {
         if (SessionLookupScope.isMarked()) {
             return "";
         }
@@ -296,7 +296,7 @@ public class SessionService {
     /** 更新输入条状态（KnowledgeQaController 的异步 UI memo 用）。 */
     public void updateSessionLastRequestState(String sessionId, SessionLastRequestState state) {
         long tenantId = TenantContext.currentTenantId() == null ? 0 : TenantContext.currentTenantId();
-        sessionRepository.updateLastRequestState(tenantId, sessionUserIDForLookup(), sessionId, state);
+        sessionRepository.updateLastRequestState(tenantId, sessionUserIdForLookup(), sessionId, state);
     }
 
     /**
@@ -640,7 +640,7 @@ public class SessionService {
                 }
                 if (bus != null) {
                     try {
-                        bus.emit(new Event(EventIds.generateEventID("sessionTitle"),
+                        bus.emit(new Event(EventIds.generateEventId("sessionTitle"),
                                 EventType.EVENT_SESSION_TITLE, session.getId(),
                                 new SessionTitleData(session.getId(), title), null, requestId));
                     } catch (RuntimeException e) {

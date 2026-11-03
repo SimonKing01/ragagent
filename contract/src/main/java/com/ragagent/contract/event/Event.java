@@ -146,7 +146,7 @@ public class Event {
 
     /**
      * 生成标准 UUID（v4，36 字符小写）。
-     * 注意与 {@code EventIds#generateEventID} 不同——那个带类型后缀且只取前 8 位。
+     * 注意与 {@code EventIds#generateEventId} 不同——那个带类型后缀且只取前 8 位。
      */
     public static String newUuid() {
         return UUID.randomUUID().toString();

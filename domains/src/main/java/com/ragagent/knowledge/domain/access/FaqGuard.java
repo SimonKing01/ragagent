@@ -129,7 +129,7 @@ public class FaqGuard {
      * 解析条目归属标签：tag_id 优先（须存在且属于本 KB），其次 tag_name（按需创建），
      * 兜底"未分类"标签。tag_id 无效 → IllegalStateException（500 plain 形态）。
      */
-    public String resolveTagID(String kbId, FaqEntryPayload payload) {
+    public String resolveTagId(String kbId, FaqEntryPayload payload) {
         long tid = tenantId();
         if (payload.tagId() != 0) {
             KnowledgeTag tag = tagRepository.getBySeqId(tid, payload.tagId());

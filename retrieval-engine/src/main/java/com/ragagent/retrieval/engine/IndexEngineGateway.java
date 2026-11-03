@@ -148,8 +148,8 @@ public class IndexEngineGateway implements IndexEngineResolver {
         }
 
         @Override
-        public void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
-            engine.batchUpdateChunkTagID(chunkTagMap);
+        public void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
+            engine.batchUpdateChunkTagId(chunkTagMap);
         }
 
         @Override
@@ -238,8 +238,8 @@ public class IndexEngineGateway implements IndexEngineResolver {
         }
 
         @Override
-        public void batchUpdateChunkTagID(Map<String, String> chunkTagMap) throws Exception {
-            service.batchUpdateChunkTagID(chunkTagMap);
+        public void batchUpdateChunkTagId(Map<String, String> chunkTagMap) throws Exception {
+            service.batchUpdateChunkTagId(chunkTagMap);
         }
 
         @Override

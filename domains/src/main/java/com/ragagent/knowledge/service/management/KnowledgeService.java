@@ -531,8 +531,8 @@ public class KnowledgeService implements KnowledgeReadPort, KnowledgeDocumentGat
      * * authorizedKBID 为空 = 未显式给 kb_id（由首条 knowledge 推导的授权范围）。
      */
     /** 标签批量；事务在 {@link KnowledgeTagBatchService#updateTagBatch}。 */
-    public void updateKnowledgeTagBatch(String authorizedKBID, Map<String, List<String>> updates) {
-        tagBatchService.updateTagBatch(authorizedKBID, updates);
+    public void updateKnowledgeTagBatch(String authorizedKBId, Map<String, List<String>> updates) {
+        tagBatchService.updateTagBatch(authorizedKBId, updates);
     }
 
     // ── 批量删除 / 批量重解析 / 清空（委托 KnowledgeBatchOpsService） ──

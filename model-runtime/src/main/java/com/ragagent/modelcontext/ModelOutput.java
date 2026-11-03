@@ -86,7 +86,7 @@ final class ModelOutput {
 
     private static void walkStructured(SourceRegistry r, String key, JsonNode value) {
         if (value.isTextual()) {
-            r.registerSourceIDByKey(key, value.asText(), true);
+            r.registerSourceIdByKey(key, value.asText(), true);
         } else if (value.isArray()) {
             for (JsonNode item : value) {
                 walkStructured(r, key, item);
@@ -107,7 +107,7 @@ final class ModelOutput {
         for (Map<String, JsonNode> row : rows) {
             for (Map.Entry<String, JsonNode> e : row.entrySet()) {
                 if (e.getValue().isTextual()) {
-                    r.registerSourceIDByKey(e.getKey(), e.getValue().asText(), true);
+                    r.registerSourceIdByKey(e.getKey(), e.getValue().asText(), true);
                 }
             }
         }

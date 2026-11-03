@@ -4,7 +4,7 @@ package com.ragagent.platform.access;
  * 租户作用域：把 {@link TenantContext} 从"请求线程专用"扩展为<b>跨线程可显式携带</b>的会话。
  *
  * <p><b>为什么需要</b>：{@code TenantContext} 是 ThreadLocal——队列/虚拟线程上既没有 HTTP
- * Filter 链填充它，也不会从提交线程继承。而模型解析（{@code ModelService.getModelByID} /
+ * Filter 链填充它，也不会从提交线程继承。而模型解析（{@code ModelService.getModelById} /
  * {@code modelruntime.application.ModelRuntimeAssembler}）按<b>租户可见性</b>过滤
  * （{@code tenant_id = 当前租户 OR is_builtin}），空租户（按 0 查）会让用户<b>自建模型</b>
  * 查不到 ⇒ 整条链以 "Model not found"（1003）失败。wiki 摄取早已用局部实现修过同款

@@ -136,7 +136,7 @@ public class StorageBackendController {
     }
 
     @PostMapping("/{id}/test")
-    public ResponseEntity<?> testByID(@PathVariable("id") String id) {
+    public ResponseEntity<?> testById(@PathVariable("id") String id) {
         long tenantId = tenantId();
         Map<String, Object> result = readService.testByIdResponse(tenantId, id);
         if (result == null) {

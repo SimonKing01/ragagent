@@ -5,7 +5,7 @@ package com.ragagent.contract.vectorstore;
  * 向量库定义**只读端口**：L2 {@code retrieval} 的引擎注册表与归属检查需要
  * 「按 (租户, 库 id) 取一个向量库」，但不该依赖 {@code vectorstore} 域的实体与 mapper。
  *
- * <p>实现留在 {@code vectorstore} 侧（{@code VectorStoreRepository#getByID}），
+ * <p>实现留在 {@code vectorstore} 侧（{@code VectorStoreRepository#getById}），
  * 过滤条件与迁移前逐字一致。</p>
  */
 public interface VectorStoreLookup {

@@ -141,7 +141,7 @@ class McpMetadataServiceTest {
                 McpServiceManagement.updateFields("description", "usageInstructions"));
         got = metadata.getMCPMetadata(1, "svc");
         assertFalse(got.isStale(), "文档编辑不能让快照变陈旧");
-        assertEquals("Edited guidance", svc.getMCPServiceByID(1, "svc").getUsageInstructions());
+        assertEquals("Edited guidance", svc.getMCPServiceById(1, "svc").getUsageInstructions());
 
         // 改连接配置必须让快照变陈旧
         svc.updateMCPService(serviceFixtureWithUrl("svc", "https://example.com/changed"), null);

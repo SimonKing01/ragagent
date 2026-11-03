@@ -146,7 +146,7 @@ final class ObservePhase {
     }
 
     private void emitContextCompacted(CompactionResult result, int round) {
-        engine.eventBus.emit(new Event(EventIds.generateEventID("compaction"),
+        engine.eventBus.emit(new Event(EventIds.generateEventId("compaction"),
                 EventType.EVENT_CONTEXT_COMPACTED, engine.sessionId,
                 new ContextCompactedData(result.getReason(), round, result.getTokensBefore(),
                         result.getTokensAfter(), result.getMessagesBefore(), result.getMessagesAfter(),
@@ -268,7 +268,7 @@ final class ObservePhase {
         String finalAnswer = "";
         boolean emptyContent;
         AgentStep step;
-        String answerID = "";
+        String answerId = "";
     }
 
     /**
@@ -276,7 +276,7 @@ final class ObservePhase {
      * 完成（终态，避免同一被拦响应无限累积）。
      */
     ResponseVerdict analyzeResponse(ChatResponse response, AgentStep step,
-            int iteration, Instant roundStart, String sessionID) {
+            int iteration, Instant roundStart, String sessionId) {
         // Case 0: 内容被模型内容安全策略拦截。
         if ("content_filter".equals(response.getFinishReason())
                 && (response.getToolCalls() == null || response.getToolCalls().isEmpty())) {
@@ -290,10 +290,10 @@ final class ObservePhase {
                 answer = "Sorry, this request was blocked by the content safety policy. Please try rephrasing your question.";
             }
 
-            String answerID = EventIds.generateEventID("answer");
-            engine.eventBus.emit(new Event(answerID, EventType.EVENT_AGENT_FINAL_ANSWER, sessionID,
+            String answerId = EventIds.generateEventId("answer");
+            engine.eventBus.emit(new Event(answerId, EventType.EVENT_AGENT_FINAL_ANSWER, sessionId,
                     new AgentFinalAnswerData(answer, false, false), null, ""));
-            engine.eventBus.emit(new Event(answerID, EventType.EVENT_AGENT_FINAL_ANSWER, sessionID,
+            engine.eventBus.emit(new Event(answerId, EventType.EVENT_AGENT_FINAL_ANSWER, sessionId,
                     new AgentFinalAnswerData("", true, false), null, ""));
 
             ResponseVerdict v = new ResponseVerdict();
@@ -317,13 +317,13 @@ final class ObservePhase {
             //  (a) think 阶段已直播（AnswerStreamed）→ 只在同一 event ID 上补 Done——
             //      重发全文会渲染两遍（"思考跳答案"的 jump 缺陷）；
             //  (b) 未直播 → 先发全文再 Done。
-            String answerID;
+            String answerId;
             if (response.isAnswerStreamed() && !response.getAnswerEventId().isEmpty()) {
-                answerID = response.getAnswerEventId();
+                answerId = response.getAnswerEventId();
             } else {
-                answerID = EventIds.generateEventID("answer");
+                answerId = EventIds.generateEventId("answer");
                 if (!response.getContent().isEmpty()) {
-                    engine.eventBus.emit(new Event(answerID, EventType.EVENT_AGENT_FINAL_ANSWER, sessionID,
+                    engine.eventBus.emit(new Event(answerId, EventType.EVENT_AGENT_FINAL_ANSWER, sessionId,
                             new AgentFinalAnswerData(response.getContent(), false, false), null, ""));
                 }
             }
@@ -335,7 +335,7 @@ final class ObservePhase {
             v.finalAnswer = response.getContent();
             v.emptyContent = response.getContent().isEmpty();
             v.step = step;
-            v.answerID = answerID;
+            v.answerId = answerId;
             return v;
         }
 

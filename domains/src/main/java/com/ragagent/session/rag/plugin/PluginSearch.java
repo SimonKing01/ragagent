@@ -77,7 +77,7 @@ public final class PluginSearch implements Plugin {
         // KB 检索与 web 检索并发。
         // ThreadLocal 不跨线程，必须显式快照/回放
         // （与 EventBus 异步派发同款纪律——否则虚拟线程上 tenantId()=0，
-        // getModelByID 抛 ModelNotFoundException，整组静默降级为关键词-only）。
+        // getModelById 抛 ModelNotFoundException，整组静默降级为关键词-only）。
         TenantContextSnapshot tenantSnap = TenantContextSnapshot.capture();
         List<SearchResult> allResults = new ArrayList<>();
         Object lock = new Object();

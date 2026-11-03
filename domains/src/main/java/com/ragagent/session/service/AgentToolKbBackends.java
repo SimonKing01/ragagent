@@ -268,12 +268,12 @@ final class AgentToolKbBackends {
                         || target.tagIds() == null || target.tagIds().isEmpty()) {
                     continue;
                 }
-                long tenantID = target.tenantId();
-                if (tenantID == 0) {
+                long tenantId = target.tenantId();
+                if (tenantId == 0) {
                     Long mapped = kbTenantMap == null ? null : kbTenantMap.get(target.knowledgeBaseId());
-                    tenantID = mapped == null ? 0 : mapped;
+                    tenantId = mapped == null ? 0 : mapped;
                 }
-                if (tenantID == 0) {
+                if (tenantId == 0) {
                     continue;
                 }
                 clauses.add("(chunks.knowledge_base_id = ? AND chunks.tenant_id = ? AND EXISTS ("
@@ -281,20 +281,20 @@ final class AgentToolKbBackends {
                         + "WHERE ktr.knowledge_id = chunks.knowledge_id AND ktr.tag_id IN ("
                         + placeholders(target.tagIds().size()) + ")))");
                 args.add(target.knowledgeBaseId());
-                args.add(tenantID);
+                args.add(tenantId);
                 args.addAll(target.tagIds());
             }
         }
         if (kbIDs != null) {
-            for (String kbID : kbIDs) {
-                Long mapped = kbTenantMap == null ? null : kbTenantMap.get(kbID);
-                long tenantID = mapped == null ? 0 : mapped;
-                if (tenantID == 0) {
+            for (String kbId : kbIDs) {
+                Long mapped = kbTenantMap == null ? null : kbTenantMap.get(kbId);
+                long tenantId = mapped == null ? 0 : mapped;
+                if (tenantId == 0) {
                     continue;
                 }
                 clauses.add("(chunks.knowledge_base_id = ? AND chunks.tenant_id = ?)");
-                args.add(kbID);
-                args.add(tenantID);
+                args.add(kbId);
+                args.add(tenantId);
             }
         }
         if (clauses.isEmpty()) {

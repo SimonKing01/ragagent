@@ -129,7 +129,7 @@ public final class WikiCategoryPaths {
      * 从 source_refs 条目里取出 knowledge id，
      * 存储形式为 "uuid" 或 "uuid|title"。
      */
-    public static String sourceKnowledgeID(String ref) {
+    public static String sourceKnowledgeId(String ref) {
         if (ref == null) {
             return "";
         }

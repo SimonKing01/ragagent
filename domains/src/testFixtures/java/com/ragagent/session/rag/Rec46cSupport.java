@@ -534,7 +534,7 @@ final class Rec46cSupport {
         }
 
         @Override
-        public String getModelID() {
+        public String getModelId() {
             return "rr-zz";
         }
     }
@@ -704,12 +704,12 @@ final class Rec46cSupport {
         final List<SearchParams> hybridParams = new ArrayList<>();
         final List<String> hybridIDs = new ArrayList<>();
         Map<String, String> modelKeys;
-        int byIDOnlyCalls;
+        int byIdOnlyCalls;
         private final Object lock = new Object();
 
         @Override
         public KnowledgeBaseView getKnowledgeBaseByIdUnscoped(String id) {
-            byIDOnlyCalls++;
+            byIdOnlyCalls++;
             if (kbErr != null) {
                 throw kbErr;
             }

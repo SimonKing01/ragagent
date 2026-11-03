@@ -38,11 +38,11 @@ class AgentLookupAdapterTest {
         CustomAgentMapper mapper = mock(CustomAgentMapper.class);
         AgentLookupAdapter adapter = new AgentLookupAdapter(mapper, null, null);
 
-        when(mapper.getByIDAndTenant("a1", 13L)).thenReturn(row("a1", 13L));
+        when(mapper.getByIdAndTenant("a1", 13L)).thenReturn(row("a1", 13L));
         assertTrue(adapter.hasAgentRow(13L, "a1"));
 
         // 防御性第二道：行租户列与入参不一致 ⇒ false
-        when(mapper.getByIDAndTenant("a2", 13L)).thenReturn(row("a2", 14L));
+        when(mapper.getByIdAndTenant("a2", 13L)).thenReturn(row("a2", 14L));
         assertFalse(adapter.hasAgentRow(13L, "a2"));
 
         // 内建 id 无行：hasAgentRow false；isAgentOwned 走注册表兜底 true
@@ -51,7 +51,7 @@ class AgentLookupAdapterTest {
 
         // 空 id / 查询异常一律 false
         assertFalse(adapter.hasAgentRow(13L, "   "));
-        when(mapper.getByIDAndTenant("a3", 13L)).thenThrow(new RuntimeException("db down"));
+        when(mapper.getByIdAndTenant("a3", 13L)).thenThrow(new RuntimeException("db down"));
         assertFalse(adapter.hasAgentRow(13L, "a3"));
     }
 
