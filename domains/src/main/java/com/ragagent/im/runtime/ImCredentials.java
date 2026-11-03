@@ -13,8 +13,8 @@ public final class ImCredentials {
     }
 
     /** 解析 JSONB credentials 字段为 map；空输入 → 空 map。解析失败抛 IllegalArgumentException。 */
-    public static Map<String, Object> parseCredentials(byte[] data) {
-        if (data == null || data.length == 0) {
+    public static Map<String, Object> parseCredentials(String data) {
+        if (data == null || data.isEmpty()) {
             return Map.of();
         }
         try {

@@ -5,7 +5,6 @@ import com.ragagent.im.runtime.ImCredentials;
 import com.ragagent.im.runtime.IncomingMessage;
 import com.ragagent.im.service.ImTurnOrchestrator;
 import com.ragagent.platform.security.SsrfGuard;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -36,9 +35,7 @@ public class DingtalkAdapterFactory implements ImTurnOrchestrator.AdapterFactory
     @Override
     public ImTurnOrchestrator.AdapterRegistration create(ImChannelEntity channel,
             BiConsumer<IncomingMessage, String> msgHandler) {
-        byte[] raw = channel.getCredentials() == null
-                ? new byte[0] : channel.getCredentials().getBytes(StandardCharsets.UTF_8);
-        Map<String, Object> creds = ImCredentials.parseCredentials(raw);
+        Map<String, Object> creds = ImCredentials.parseCredentials(channel.getCredentials());
 
         DingtalkAdapter adapter = new DingtalkAdapter(
                 ImCredentials.getString(creds, "client_id"),

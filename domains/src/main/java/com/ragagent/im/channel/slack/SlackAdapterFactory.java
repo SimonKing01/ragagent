@@ -4,7 +4,6 @@ import com.ragagent.im.domain.ImChannelEntity;
 import com.ragagent.im.runtime.ImCredentials;
 import com.ragagent.im.runtime.IncomingMessage;
 import com.ragagent.im.service.ImTurnOrchestrator;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import org.springframework.stereotype.Component;
@@ -21,9 +20,7 @@ public class SlackAdapterFactory implements ImTurnOrchestrator.AdapterFactory {
     @Override
     public ImTurnOrchestrator.AdapterRegistration create(ImChannelEntity channel,
             BiConsumer<IncomingMessage, String> msgHandler) {
-        byte[] raw = channel.getCredentials() == null
-                ? new byte[0] : channel.getCredentials().getBytes(StandardCharsets.UTF_8);
-        Map<String, Object> creds = ImCredentials.parseCredentials(raw);
+        Map<String, Object> creds = ImCredentials.parseCredentials(channel.getCredentials());
         String botToken = ImCredentials.getString(creds, "bot_token");
         String mode = ImCredentials.resolveMode(channel, "websocket");
 
