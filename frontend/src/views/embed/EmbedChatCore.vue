@@ -7,7 +7,7 @@
           class="msg-skeleton-list">
           <span class="eb-skel eb-bubble eb-bubble--user" />
           <span class="eb-skel eb-bubble" />
-          <span class="eb-skel eb-bubble eb-bubble--short" />
+          <span class="eb-skel eb-bubble" />
         </div>
 
         <!-- 欢迎屏：问候语居中偏上，下面是「为您推荐」+ 问题列表；两者都关闭时只留问候语 -->

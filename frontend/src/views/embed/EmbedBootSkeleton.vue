@@ -12,7 +12,7 @@
     <div v-if="conversation" class="embed-boot__body embed-boot__body--intro" aria-hidden="true">
       <span class="eb-skel eb-bubble eb-bubble--user" />
       <span class="eb-skel eb-bubble" />
-      <span class="eb-skel eb-bubble eb-bubble--short" />
+      <span class="eb-skel eb-bubble" />
     </div>
     <div v-else class="embed-boot__body embed-boot__body--intro" aria-hidden="true">
       <span class="eb-skel eb-intro-greeting" />
