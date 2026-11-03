@@ -49,6 +49,13 @@ stage_frontend() {
   rm -rf "$BUILD/ui"
   mkdir -p "$BUILD/ui"
   cp -R "$ROOT/frontend/dist" "$BUILD/ui/dist"
+  # 预压缩静态资源：配合容器 nginx 的 gzip_static，命中 .gz 就直接发送，
+  # 省掉每次请求现压的 CPU（2 核机器上 1 MB 的包现压要几十毫秒，还会拖 TTFB）。
+  if command -v gzip >/dev/null 2>&1; then
+    find "$BUILD/ui/dist" -type f \( -name '*.js' -o -name '*.css' -o -name '*.html' \) -size +1k \
+      -exec sh -c 'gzip -9 -c "$1" > "$1.gz"' _ {} \;
+    echo "== 预压缩完成：$(find "$BUILD/ui/dist" -name '*.gz' | wc -l | tr -d ' ') 个 .gz =="
+  fi
   cp "$ROOT/frontend/nginx.conf" "$ROOT/frontend/nginx-api-proxy.conf" \
      "$ROOT/frontend/nginx-http.conf" "$ROOT/frontend/docker-entrypoint.sh" "$BUILD/ui/"
 }
