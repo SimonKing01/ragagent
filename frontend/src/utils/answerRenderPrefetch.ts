@@ -22,7 +22,7 @@ function canPrefetch(): boolean {
  * 而答案里真的出现图表/代码块时通常已经就绪；未就绪也有降级渲染兜底
  * （代码块纯文本、图表占位后替换）。
  */
-export function prefetchAnswerRendering(): void {
+function prefetchAnswerRendering(): void {
   if (!canPrefetch()) return
   void loadHighlight().catch(() => {
     /* 预取失败不影响主流程，用到时会重试 */

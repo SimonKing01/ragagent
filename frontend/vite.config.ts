@@ -79,19 +79,15 @@ export default defineConfig({
   build: {
     modulePreload: {
       resolveDependencies(_filename, deps, { hostId }) {
-        // Embed iframe bootstraps with token exchange only; defer heavy chat chunks.
+        // Embed iframe 先用骨架引导，聊天相关的重块不要挤进首屏 preload。
+        // 只列实际存在的 chunk：vendor-mermaid / vendor-highlight 在改为按需加载后
+        // 已不再是命名分块，botmsg / usermsg / EmbedBotMessage / EmbedUserMessage /
+        // fonts- 从来就没有对应产物，留着只会让人误以为它们在起作用。
         if (hostId?.includes('embed')) {
           return deps.filter((dep) => !(
-            dep.includes('vendor-mermaid')
-            || dep.includes('vendor-highlight')
-            || dep.includes('vendor-markdown')
-            || dep.includes('botmsg')
-            || dep.includes('usermsg')
-            || dep.includes('EmbedBotMessage')
-            || dep.includes('EmbedUserMessage')
+            dep.includes('vendor-markdown')
             || dep.includes('AgentStreamDisplay')
             || dep.includes('EmbedChatCore')
-            || dep.includes('fonts-')
           ))
         }
         return deps
