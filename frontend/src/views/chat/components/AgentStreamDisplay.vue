@@ -361,7 +361,11 @@
             <div v-else-if="event.type === 'answer' && (event.done || (event.content && event.content.trim()))"
               class="answer-event">
               <div v-if="event.content && event.content.trim()" class="answer-content markdown-content">
-                <div v-stable-html="renderAnswerContent(event === activeAnswerEventRef ? typedAnswer : event.content)">
+                <div
+                  v-stable-html="renderAnswerContent(
+                    event === activeAnswerEventRef ? typedAnswer : event.content,
+                    event === activeAnswerEventRef,
+                  )">
                 </div>
               </div>
               <div v-if="answerFullyRendered && event.done && event.content && event.content.trim() && !embeddedMode"
@@ -2496,6 +2500,7 @@ const prepareAgentMarkdown = (markdown: string, cachedSvgHtml?: CachedMermaidSvg
 const renderAgentMarkdown = (
   content: unknown,
   escapeMarkdown: (markdown: string) => string,
+  streamingOverride?: boolean,
 ): string => {
   const contentStr = typeof content === 'string' ? content : String(content || '');
   if (!contentStr.trim()) return '';
@@ -2504,7 +2509,7 @@ const renderAgentMarkdown = (
     renderer: agentRenderer,
     escapeMarkdown,
     sanitizeHtml: sanitizeMarkdownHTML,
-    streaming: !isSegmentDone.value,
+    streaming: streamingOverride ?? !isSegmentDone.value,
     knowledgeReferences: getReferencesForDrawer(),
     cachedMermaidSvgHtml: streamingMermaidSvgCache.value,
     prepareMarkdown: prepareAgentMarkdown,
@@ -2517,12 +2522,25 @@ const renderMarkdownContent = (content: unknown): string => {
   return renderAgentMarkdown(content, sanitizeForDisplay);
 };
 
+// 尾部渐隐（.stream-fade-tail）只该表示「字还在往外打」。原先用 isSegmentDone（整轮是否
+// 结束）当开关，工具调用前那段话打完、停住等工具时仍一直半透明——后半句看不清。改成
+// 「当前活动段 + 打字机还没追上」才渐隐，字打完后立刻变实心。
+const isAnswerStillRevealing = computed(
+  () =>
+    !isSegmentDone.value
+    && typedAnswer.value.length < activeAnswerMarkdown.value.length,
+);
+
 // Renders an answer event's content. Strips final-answer wrappers
 // (e.g. <answer>…</answer>, "Final Answer:") that some models wrap their
 // plain-text answer in, then delegates to the standard markdown renderer.
-const renderAnswerContent = (content: unknown): string => {
+const renderAnswerContent = (content: unknown, isActive = false): string => {
   const contentStr = typeof content === 'string' ? content : String(content || '');
-  return renderMarkdownContent(unwrapFinalAnswerWrappers(contentStr));
+  return renderAgentMarkdown(
+    unwrapFinalAnswerWrappers(contentStr),
+    sanitizeForDisplay,
+    isActive && isAnswerStillRevealing.value,
+  );
 };
 
 // Legacy Markdown rendering function (kept for summaries)

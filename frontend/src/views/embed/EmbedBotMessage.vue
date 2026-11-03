@@ -168,7 +168,8 @@ const renderedHTML = computed(() => {
     renderer: markdownRenderer,
     escapeMarkdown: safeMarkdownToHTML,
     sanitizeHtml: sanitizeMarkdownHTML,
-    streaming: !props.session?.completed,
+    // 尾部渐隐只表示「字还在往外打」：打字机追上完整文本后应恢复实心
+    streaming: !props.session?.completed && typedAnswer.value.length < answerText.value.length,
   })
 })
 
