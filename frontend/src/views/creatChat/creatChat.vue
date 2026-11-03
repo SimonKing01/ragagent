@@ -11,12 +11,15 @@
             <div ref="sqContainerRef" class="suggested-questions-container">
                 <!-- 骨架屏占位 -->
                 <div v-if="sqLoading && suggestedQuestions.length === 0" class="suggested-questions-inner">
-                    <div class="suggested-questions-title"><t-skeleton animation="gradient"
-                            :row-col="[{ width: '120px', height: '14px' }]" /></div>
+                    <div class="suggested-questions-title-row">
+                        <div class="sq-title-skeleton">
+                            <t-skeleton animation="gradient" :row-col="[{ width: '120px', height: '14px' }]" />
+                        </div>
+                    </div>
                     <div class="suggested-questions-grid">
                         <div v-for="n in 6" :key="'sq-skel-' + n" class="suggested-question-card sq-card-skeleton">
                             <t-skeleton animation="gradient"
-                                :row-col="[{ width: '100%', height: '14px', type: 'rect' }]" />
+                                :row-col="[{ width: sqSkeletonBarWidths[n - 1], height: '20px', type: 'rect' }]" />
                         </div>
                     </div>
                 </div>
@@ -87,6 +90,8 @@ const showChatContextualGuide = computed(() => {
 
 // ===== 推荐问题 =====
 const suggestedQuestions = ref<SuggestedQuestion[]>([]);
+// 骨架条宽：错落模拟真实问题长短；卡片宽度由条宽撑开，与真实卡片同款内边距/行高
+const sqSkeletonBarWidths = ['96px', '128px', '152px', '108px', '136px', '84px'];
 const sqLoading = ref(true);
 const sqCardsRevealed = ref(false);
 const sqRenderKey = ref(0);

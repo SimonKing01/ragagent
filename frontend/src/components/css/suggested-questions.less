@@ -39,6 +39,11 @@
     text-align: center;
 }
 
+// 骨架标题占位：与加载完成后的居中标题对齐
+.sq-title-skeleton {
+    display: inline-flex;
+}
+
 .suggested-questions-caption {
     display: inline-flex;
     align-items: center;
@@ -138,7 +143,8 @@
     }
 
     &.sq-card-skeleton {
-        width: 180px;
+        // 不设固定宽：卡片宽度由内部条宽撑开，和真实卡片（内容宽度 + 内边距）同一套算法
+        width: auto;
         max-width: 100%;
         pointer-events: none;
         cursor: default;
@@ -147,21 +153,8 @@
         background: var(--td-bg-color-secondarycontainer);
         box-shadow: none;
 
-        // 不等宽的骨架，呼应错落的标签云布局
-        &:nth-child(2n) {
-            width: 240px;
-        }
-
-        &:nth-child(3n) {
-            width: 150px;
-        }
-
-        &:nth-child(5n) {
-            width: 210px;
-        }
-
         :deep(.t-skeleton) {
-            width: 100%;
+            width: auto;
         }
 
         :deep(.t-skeleton__row) {
