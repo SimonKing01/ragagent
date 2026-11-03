@@ -15,12 +15,13 @@ import java.sql.Types;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -50,12 +51,15 @@ public class KnowledgeSpanRepository {
             "status", "error_code", "error_message", "error_detail",
             "started_at", "finished_at", "duration_ms", "updated_at");
 
+    /** 命名参数入口（动态 IN / 条件拼装用）；{@link #jdbc} 是它的底层模板，供位置参数调用点沿用。 */
+    private final NamedParameterJdbcTemplate namedJdbc;
     private final JdbcTemplate jdbc;
     private final boolean postgres;
 
-    public KnowledgeSpanRepository(JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
-        this.postgres = DatabaseDialects.isPostgres(jdbc);
+    public KnowledgeSpanRepository(NamedParameterJdbcTemplate namedJdbc) {
+        this.namedJdbc = namedJdbc;
+        this.jdbc = namedJdbc.getJdbcTemplate();
+        this.postgres = DatabaseDialects.isPostgres(this.jdbc);
     }
 
     public void upsert(KnowledgeProcessingSpan row) {
@@ -249,14 +253,13 @@ public class KnowledgeSpanRepository {
         if (knowledgeId == null || knowledgeId.isEmpty()) {
             return List.of();
         }
-        String sql = "SELECT * FROM knowledge_processing_spans WHERE knowledge_id = ?"
-                + (attempt > 0 ? " AND attempt = ?" : "") + " ORDER BY id ASC";
-        List<Object> args = new ArrayList<>();
-        args.add(knowledgeId);
+        String sql = "SELECT * FROM knowledge_processing_spans WHERE knowledge_id = :knowledgeId"
+                + (attempt > 0 ? " AND attempt = :attempt" : "") + " ORDER BY id ASC";
+        MapSqlParameterSource params = new MapSqlParameterSource("knowledgeId", knowledgeId);
         if (attempt > 0) {
-            args.add(attempt);
+            params.addValue("attempt", attempt);
         }
-        return jdbc.query(sql, (rs, rowNum) -> mapRow(rs), args.toArray());
+        return namedJdbc.query(sql, params, (rs, rowNum) -> mapRow(rs));
     }
 
     /** 不存在返回 null。 */
@@ -278,20 +281,17 @@ public class KnowledgeSpanRepository {
         List<String> frontier = new ArrayList<>(List.of(parentSpanId));
         long totalAffected = 0;
         for (int depth = 0; depth < 16 && !frontier.isEmpty(); depth++) {
-            List<String> placeholders = new ArrayList<>(
-                    Collections.nCopies(frontier.size(), "?"));
-            List<Object> args = new ArrayList<>();
-            args.add(knowledgeId);
-            args.add(attempt);
-            args.addAll(frontier);
-            args.add(KnowledgeProcessingSpan.STATUS_PENDING);
-            args.add(KnowledgeProcessingSpan.STATUS_RUNNING);
-            List<KnowledgeProcessingSpan> children = jdbc.query(
-                    "SELECT * FROM knowledge_processing_spans WHERE knowledge_id = ?"
-                            + " AND attempt = ? AND parent_span_id IN ("
-                            + String.join(",", placeholders) + ")"
-                            + " AND status IN (?, ?)",
-                    (rs, rowNum) -> mapRow(rs), args.toArray());
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("knowledgeId", knowledgeId)
+                    .addValue("attempt", attempt)
+                    .addValue("parentIds", frontier)
+                    .addValue("pending", KnowledgeProcessingSpan.STATUS_PENDING)
+                    .addValue("running", KnowledgeProcessingSpan.STATUS_RUNNING);
+            List<KnowledgeProcessingSpan> children = namedJdbc.query(
+                    "SELECT * FROM knowledge_processing_spans WHERE knowledge_id = :knowledgeId"
+                            + " AND attempt = :attempt AND parent_span_id IN (:parentIds)"
+                            + " AND status IN (:pending, :running)",
+                    params, (rs, rowNum) -> mapRow(rs));
             if (children.isEmpty()) {
                 break;
             }
@@ -301,19 +301,18 @@ public class KnowledgeSpanRepository {
                 ids.add(c.getSpanId());
                 nextFrontier.add(c.getSpanId());
             }
-            List<String> idPlaceholders = new ArrayList<>(Collections.nCopies(ids.size(), "?"));
-            List<Object> updateArgs = new ArrayList<>();
-            updateArgs.add(KnowledgeProcessingSpan.STATUS_CANCELLED);
-            updateArgs.add("UPSTREAM_FAILED");
-            updateArgs.add(cleanReason);
-            updateArgs.add(knowledgeId);
-            updateArgs.add(attempt);
-            updateArgs.addAll(ids);
-            int affected = jdbc.update(
-                    "UPDATE knowledge_processing_spans SET status = ?, error_code = ?,"
-                            + " error_message = ? WHERE knowledge_id = ? AND attempt = ?"
-                            + " AND span_id IN (" + String.join(",", idPlaceholders) + ")",
-                    updateArgs.toArray());
+            MapSqlParameterSource updateParams = new MapSqlParameterSource()
+                    .addValue("status", KnowledgeProcessingSpan.STATUS_CANCELLED)
+                    .addValue("errorCode", "UPSTREAM_FAILED")
+                    .addValue("errorMessage", cleanReason, Types.VARCHAR)
+                    .addValue("knowledgeId", knowledgeId)
+                    .addValue("attempt", attempt)
+                    .addValue("ids", ids);
+            int affected = namedJdbc.update(
+                    "UPDATE knowledge_processing_spans SET status = :status, error_code = :errorCode,"
+                            + " error_message = :errorMessage WHERE knowledge_id = :knowledgeId"
+                            + " AND attempt = :attempt AND span_id IN (:ids)",
+                    updateParams);
             totalAffected += affected;
             frontier = nextFrontier;
         }

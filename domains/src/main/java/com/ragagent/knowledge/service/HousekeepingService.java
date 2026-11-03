@@ -9,7 +9,6 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -20,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -95,6 +96,8 @@ public class HousekeepingService {
     static final String WIKI_OP_INGEST = "ingest";
 
     private final JdbcTemplate jdbc;
+    /** 动态 IN 与条件拼装用；由 {@link #jdbc} 派生，构造器签名不变。 */
+    private final NamedParameterJdbcTemplate namedJdbc;
     private final KnowledgeQueueInspector inspector;
     private final Duration documentProcessTimeout;
     private final boolean enabled;
@@ -126,6 +129,7 @@ public class HousekeepingService {
                         Duration documentProcessTimeout, boolean enabled,
                         KnowledgeTaskRunner taskExecutor) {
         this.jdbc = jdbc;
+        this.namedJdbc = new NamedParameterJdbcTemplate(jdbc);
         this.inspector = inspector;
         this.documentProcessTimeout = documentProcessTimeout;
         this.enabled = enabled;
@@ -212,19 +216,19 @@ public class HousekeepingService {
      * {@code Updates({parse_status: failed, error_message: ..., pending_subtasks_count: 0})}，
      */
     private void recoverStuckKnowledge(List<String> stuck, Duration threshold) {
-        String placeholders = String.join(",", Collections.nCopies(stuck.size(), "?"));
-        List<Object> args = new ArrayList<>(stuck.size() + 6);
-        args.add(Knowledge.PARSE_FAILED);
-        args.add("task stuck in processing > " + threshold
-                + ", recovered by housekeeping");
-        args.add(0);
-        args.addAll(stuck);
-        args.addAll(CANDIDATE_STATUSES);
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("failed", Knowledge.PARSE_FAILED)
+                .addValue("errorMessage", "task stuck in processing > " + threshold
+                        + ", recovered by housekeeping")
+                .addValue("zero", 0)
+                .addValue("ids", stuck)
+                .addValue("statuses", CANDIDATE_STATUSES);
         try {
-            int rows = jdbc.update("UPDATE knowledges SET parse_status = ?, error_message = ?, "
-                            + "pending_subtasks_count = ? WHERE id IN (" + placeholders + ") "
-                            + "AND parse_status IN (?, ?, ?) AND deleted_at IS NULL",
-                    args.toArray());
+            int rows = namedJdbc.update("UPDATE knowledges SET parse_status = :failed,"
+                            + " error_message = :errorMessage, pending_subtasks_count = :zero"
+                            + " WHERE id IN (:ids) AND parse_status IN (:statuses)"
+                            + " AND deleted_at IS NULL",
+                    params);
             if (rows > 0) {
                 log.info("[Housekeeping] recovered {} stuck knowledge rows (threshold={})",
                         rows, threshold);
@@ -261,16 +265,13 @@ public class HousekeepingService {
         }
         Set<String> alive;
         try {
-            String placeholders = String.join(",", Collections.nCopies(candidates.size(), "?"));
-            Object[] args = new Object[candidates.size() + 1];
-            for (int i = 0; i < candidates.size(); i++) {
-                args[i] = candidates.get(i);
-            }
-            args[candidates.size()] = cutoff;
-            alive = new LinkedHashSet<>(jdbc.queryForList(
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("ids", candidates)
+                    .addValue("cutoff", cutoff);
+            alive = new LinkedHashSet<>(namedJdbc.queryForList(
                     "SELECT DISTINCT knowledge_id FROM knowledge_processing_spans "
-                            + "WHERE knowledge_id IN (" + placeholders + ") AND updated_at > ?",
-                    String.class, args));
+                            + "WHERE knowledge_id IN (:ids) AND updated_at > :cutoff",
+                    params, String.class));
         } catch (RuntimeException e) {
             log.warn("[Housekeeping] span heartbeat query failed (will fail safe and recover all candidates)", e);
             return candidates;
@@ -294,19 +295,18 @@ public class HousekeepingService {
         if (candidates.isEmpty()) {
             return candidates;
         }
-        String placeholders = String.join(",", Collections.nCopies(candidates.size(), "?"));
         Set<String> durable;
         try {
-            List<Object> args = new ArrayList<>(candidates.size() + 3);
-            args.add(WIKI_TASK_TYPE);
-            args.add(WIKI_TASK_SCOPE);
-            args.add(WIKI_OP_INGEST);
-            args.addAll(candidates);
-            durable = new LinkedHashSet<>(jdbc.queryForList(
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("taskType", WIKI_TASK_TYPE)
+                    .addValue("scope", WIKI_TASK_SCOPE)
+                    .addValue("op", WIKI_OP_INGEST)
+                    .addValue("dedupKeys", candidates);
+            durable = new LinkedHashSet<>(namedJdbc.queryForList(
                     "SELECT DISTINCT dedup_key FROM task_pending_ops "
-                            + "WHERE task_type = ? AND scope = ? AND op = ? AND dedup_key IN ("
-                            + placeholders + ")",
-                    String.class, args.toArray()));
+                            + "WHERE task_type = :taskType AND scope = :scope AND op = :op"
+                            + " AND dedup_key IN (:dedupKeys)",
+                    params, String.class));
         } catch (RuntimeException e) {
             log.warn("[Housekeeping] durable queue probe failed (deferring {} candidate(s))", candidates.size(), e);
             skippedHolder[0] = candidates.size();

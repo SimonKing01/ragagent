@@ -2,11 +2,12 @@ package com.ragagent.knowledge.recovery;
 
 import com.ragagent.knowledge.domain.Knowledge;
 import com.ragagent.knowledge.repository.KnowledgeSpanRepository;
-import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
@@ -84,31 +85,23 @@ public class KnowledgeStartupRecovery {
         if (stuckIds.isEmpty()) {
             return;
         }
-        String placeholders = String.join(",", Collections.nCopies(stuckIds.size(), "?"));
-        Object[] args = new Object[stuckIds.size() + 2];
-        args[0] = Knowledge.PARSE_FAILED;
-        args[1] = RESTART_INTERRUPTED_MESSAGE;
-        for (int i = 0; i < stuckIds.size(); i++) {
-            args[i + 2] = stuckIds.get(i);
-        }
-        int reset = jdbc.update("UPDATE knowledges SET parse_status = ?, error_message = ?, "
-                + "pending_subtasks_count = 0 WHERE id IN (" + placeholders + ")", args);
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("failed", Knowledge.PARSE_FAILED)
+                .addValue("errorMessage", RESTART_INTERRUPTED_MESSAGE)
+                .addValue("ids", stuckIds);
+        int reset = new NamedParameterJdbcTemplate(jdbc).update(
+                "UPDATE knowledges SET parse_status = :failed, error_message = :errorMessage,"
+                        + " pending_subtasks_count = 0 WHERE id IN (:ids)", params);
         if (reset <= 0) {
             return;
         }
         log.info("Reset {} stuck knowledge parsing tasks to failed state (distributed=false)", reset);
         // 行复位为终态后才取消孤儿 span（防止 UI 在后续手动重试时出现重复的
         // running 子 span；重读成功复位的行，SELECT/UPDATE 缝隙里状态变化的行不误取消）
-        Object[] recheckArgs = new Object[stuckIds.size() + 2];
-        for (int i = 0; i < stuckIds.size(); i++) {
-            recheckArgs[i] = stuckIds.get(i);
-        }
-        recheckArgs[stuckIds.size()] = Knowledge.PARSE_FAILED;
-        recheckArgs[stuckIds.size() + 1] = RESTART_INTERRUPTED_MESSAGE;
-        List<String> resetIds = jdbc.queryForList(
-                "SELECT id FROM knowledges WHERE id IN (" + placeholders + ") "
-                        + "AND parse_status = ? AND error_message = ?",
-                String.class, recheckArgs);
+        List<String> resetIds = new NamedParameterJdbcTemplate(jdbc).queryForList(
+                "SELECT id FROM knowledges WHERE id IN (:ids) "
+                        + "AND parse_status = :failed AND error_message = :errorMessage",
+                params, String.class);
         for (String knowledgeId : resetIds) {
             int attempt = spanRepository.latestAttempt(knowledgeId);
             if (attempt <= 0) {

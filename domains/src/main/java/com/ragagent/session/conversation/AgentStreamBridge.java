@@ -280,6 +280,7 @@ public final class AgentStreamBridge {
                     new com.fasterxml.jackson.core.type.TypeReference<Map<String, Object>>() {});
             return m == null ? new LinkedHashMap<>() : m;
         } catch (RuntimeException e) {
+            log.warn("Failed to convert event payload to map, using empty payload", e);
             return new LinkedHashMap<>();
         }
     }

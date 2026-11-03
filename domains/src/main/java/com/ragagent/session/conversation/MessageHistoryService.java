@@ -130,6 +130,7 @@ public class MessageHistoryService {
         try {
             return tid == null || tid <= 0 ? null : tenantService.storageView(tid);
         } catch (RuntimeException e) {
+            log.warn("Failed to resolve tenant storage view, falling back to default", e);
             return null;
         }
     }
