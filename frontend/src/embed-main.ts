@@ -44,6 +44,11 @@ app.use(createPinia())
 app.use(router)
 app.use(i18n)
 
+// 回答气泡里的正文/引用是异步组件：历史会话渲染时才去取分块，会出现
+// 「先看到提问、回复晚一拍」。挂载前先把这几个分块预取，通常等历史返回时已就绪。
+void import('@/views/chat/components/AgentStreamDisplay.vue')
+void import('@/views/chat/components/docInfo.vue')
+
 router.isReady().finally(() => {
   app.mount('#embed-app')
 })
