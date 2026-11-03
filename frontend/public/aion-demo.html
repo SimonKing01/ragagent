@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Widget 测试页 — AI 小埃</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+      background: #f5f6f7;
+      color: #222;
+    }
+    header {
+      padding: 14px 24px;
+      background: #fff;
+      border-bottom: 1px solid #e5e6eb;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-logo {
+      height: 26px;
+      width: auto;
+      display: block;
+    }
+    .brand-divider {
+      width: 1px;
+      height: 18px;
+      background: #e5e6eb;
+    }
+    header h1 { margin: 0; font-size: 16px; font-weight: 600; color: #333; }
+    main { padding: 24px; max-width: 1200px; }
+    .card {
+      background: #fff;
+      border: 1px solid #e5e6eb;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+    .card h2 { margin: 0 0 8px; font-size: 15px; }
+    .card p, .card li { font-size: 13px; line-height: 1.7; color: #555; }
+    code {
+      background: #f2f3f5;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    @media (min-width: 860px) {
+      .feature-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    .feature {
+      border: 1px solid #eef0f3;
+      border-radius: 8px;
+      background: #fafbfc;
+      padding: 12px 14px;
+    }
+    .feature h3 {
+      margin: 0 0 4px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #222;
+    }
+    .feature p {
+      margin: 0;
+      font-size: 12.5px;
+      line-height: 1.65;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <!-- 品牌图复制自 src/assets/img/RagAgent.webp：静态页引用不到 src 下的资源 -->
+    <div class="brand">
+      <img class="brand-logo" src="/ragagent-logo.webp" alt="RagAgent" />
+      <span class="brand-divider" aria-hidden="true"></span>
+      <h1>Embed Widget 测试页</h1>
+    </div>
+  </header>
+  <main>
+    <div class="card">
+      <h2>功能特性</h2>
+      <p>嵌入渠道是一段可配置的网页挂件：宿主页面加一行脚本即可使用，外观与能力全部由渠道配置决定。</p>
+      <div class="feature-grid">
+        <div class="feature">
+          <h3>一行脚本接入</h3>
+          <p>引入 <code>ragagent-widget.js</code> 并声明渠道与密钥即可运行；渲染在 iframe 内，不受宿主页面样式影响，也不反向污染宿主。</p>
+        </div>
+        <div class="feature">
+          <h3>渠道级外观</h3>
+          <p>主色、面板标题、浮标图片、面板尺寸（<code>data-width</code> / <code>data-height</code>）以及四个角的位置（<code>data-position</code>）均可单独配置。</p>
+        </div>
+        <div class="feature">
+          <h3>免登录访客会话</h3>
+          <p>访客无需账号即可对话；会话落库，刷新或重开面板可恢复历史，会话票到期自动换取新票并重放请求。</p>
+        </div>
+        <div class="feature">
+          <h3>两种安全接入方式</h3>
+          <p>静态发布密钥，或「安全模式」由宿主服务端经 <code>data-token-endpoint</code> 换取短期会话票；叠加 Origin 白名单与按分钟 / 按天的调用限流。</p>
+        </div>
+        <div class="feature">
+          <h3>多语言</h3>
+          <p>界面语言优先级：宿主指定（<code>data-locale</code> 或 <code>init({locale})</code>）&gt; 渠道默认语言 &gt; 浏览器语言。</p>
+        </div>
+        <div class="feature">
+          <h3>能力随渠道开关</h3>
+          <p>联网搜索、文件 / 图片上传、思考过程展示、猜你想问，均按渠道（并与智能体能力交叉）决定是否出现在输入区。</p>
+        </div>
+        <div class="feature">
+          <h3>知识范围随智能体</h3>
+          <p>回答依据渠道所绑定智能体的知识库与提示词配置，换渠道即换知识与话术，宿主页面无需改动。</p>
+        </div>
+        <div class="feature">
+          <h3>流式回答与引用溯源</h3>
+          <p>回答增量流式渲染并支持 markdown；正文引用可点开浮层查看来源片段，链接在新窗口打开。</p>
+        </div>
+        <div class="feature">
+          <h3>宿主可控的 JS API</h3>
+          <p>全局 <code>RagAgent</code> 提供 <code>init</code> / <code>open</code> / <code>close</code> / <code>toggle</code> / <code>setContext</code> / <code>openWithQuery</code> / <code>setLocale</code>，可把挂件接到自有按钮、路由或页面上下文上。</p>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>验收清单</h2>
+      <p>依据：该渠道公开配置 <code>GET /api/v1/embed/{channel}/config</code> + widget 代码；括号内是该渠道当前值。</p>
+      <p><strong>A. 外观与启动</strong></p>
+      <ul>
+        <li>右下角圆形启动按钮，底色 = 渠道主色 <code>#31ccd3</code>（<strong>渠道配置优先</strong>于 <code>data-primary-color</code>；该属性只负责首帧绘制与请求失败兜底）</li>
+        <li>启动按钮图标取渠道 <code>launcherIcon</code>（当前为 webp）；未配置时才回落默认白色气泡 SVG</li>
+        <li>点击展开面板，默认尺寸 <code>420 × 720</code>（可用 <code>data-width</code> / <code>data-height</code> 覆盖）</li>
+        <li>位置取 <code>data-position</code>（后台「浮标位置」生成该属性，当前 <code>bottom-right</code>）；widget 自身不读渠道的 <code>widgetPosition</code></li>
+        <li>面板头部：徽标同样用 <code>launcherIcon</code>（缺省回退智能体头像 / 默认图标）；标题 = <code>displayTitle</code>「AION 小埃」（<code>headerTitleMode=channel</code>；切成 <code>session</code> 时显示会话标题）</li>
+        <li>欢迎语：<code>welcomeMessage</code> 为空 ⇒ <strong>不应</strong>出现欢迎气泡；配置后显示在首条用户消息之前，用户发言后消失</li>
+        <li>头部右侧按钮：历史（打开历史会话抽屉）、新对话（无消息时禁用）</li>
+      </ul>
+      <p><strong>B. 问答主链路</strong></p>
+      <ul>
+        <li>用户消息气泡：<strong>主题色底 + 白字</strong>（底色取渠道 <code>primaryColor</code>，未配置时回落灰底）</li>
+        <li>回答<strong>流式</strong>输出；完成后按 markdown 渲染（标题/列表/表格/代码），图片经安全渲染显示</li>
+        <li>思考过程：<code>showThinking=false</code>（当前）⇒ 只见三点闪烁；<strong>开</strong> 才出现可展开的思考卡片</li>
+        <li>引用：<strong>悬停或点击</strong>正文引用标记 → 浮层显示来源片段（<code>GET /api/v1/embed/{channel}/chunks/{chunkId}</code>）；联网来源的链接新窗口打开</li>
+        <li>开场猜问：渠道 <code>showSuggestedQuestions=true</code> + 智能体开场问题开关开（当前 true）⇒ 打开面板显示建议问题网格（<code>GET /api/v1/embed/{channel}/suggested-questions</code>），点击直接提问；用户发言后不再显示</li>
+        <li>追问建议：需渠道开关 + 智能体追问开关<strong>同时开</strong>；当前 <code>agentFollowUpQuestionsEnabled=false</code> ⇒ 回答后<strong>不应</strong>出现追问建议（开启后才有，且仅当该消息允许换一批时出现「换一批」）</li>
+      </ul>
+      <p><strong>C. 按开关应收敛的入口</strong></p>
+      <ul>
+        <li>联网搜索：渠道 <code>allowWebSearch</code> 与智能体 <code>agentWebSearchEnabled</code> 需<strong>同时为真</strong>才出现；当前两者皆 false ⇒ 输入区不出现</li>
+        <li>文件 / 图片上传：渠道 <code>allowFileUpload</code> 与智能体 <code>agentImageUploadEnabled</code> 需<strong>同时为真</strong>才出现；当前两者皆 false ⇒ 输入区不出现</li>
+      </ul>
+      <p><strong>D. 会话、历史与异常</strong></p>
+      <ul>
+        <li>首次打开：历史加载中显示骨架，不白屏；历史经 <code>GET /api/v1/embed/{channel}/messages/{sessionId}/load</code> 拉取，顺序正确、不重复</li>
+        <li>历史抽屉：列出本访客在该渠道的会话（<code>GET /api/v1/embed/{channel}/sessions</code>）；点击切换，回答进行中切换会先弹确认（会中断当前回答）</li>
+        <li>会话票：30 分钟有效（Redis <code>embed:session:*</code>）；过期后 401 → 自动换取新票并重放请求，界面无感</li>
+        <li>安全模式（<code>data-token-endpoint</code>）：经 <code>POST /api/v1/embed/{channel}/exchange</code> 换取短期会话票并到期刷新；本页用的是静态 publish token</li>
+        <li>origin 校验：未列入 <code>allowedOrigins</code> 的页面请求被拒（<code>origin not allowed</code>）；当前只放行 <code>http://localhost:5173</code></li>
+        <li>限流：按「渠道 + 客户端 IP」每分钟、渠道全局每分钟、渠道每天三段校验，超限返回 429；<strong>这三个值不在公开 config 里</strong>，当前渠道为 100 次/分、20000 次/天（在后台渠道详情核对）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>说明</h2>
+      <p>本页与 widget 脚本同源（均来自 vite dev server，脚本为 <code>/ragagent-widget.js</code>。页面 origin 需已加入渠道的 Allowed Origins，
+      否则会报 <code>origin not allowed</code>。</p>
+      <p>外观与开关的最终取值以渠道配置为准；<code>data-primary-color</code> / <code>data-title</code> 只影响首帧绘制与启动按钮的无障碍标签（当前与渠道一致：<code>#31ccd3</code> / 「AION 小埃」）。</p>
+      <p>widget 支持的全部 <code>data-*</code>：
+      <code>channel</code>、<code>token</code>、<code>token-endpoint</code>、<code>base-url</code>、
+      <code>position</code>（四角）、<code>width</code>、<code>height</code>、<code>primary-color</code>、
+      <code>title</code>、<code>locale</code>、<code>sandbox</code>（<code>true</code> 时给 iframe 加
+      <code>allow-scripts allow-forms allow-popups allow-modals allow-same-origin</code>；跨源嵌入默认也会加）。</p>
+      <p>语言优先级：宿主声明（<code>data-locale</code> 或 <code>init({locale})</code>）&gt; 渠道默认语言（当前为空 = 不指定）&gt; 浏览器语言。</p>
+    </div>
+  </main>
+
+<script src="https://agent.pmbilly.com/ragagent-widget.js"
+        data-channel="253ae029-0352-49c1-935d-826afe90d5c5"
+        data-token="em_oleY7pU-55Oil6xN9WePlVXSUwiEcwz2BvKKfuDWmf8"
+        data-position="bottom-right"
+        data-primary-color="#2bd0e3"
+        data-title="AION智能体DEMO · 网页嵌入"></script>
+</body>
+</html>
