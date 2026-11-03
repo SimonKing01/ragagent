@@ -127,12 +127,6 @@
   border-radius: 4px 14px 14px 14px;
 }
 
-/* 第二条 Agent 回复略短，避免两条完全同宽显得呆板 */
-.eb-bubble--short {
-  width: 88%;
-  height: 52px;
-}
-
 /* 用户气泡（右） */
 .eb-bubble--user {
   width: 46%;
