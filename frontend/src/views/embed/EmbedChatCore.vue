@@ -137,6 +137,7 @@ import {
   onEmbedHostOpenWithQuery,
   onEmbedHostPanelOpen,
   recordEmbedMessageSuggestionEvent,
+  requestEmbedHostPanelState,
   type SuggestedQuestion,
 } from '@/api/embed'
 import { scheduleAnswerRenderPrefetch } from '@/utils/answerRenderPrefetch'
@@ -428,17 +429,36 @@ const dismissFollowUps = (message: Record<string, unknown>, set: MessageSuggesti
 let removeOpenQueryListener: (() => void) | null = null
 let removePanelOpenListener: (() => void) | null = null
 
+// 预取 mermaid / highlight.js 的时机：面板已打开 **且** 内容已就绪
+// （问候屏已显示 / 历史加载完成）。两者都满足才下，避免抢首屏带宽，
+// 也避免用户根本没点开时白下 1 MB；未就绪仍有降级渲染兜底。
+const panelOpened = ref(window.parent === window)
+let prefetchScheduled = false
+function schedulePrefetchWhenReady() {
+  if (prefetchScheduled || !panelOpened.value) return
+  if (props.sessionRestoring || historyLoading.value || loading.value) return
+  prefetchScheduled = true
+  scheduleAnswerRenderPrefetch()
+}
+
+watch(
+  [panelOpened, historyLoading, loading, () => Boolean(props.sessionRestoring)],
+  () => schedulePrefetchWhenReady(),
+  { immediate: true },
+)
+
 onMounted(() => {
   fetchSuggestedQuestions()
   removeOpenQueryListener = onEmbedHostOpenWithQuery((query) => {
     if (isReplying.value) return
     void sendMsg(query, { webSearchEnabled: webSearchEnabled.value })
   })
-  // 面板首次展开后空闲时预取 mermaid / highlight.js：不抢首屏带宽，
-  // 用户提问时通常已就绪；未就绪也有降级渲染兜底。
-  removePanelOpenListener = onEmbedHostPanelOpen(() => scheduleAnswerRenderPrefetch())
-  // 非宿主嵌入（直接打开 embed 页）不会收到 panel_open，挂载后自行预取
-  if (window.parent === window) scheduleAnswerRenderPrefetch()
+  removePanelOpenListener = onEmbedHostPanelOpen(() => {
+    panelOpened.value = true
+    schedulePrefetchWhenReady()
+  })
+  // 先注册监听再问状态：用户可能在嵌入页就绪前就点开了面板，那条 panel_open 会落空
+  requestEmbedHostPanelState()
 })
 
 onUnmounted(() => {

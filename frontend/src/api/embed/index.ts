@@ -846,6 +846,16 @@ export function onEmbedHostLocale(handler: (locale: string) => void) {
   return () => window.removeEventListener('message', listener)
 }
 
+/**
+ * 问宿主「面板现在是否展开」。
+ *
+ * 用户可能在嵌入页就绪前就点开面板，那条 `panel_open` 会落空（收端还没注册监听）；
+ * 挂载后主动问一次，宿主只在展开时回一条 `panel_open`，预取时机就不会丢。
+ */
+export function requestEmbedHostPanelState() {
+  postToParent({ type: 'panel_state_request' })
+}
+
 /** Listen for the host panel being opened (首次展开时触发一次预取时机)。 */
 export function onEmbedHostPanelOpen(handler: () => void) {
   const listener = (e: MessageEvent) => {

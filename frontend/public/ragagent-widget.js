@@ -488,10 +488,22 @@
         case 'bootstrap_request':
           provideToken();
           break;
+        case 'panel_state_request':
+          // 嵌入页挂载后主动问一次：用户可能在 iframe 就绪前就点开了面板，
+          // 那条 panel_open 会落空（收端尚未注册监听）
+          if (panelOpen) {
+            postToIframe({ source: HOST_SOURCE, type: 'panel_open', payload: {} });
+          }
+          break;
         case 'ready':
           iframeReady = true;
           hideBootShield();
           launcher.style.opacity = '1';
+          // 面板比嵌入页先打开时，之前那条 panel_open 会落空（收端还没注册监听）：
+          // 这里在 ready 后补发一次，保证「打开后空闲预取」一定被触发。
+          if (panelOpen) {
+            postToIframe({ source: HOST_SOURCE, type: 'panel_open', payload: {} });
+          }
           if (pendingLocale) {
             postHostPayload('set_locale', { locale: pendingLocale });
             pendingLocale = '';
