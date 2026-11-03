@@ -3,37 +3,23 @@
     <div ref="scrollContainer" class="embed-chat__scroll" @scroll="handleScroll">
       <div class="embed-chat__messages">
         <!-- 历史会话加载中：与首屏/推荐问题骨架同一套块，交接时不跳 -->
-        <div v-if="historyLoading && messagesList.length === 0 && !hasWelcomeText" class="msg-skeleton-list">
+        <div v-if="historyLoading && messagesList.length === 0" class="msg-skeleton-list">
           <span class="eb-skel eb-bubble" />
           <span class="eb-skel eb-bubble eb-bubble--user" />
           <span class="eb-skel eb-row" />
         </div>
 
         <div
-          v-if="showWelcome"
-          class="embed-welcome-bubble"
-        >
-          <p class="embed-welcome-bubble__text">{{ welcomeText }}</p>
-          <button
-            v-if="starterQuestionsEnabled"
-            type="button"
-            class="embed-refresh-btn embed-welcome-bubble__refresh"
-            :title="t('common.refresh')"
-            :aria-label="t('common.refresh')"
-            :disabled="suggestedLoading"
-            @click="refreshSuggestedQuestions"
-          >
-            <t-icon name="refresh" size="14px" :class="{ 'is-spinning': suggestedLoading }" />
-          </button>
-        </div>
-
-        <div
-          v-if="showSuggestedBlock"
+          v-if="showGreeting || showSuggestedBlock"
           class="embed-suggested"
         >
-          <div v-if="suggestedQuestions.length > 0" class="embed-suggested__head">
-            <p class="embed-suggested__title">{{ t('chat.suggestedQuestions') }}</p>
+          <!-- 问候语只有一行：渠道配了欢迎语就显示欢迎语，否则显示默认问候语 -->
+          <div v-if="showGreeting" class="embed-suggested__head">
+            <p class="embed-suggested__title">
+              {{ hasWelcomeText ? welcomeText : t('chat.suggestedQuestions') }}
+            </p>
             <button
+              v-if="starterQuestionsEnabled"
               type="button"
               class="embed-refresh-btn"
               :title="t('common.refresh')"
@@ -344,8 +330,15 @@ const showGlobalTypingIndicator = computed(() =>
   shouldShowGlobalTypingIndicator(messagesList, loading.value),
 )
 
-/** 访客未发言前始终展示欢迎语（含历史加载中），发送后隐藏 */
-const showWelcome = computed(() => hasWelcomeText.value && !hasUserMessage.value)
+/**
+ * 问候语行：配了欢迎语就用它，否则用默认问候语；访客发言后隐藏。
+ * 开场问题关掉时也要显示欢迎语，所以不挂在 showSuggestedBlock 上。
+ */
+const showGreeting = computed(() =>
+  !hasUserMessage.value
+  && !loading.value
+  && !historyLoading.value
+  && (hasWelcomeText.value || starterQuestionsEnabled.value))
 
 const showSuggestedBlock = computed(() =>
   starterQuestionsEnabled.value
@@ -484,6 +477,8 @@ watch(
     font-size: 14px;
     font-weight: 500;
     color: var(--td-text-color-secondary);
+    // 欢迎语由渠道配置，可能自带换行
+    white-space: pre-wrap;
   }
 
   &__grid {
@@ -526,33 +521,7 @@ watch(
   }
 }
 
-.embed-welcome-bubble {
-  display: flex;
-  justify-content: flex-start;
-  width: 100%;
-  animation: welcome-in 0.28s ease both;
-
-  &__text {
-    margin: 0;
-    max-width: min(88%, 520px);
-    padding: 10px 14px;
-    font-size: 14px;
-    line-height: 1.55;
-    color: var(--td-text-color-primary);
-    white-space: pre-wrap;
-    word-break: break-word;
-    background: var(--td-bg-color-secondarycontainer);
-    border-radius: 4px 14px 14px 14px;
-  }
-
-  &__refresh {
-    align-self: flex-end;
-    margin-left: 8px;
-    margin-bottom: 2px;
-  }
-}
-
-// 推荐问题刷新按钮（欢迎语气泡与标题行共用）
+// 推荐问题刷新按钮（问候语行右侧）
 .embed-refresh-btn {
   display: inline-flex;
   align-items: center;
@@ -593,17 +562,6 @@ watch(
 @keyframes embed-refresh-spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-@keyframes welcome-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
