@@ -1,6 +1,6 @@
 import type { Tokens } from 'marked'
-import hljs from 'highlight.js'
 import 'highlight.js/styles/github.css'
+import { getHljs } from '@/utils/highlightRuntime'
 import { openMermaidFullscreen } from '@/utils/mermaidViewer.ts'
 import {
   buildCodeBlockHtml,
@@ -9,8 +9,6 @@ import {
   highlightCodeBlocksInContainer,
   syncMermaidExpandButtons,
 } from '@/utils/markdownEnhancements'
-
-hljs.registerAliases('mermaid', { languageName: 'plaintext' })
 
 let mermaidMod: typeof import('mermaid') | null = null
 let mermaidInitialized = false
@@ -169,6 +167,12 @@ function escapeHtml(text: string) {
 }
 
 function highlightCode(text: string, lang?: string | null) {
+  const hljs = getHljs()
+  // highlight.js 还没到（按需加载中）：先给转义后的纯文本，等它就绪后由
+  // highlightCodeBlocksInContainer 就地补色
+  if (!hljs) {
+    return { html: escapeHtml(text), language: (lang || '').trim() || 'plaintext' }
+  }
   const language = (lang || '').trim()
   if (language && hljs.getLanguage(language)) {
     try {
@@ -252,6 +256,13 @@ export const renderMermaidInContainer = async (
   rootElement: HTMLElement | null | undefined,
 ) => {
   if (!rootElement) return
+
+  // 先看有没有待渲染的图表再加载 mermaid（770 KB gzip）：没有就整块跳过，
+  // 否则每次容器增强都会把它拉下来。
+  const pending = rootElement.querySelectorAll(
+    'pre[data-mermaid="false"], .chat-mermaid-block__canvas[data-mermaid="false"]',
+  )
+  if (pending.length === 0) return
 
   const mermaid = await getMermaid()
   ensureMermaidInitialized()

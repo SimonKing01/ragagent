@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, shallowRef } from 'vue'
-import DocumentPreview from './document-preview.vue'
+import { defineAsyncComponent, onMounted, onUnmounted, ref, shallowRef } from 'vue'
+// 懒加载：预览组件带着 highlight.js（351 KB gzip），不该进首屏
+const DocumentPreview = defineAsyncComponent(() => import('./document-preview.vue'))
 import { RESOURCE_PREVIEW_EVENT, type LoadedProtectedFile } from '@/utils/protectedResource'
 
 const file = shallowRef<LoadedProtectedFile | null>(null)

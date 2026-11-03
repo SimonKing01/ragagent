@@ -523,6 +523,9 @@
       renderLauncherContent();
       if (panelOpen) {
         emit('open', { channelId: channelId });
+        // 通知 iframe「面板真的打开了」：嵌入页据此在空闲时预取回答渲染才用到的
+        // 重资源（mermaid / highlight.js），既不抢首屏带宽，又能在用户提问前备好。
+        postToIframe({ source: HOST_SOURCE, type: 'panel_open', payload: {} });
       } else {
         emit('close', { channelId: channelId });
       }

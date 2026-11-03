@@ -627,7 +627,6 @@ import {
 import {
   appendMermaidSvgCache,
   createMermaidCodeRenderer,
-  ensureMermaidInitialized,
   enhanceMarkdownContainer,
 } from '@/utils/mermaidShared';
 import { attachMarkdownEnhancementListeners, refreshMarkdownEnhancements } from '@/utils/markdownEnhancements';
@@ -642,8 +641,6 @@ const uiStore = useUIStore();
 const settingsStore = useSettingsStore();
 const authStore = useAuthStore();
 const { t } = useI18n();
-
-ensureMermaidInitialized();
 
 const TOOL_NAME_KEYS: Record<string, string> = {
   discover_mcp_tools: 'agentStream.mcp.discoverTools',

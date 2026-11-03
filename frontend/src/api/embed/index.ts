@@ -846,6 +846,16 @@ export function onEmbedHostLocale(handler: (locale: string) => void) {
   return () => window.removeEventListener('message', listener)
 }
 
+/** Listen for the host panel being opened (首次展开时触发一次预取时机)。 */
+export function onEmbedHostPanelOpen(handler: () => void) {
+  const listener = (e: MessageEvent) => {
+    if (!isTrustedParentMessage(e) || e.data.type !== 'panel_open') return
+    handler()
+  }
+  window.addEventListener('message', listener)
+  return () => window.removeEventListener('message', listener)
+}
+
 /** Listen for a pre-filled query from the parent host page. */
 export function onEmbedHostOpenWithQuery(handler: (query: string) => void) {
   const listener = (e: MessageEvent) => {

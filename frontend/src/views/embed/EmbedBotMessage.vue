@@ -56,7 +56,6 @@ import {
 } from '@/utils/chatMarkdownRenderer'
 import {
   createMermaidCodeRenderer,
-  ensureMermaidInitialized,
   enhanceMarkdownContainer,
 } from '@/utils/mermaidShared'
 import { useEmbedCitationPopover } from '@/composables/useEmbedCitationPopover'
@@ -77,8 +76,6 @@ const DocInfo = defineAsyncComponent(
 const DeepThink = defineAsyncComponent(
   () => import('@/views/chat/components/deepThink.vue'),
 )
-
-ensureMermaidInitialized()
 
 const markdownRenderer = createChatMarkdownRenderer({
   codeRenderer: createMermaidCodeRenderer('mermaid-embed-botmsg'),

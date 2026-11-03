@@ -105,14 +105,12 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return
-          if (id.includes('mermaid') || id.includes('/dagre') || id.includes('cytoscape')) {
-            return 'vendor-mermaid'
-          }
+          // mermaid / highlight.js 不单独命名分块：它们只在动态 import 里用到，
+          // 交给 Rollup 自然拆成异步块。此前给它们起了名字，Vite 的 __vitePreload
+          // 辅助函数被塞进这两个块里，导致任何用到预加载的模块都要静态引入它们——
+          // 结果是 770 KB 的 mermaid 和 351 KB 的 highlight 在首屏就下载。
           if (id.includes('marked') || id.includes('katex')) {
             return 'vendor-markdown'
-          }
-          if (id.includes('highlight.js')) {
-            return 'vendor-highlight'
           }
         },
       },

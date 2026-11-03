@@ -135,9 +135,11 @@ import {
   getEmbedMessageSuggestions,
   getEmbedSuggestedQuestions,
   onEmbedHostOpenWithQuery,
+  onEmbedHostPanelOpen,
   recordEmbedMessageSuggestionEvent,
   type SuggestedQuestion,
 } from '@/api/embed'
+import { scheduleAnswerRenderPrefetch } from '@/utils/answerRenderPrefetch'
 import EmbedInputField from '@/components/EmbedInputField.vue'
 import EmbedBotMessage from '@/views/embed/EmbedBotMessage.vue'
 import EmbedUserMessage from '@/views/embed/EmbedUserMessage.vue'
@@ -424,6 +426,7 @@ const dismissFollowUps = (message: Record<string, unknown>, set: MessageSuggesti
 }
 
 let removeOpenQueryListener: (() => void) | null = null
+let removePanelOpenListener: (() => void) | null = null
 
 onMounted(() => {
   fetchSuggestedQuestions()
@@ -431,10 +434,16 @@ onMounted(() => {
     if (isReplying.value) return
     void sendMsg(query, { webSearchEnabled: webSearchEnabled.value })
   })
+  // 面板首次展开后空闲时预取 mermaid / highlight.js：不抢首屏带宽，
+  // 用户提问时通常已就绪；未就绪也有降级渲染兜底。
+  removePanelOpenListener = onEmbedHostPanelOpen(() => scheduleAnswerRenderPrefetch())
+  // 非宿主嵌入（直接打开 embed 页）不会收到 panel_open，挂载后自行预取
+  if (window.parent === window) scheduleAnswerRenderPrefetch()
 })
 
 onUnmounted(() => {
   removeOpenQueryListener?.()
+  removePanelOpenListener?.()
 })
 
 watch(

@@ -1,5 +1,5 @@
 import i18n from '@/i18n';
-import hljs from 'highlight.js';
+import { getHljs, loadHighlight } from '@/utils/highlightRuntime';
 import { openMermaidFullscreen } from '@/utils/mermaidViewer';
 import { copyToClipboard } from '@/utils/clipboard';
 
@@ -151,6 +151,21 @@ async function handleCodeCopy(btn: HTMLButtonElement): Promise<void> {
 
 export function highlightCodeBlocksInContainer(root: HTMLElement | null | undefined): void {
   if (!root) return;
+
+  // 没有代码块就什么都不做（别为了空容器把 351 KB 的高亮库拉下来）
+  const blocks = root.querySelectorAll<HTMLElement>('.chat-code-block__pre code');
+  if (blocks.length === 0) return;
+
+  // 首次遇到代码块才开始下载 highlight.js；就绪后对同一容器重跑一次完成补色
+  const hljs = getHljs();
+  if (!hljs) {
+    void loadHighlight()
+      .then(() => highlightCodeBlocksInContainer(root))
+      .catch(() => {
+        /* 加载失败：保持纯文本，可复制可读 */
+      });
+    return;
+  }
 
   root.querySelectorAll<HTMLElement>('.chat-code-block__pre code').forEach((codeEl) => {
     if (codeEl.querySelector('span[class^="hljs-"], span.hljs')) return;

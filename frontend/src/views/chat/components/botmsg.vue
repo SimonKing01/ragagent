@@ -138,7 +138,6 @@ import {
 } from '@/utils/chatMarkdownRenderer';
 import {
     createMermaidCodeRenderer,
-    ensureMermaidInitialized,
     renderMermaidInContainer,
     enhanceMarkdownContainer,
 } from '@/utils/mermaidShared';
@@ -147,8 +146,6 @@ import { useChatCitationPopover } from '@/composables/useChatCitationPopover';
 import { useTypewriter } from '@/composables/useTypewriter';
 import { vStableHtml } from '@/directives/stableHtml';
 import { SKILL_ICON } from '@/types/mention';
-
-ensureMermaidInitialized();
 
 const mentionTagClass = (item) => {
     if (item.type === 'kb') return item.kbType === 'faq' ? 'faq-tag' : 'kb-tag';

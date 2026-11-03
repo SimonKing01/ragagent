@@ -177,11 +177,13 @@
  */
 import { computed, onMounted, onUnmounted, ref, watch, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { defineAsyncComponent } from 'vue'
 import { MessagePlugin } from 'tdesign-vue-next'
 import { downloadArtifact, listMessageArtifacts, type ArtifactMeta } from '@/api/chat'
 import { getFileIcon } from '@/utils/files'
 import { resolveFilePreviewExt } from '@/utils/filePreview'
-import DocumentPreview from '@/components/document-preview.vue'
+// 懒加载：预览组件包含 highlight.js（351 KB gzip），不该跟着聊天分块进首屏
+const DocumentPreview = defineAsyncComponent(() => import('@/components/document-preview.vue'))
 
 const LIST_WIDTH = 440
 const PREVIEW_WIDTH_KEY = 'weknora-chat-artifact-preview-width'
