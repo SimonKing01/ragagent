@@ -1,17 +1,17 @@
 /**
- * WeKnora embed widget SDK — floating chat launcher.
+ * RagAgent embed widget SDK — floating chat launcher.
  *
  * Programmatic:
- *   WeKnora.init({ channel, token, position, primaryColor, title, baseUrl, locale })
- *   WeKnora.open() | close() | toggle() | destroy()
- *   WeKnora.on('ready', fn) | off('ready', fn)
+ *   RagAgent.init({ channel, token, position, primaryColor, title, baseUrl, locale })
+ *   RagAgent.open() | close() | toggle() | destroy()
+ *   RagAgent.on('ready', fn) | off('ready', fn)
  *
  * Host context & actions (postMessage to iframe):
- *   WeKnora.setContext({ userId, page, ... })
+ *   RagAgent.setContext({ userId, page, ... })
  *     Inject visitor/page context merged into each chat query.
- *   WeKnora.openWithQuery('How do I reset my password?')
+ *   RagAgent.openWithQuery('How do I reset my password?')
  *     Opens the panel (if closed) and sends the query when the iframe is ready.
- *   WeKnora.setLocale('en-US')
+ *   RagAgent.setLocale('en-US')
  *     Switch embed UI language (zh-CN | en-US | ko-KR | ja-JP | ru-RU).
  *     Declarative alternative: `locale` option / `data-locale` attribute. It is
  *     folded into the iframe URL, so the first paint is already in that language
@@ -136,7 +136,7 @@
     var handlers = listeners[event];
     if (!handlers) return;
     handlers.slice().forEach(function (fn) {
-      try { fn(payload); } catch (e) { console.error('[WeKnora]', e); }
+      try { fn(payload); } catch (e) { console.error('[RagAgent]', e); }
     });
   }
 
@@ -150,7 +150,7 @@
     // fetches a fresh token here and refreshes it before expiry.
     var tokenEndpoint = opts.tokenEndpoint || opts.token_endpoint || '';
     if (!channelId || (!staticToken && !tokenEndpoint)) {
-      console.warn('[WeKnora] channel and (token or tokenEndpoint) are required');
+      console.warn('[RagAgent] channel and (token or tokenEndpoint) are required');
       return null;
     }
 
@@ -200,7 +200,7 @@
           return tok;
         })
         .catch(function (e) {
-          console.error('[WeKnora] failed to load token', e);
+          console.error('[RagAgent] failed to load token', e);
           throw e;
         })
         .then(function (tok) { tokenInFlight = null; return tok; }, function (e) { tokenInFlight = null; throw e; });
@@ -420,7 +420,7 @@
 
     function postHostPayload(type, payload) {
       if (!iframe.contentWindow) {
-        console.warn('[WeKnora] iframe not ready');
+        console.warn('[RagAgent] iframe not ready');
         return false;
       }
       postToIframe({ source: HOST_SOURCE, type: type, payload: payload || {} });
@@ -434,7 +434,7 @@
         return;
       }
       if (tries >= 20) {
-        console.warn('[WeKnora] iframe not ready');
+        console.warn('[RagAgent] iframe not ready');
         return;
       }
       setTimeout(function () { whenIframeReady(fn, tries + 1); }, 100);
@@ -442,7 +442,7 @@
 
     function setContext(ctx) {
       if (!ctx || typeof ctx !== 'object') {
-        console.warn('[WeKnora] setContext expects an object');
+        console.warn('[RagAgent] setContext expects an object');
         return;
       }
       postHostPayload('set_context', ctx);
@@ -451,7 +451,7 @@
     function openWithQuery(query) {
       var text = String(query || '').trim();
       if (!text) {
-        console.warn('[WeKnora] openWithQuery requires a non-empty query');
+        console.warn('[RagAgent] openWithQuery requires a non-empty query');
         return;
       }
       setOpen(true);
@@ -465,7 +465,7 @@
     function setLocale(locale) {
       var loc = String(locale || '').trim();
       if (!loc) {
-        console.warn('[WeKnora] setLocale requires a locale string');
+        console.warn('[RagAgent] setLocale requires a locale string');
         return;
       }
       if (!iframeReady) {
@@ -642,7 +642,7 @@
     setLocale: function (locale) { if (instance) instance.setLocale(locale); },
   };
 
-  global.WeKnora = api;
+  global.RagAgent = api;
 
   var legacyScript = document.currentScript;
   if (legacyScript) {
