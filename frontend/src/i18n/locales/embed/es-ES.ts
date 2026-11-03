@@ -283,6 +283,7 @@ export default {
     editorOpened: 'Editor abierto: seleccione una base de conocimiento y guarde'
   },
   common: {
+    refresh: 'Actualizar',
     loading: 'Cargando...',
     confirm: 'Confirmar',
     cancel: 'Cancelar',

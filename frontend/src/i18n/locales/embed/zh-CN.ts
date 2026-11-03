@@ -282,6 +282,7 @@ export default {
     editorOpened: '已打开编辑器，请选择知识库后保存'
   },
   common: {
+    refresh: '刷新',
     loading: '加载中...',
     confirm: '确认',
     cancel: '取消',

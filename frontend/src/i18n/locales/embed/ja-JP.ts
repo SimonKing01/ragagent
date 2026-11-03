@@ -282,6 +282,7 @@ export default {
     editorOpened: 'エディタを開きました。ナレッジベースを選択して保存してください'
   },
   common: {
+    refresh: '再読み込み',
     loading: '読み込み中...',
     confirm: '確認',
     cancel: 'キャンセル',

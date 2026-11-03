@@ -282,6 +282,7 @@ export default {
     editorOpened: 'Editor opened, please select a knowledge base and save'
   },
   common: {
+    refresh: '새로고침',
     loading: '로딩 중...',
     confirm: '확인',
     cancel: '취소',

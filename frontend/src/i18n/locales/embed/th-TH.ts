@@ -283,6 +283,7 @@ export default {
     editorOpened: 'เปิดตัวแก้ไขแล้ว โปรดเลือกฐานความรู้และบันทึก'
   },
   common: {
+    refresh: 'รีเฟรช',
     loading: 'กำลังโหลด...',
     confirm: 'ยืนยัน',
     cancel: 'ยกเลิก',

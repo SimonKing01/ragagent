@@ -283,6 +283,7 @@ export default {
     editorOpened: '已開啟編輯器，請選擇知識庫後儲存'
   },
   common: {
+    refresh: '重新整理',
     loading: '載入中...',
     confirm: '確認',
     cancel: '取消',
