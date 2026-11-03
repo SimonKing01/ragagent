@@ -42,33 +42,43 @@
         </t-button>
       </header>
 
-      <EmbedChatView
-        :session-id="sessionId"
-        :session-sig="sessionSig"
-        :visitor-id="visitorId"
-        :channel-id="channelId"
-        :token="token"
-        :agent-id="config.agentId"
-        :kb-ids="kbIds"
-        :welcome-message="config.welcomeMessage"
-        :show-suggested-questions="config.showSuggestedQuestions !== false"
-        :agent-starter-questions-enabled="config.agentStarterQuestionsEnabled === true"
-        :agent-follow-up-questions-enabled="config.agentFollowUpQuestionsEnabled === true"
-        :show-thinking="config.showThinking === true"
-        :allow-web-search="config.allowWebSearch === true"
-        :agent-web-search-enabled="config.agentWebSearchEnabled === true"
-        :allow-file-upload="config.allowFileUpload === true"
-        :agent-image-upload-enabled="config.agentImageUploadEnabled === true"
-        :use-session-header-title="useSessionHeaderTitle"
-        :host-context="hostContext"
-        :ensure-session="ensureSession"
-        @session-title="sessionTitle = $event"
-        @messages-state="chatHasMessages = $event"
-        @streaming-state="streaming = $event"
-      />
+      <!-- 聊天主体是异步分块：加载期间继续用首屏骨架占位，避免头部以下整片空白 -->
+      <Suspense>
+        <EmbedChatView
+          :session-id="sessionId"
+          :session-sig="sessionSig"
+          :visitor-id="visitorId"
+          :channel-id="channelId"
+          :token="token"
+          :agent-id="config.agentId"
+          :kb-ids="kbIds"
+          :welcome-message="config.welcomeMessage"
+          :show-suggested-questions="config.showSuggestedQuestions !== false"
+          :agent-starter-questions-enabled="config.agentStarterQuestionsEnabled === true"
+          :agent-follow-up-questions-enabled="config.agentFollowUpQuestionsEnabled === true"
+          :show-thinking="config.showThinking === true"
+          :allow-web-search="config.allowWebSearch === true"
+          :agent-web-search-enabled="config.agentWebSearchEnabled === true"
+          :allow-file-upload="config.allowFileUpload === true"
+          :agent-image-upload-enabled="config.agentImageUploadEnabled === true"
+          :use-session-header-title="useSessionHeaderTitle"
+          :host-context="hostContext"
+          :ensure-session="ensureSession"
+          @session-title="sessionTitle = $event"
+          @messages-state="chatHasMessages = $event"
+          @streaming-state="streaming = $event"
+        />
+        <template #fallback>
+          <div class="embed-chat-fallback">
+            <EmbedBootSkeleton :text="$t('embedPublish.loading')" :show-header="false" />
+          </div>
+        </template>
+      </Suspense>
     </template>
-    <div v-else-if="awaitingToken" class="embed-loading">{{ $t('embedPublish.awaitingToken') }}</div>
-    <div v-else-if="bootstrapping" class="embed-loading">{{ $t('embedPublish.loading') }}</div>
+    <EmbedBootSkeleton
+      v-else
+      :text="awaitingToken ? $t('embedPublish.awaitingToken') : $t('embedPublish.loading')"
+    />
 
     <EmbedHistoryDrawer
       :open="historyOpen"
@@ -111,6 +121,7 @@
 import { computed, onUnmounted, ref, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import EmbedBootSkeleton from '@/views/embed/EmbedBootSkeleton.vue'
 import EmbedChatView from '@/views/embed/EmbedChatView.vue'
 import EmbedHistoryDrawer from '@/views/embed/EmbedHistoryDrawer.vue'
 import errorIcon from '@/assets/img/error.svg'
@@ -351,6 +362,14 @@ watch(headerTitle, (title) => {
   }
 }
 
+// 聊天分块加载中：骨架需占满头部以下，否则会被按 100vh 计算而溢出
+.embed-chat-fallback {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .embed-header {
   display: flex;
   align-items: center;
@@ -446,9 +465,4 @@ watch(headerTitle, (title) => {
   }
 }
 
-.embed-loading {
-  padding: 24px;
-  text-align: center;
-  color: var(--td-text-color-placeholder);
-}
 </style>

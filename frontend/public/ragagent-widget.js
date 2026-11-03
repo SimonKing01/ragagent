@@ -64,6 +64,74 @@
     return horizontal + ';' + (isTop ? 'top:88px' : 'bottom:88px');
   }
 
+  // iframe 首屏前的占位骨架样式（注入宿主文档一次）。
+  var SHIELD_STYLE_ID = 'weknora-widget-shield-style';
+  function ensureShieldStyle() {
+    if (document.getElementById(SHIELD_STYLE_ID)) return;
+    var style = document.createElement('style');
+    style.id = SHIELD_STYLE_ID;
+    style.textContent =
+      '@keyframes weknora-shield-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}' +
+      '.weknora-shield-skel{background:linear-gradient(90deg,#f0f0f0 25%,#e6e6e6 50%,#f0f0f0 75%);' +
+      'background-size:200% 100%;animation:weknora-shield-shimmer 1.2s ease-in-out infinite;display:block}' +
+      '@media (prefers-reduced-motion: reduce){.weknora-shield-skel{animation:none}}';
+    document.head.appendChild(style);
+  }
+
+  function shieldBlock(extraStyle) {
+    return '<span class="weknora-shield-skel" style="' + extraStyle + '"></span>';
+  }
+
+  // 面板内骨架：形态与 embed 页自身首屏骨架一致，故 iframe 就绪后淡出不会跳。
+  function buildBootShield() {
+    ensureShieldStyle();
+    var shield = document.createElement('div');
+    shield.style.cssText = [
+      'position:absolute',
+      'top:0',
+      'right:0',
+      'bottom:0',
+      'left:0',
+      'z-index:1',
+      'display:flex',
+      'flex-direction:column',
+      'background:#fff',
+      'transition:opacity .2s ease',
+    ].join(';');
+    shield.innerHTML =
+      '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #e7e7e7">' +
+      shieldBlock('width:36px;height:36px;border-radius:50%;flex:0 0 auto') +
+      shieldBlock('width:108px;height:14px;border-radius:4px;margin-right:auto') +
+      shieldBlock('width:24px;height:24px;border-radius:6px;flex:0 0 auto') +
+      shieldBlock('width:24px;height:24px;border-radius:6px;flex:0 0 auto') +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:16px;flex:1 1 auto;padding:12px 16px 0;overflow:hidden">' +
+      shieldBlock('width:72%;height:40px;border-radius:4px 14px 14px 14px') +
+      shieldBlock('width:46%;height:40px;border-radius:14px 4px 14px 14px;align-self:flex-end') +
+      shieldBlock('width:100%;height:40px;border-radius:10px') +
+      '</div>' +
+      '<div style="padding:8px 16px 16px;flex:0 0 auto">' +
+      shieldBlock('width:100%;height:88px;border-radius:12px') +
+      '</div>';
+    return shield;
+  }
+
+  // 提前与 embed 源建连：首次展开面板时省掉 DNS + TLS 往返。
+  function warmUpOrigin(origin) {
+    if (!origin || !document.head) return;
+    try {
+      var preconnect = document.createElement('link');
+      preconnect.rel = 'preconnect';
+      preconnect.href = origin;
+      preconnect.crossOrigin = 'anonymous';
+      document.head.appendChild(preconnect);
+      var dnsPrefetch = document.createElement('link');
+      dnsPrefetch.rel = 'dns-prefetch';
+      dnsPrefetch.href = origin;
+      document.head.appendChild(dnsPrefetch);
+    } catch (e) { /* 旧浏览器忽略 */ }
+  }
+
   function emit(event, payload) {
     var handlers = listeners[event];
     if (!handlers) return;
@@ -186,6 +254,7 @@
     var panelOpen = false;
     var iframeReady = false;
     var iframeOrigin = '';
+    warmUpOrigin(embedOrigin);
 
     var launcher = document.createElement('button');
     launcher.type = 'button';
@@ -306,6 +375,25 @@
     iframe.setAttribute('title', title);
     panel.appendChild(iframe);
 
+    // 盖在 iframe 上的骨架：iframe 自身白屏期间也有结构；就绪后淡出。
+    var bootShield = buildBootShield();
+    panel.appendChild(bootShield);
+    var shieldVisible = true;
+    var shieldTimer = setTimeout(hideBootShield, 15000);
+
+    function hideBootShield() {
+      if (!shieldVisible) return;
+      shieldVisible = false;
+      if (shieldTimer) {
+        clearTimeout(shieldTimer);
+        shieldTimer = null;
+      }
+      bootShield.style.opacity = '0';
+      setTimeout(function () {
+        if (bootShield.parentNode) bootShield.parentNode.removeChild(bootShield);
+      }, 220);
+    }
+
     function isTrustedOrigin(origin) {
       if (!origin || origin === 'null') return false;
       return origin === embedOrigin;
@@ -405,6 +493,7 @@
           break;
         case 'ready':
           iframeReady = true;
+          hideBootShield();
           launcher.style.opacity = '1';
           if (pendingLocale) {
             postHostPayload('set_locale', { locale: pendingLocale });
@@ -450,6 +539,7 @@
       if (destroyed) return;
       destroyed = true;
       if (refreshTimer) clearTimeout(refreshTimer);
+      if (shieldTimer) clearTimeout(shieldTimer);
       global.removeEventListener('message', onMessage);
       if (launcher.parentNode) launcher.parentNode.removeChild(launcher);
       if (panel.parentNode) panel.parentNode.removeChild(panel);
@@ -463,6 +553,8 @@
       // cross-origin contentWindow.location. Just (re)provide the token.
       iframeOrigin = embedOrigin;
       provideToken();
+      // embed 文档已就绪（它自己也有同形骨架），这层遮罩可以撤了。
+      hideBootShield();
     });
 
     document.body.appendChild(launcher);

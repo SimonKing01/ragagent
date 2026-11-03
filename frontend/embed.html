@@ -7,6 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="renderer" content="webkit">
     <link rel="shortcut icon" type="image/png" href="./public/favicon.ico"/>
+    <link rel="stylesheet" href="/embed-boot.css">
     <style>
       html, body, #embed-app { height: 100%; margin: 0; }
     </style>
@@ -19,9 +20,29 @@
   document.body.style.background = '#fff';
 })();
 </script>
+<!-- 骨架必须排在下面两个脚本之前：脚本是解析阻塞的，排在它们之后就要等下载执行完才有 DOM。 -->
+<div id="embed-app">
+  <!-- 首屏骨架：样式见 /embed-boot.css，与 EmbedBootSkeleton.vue 同构，Vue 挂载时被替换 -->
+  <div class="embed-boot" aria-hidden="true">
+    <div class="embed-boot__header">
+      <span class="eb-skel embed-boot__avatar"></span>
+      <span class="eb-skel embed-boot__title"></span>
+      <span class="eb-skel embed-boot__action"></span>
+      <span class="eb-skel embed-boot__action"></span>
+    </div>
+    <div class="embed-boot__body">
+      <span class="eb-skel eb-bubble"></span>
+      <span class="eb-skel eb-bubble eb-bubble--user"></span>
+      <span class="eb-skel eb-row"></span>
+    </div>
+    <div class="embed-boot__footer">
+      <span class="eb-skel embed-boot__input"></span>
+    </div>
+  </div>
+</div>
 <script src="/config.js"></script>
+<!-- 图标 sprite 需在 Vue 挂载前注册，否则首帧的 <t-icon> 取不到符号；保持同步加载即可。 -->
 <script src="/tdesign-icons/0.4.1/fonts/index.js"></script>
-<div id="embed-app"></div>
 <script type="module" src="/src/embed-main.ts"></script>
 </body>
 </html>

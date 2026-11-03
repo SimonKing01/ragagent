@@ -151,12 +151,19 @@ export function useEmbedBridge(channelId: Ref<string>) {
 
     try {
       let apiToken = embedToken
+      // 公开配置只校验渠道票（发布票 / 会话票都受理），所以可以和换票并行：
+      // 首屏不再等 exchange 回来才发 config，少一次串行往返。
+      let configRequest: ReturnType<typeof getEmbedConfig> | null = null
       // Secure mode: the host already handed us a short-lived session token
       // (minted server-side from the publish token). Use it directly — the
       // exchange endpoint only accepts publish tokens and would reject this.
       if (!isEmbedSessionToken(embedToken)) {
         // 留一份发布票：会话票过期时用它再换（不依赖宿主再推一次）。
         hostPublishToken = embedToken
+        configRequest = getEmbedConfig(id, embedToken)
+        // 换票失败会直接抛，此时没人 await 这个配置请求 —— 先挂空 catch 挡住
+        // unhandled rejection（下面 await 的仍是原 promise）。
+        configRequest.catch(() => {})
         try {
           const exchangeRes = await exchangeShared(id, embedToken)
           if (exchangeRes?.sessionToken) {
@@ -177,7 +184,7 @@ export function useEmbedBridge(channelId: Ref<string>) {
       }
 
       // 裸对象（§14.9m E1：无 {data,success} 信封）
-      const res = await getEmbedConfig(id, apiToken)
+      const res = await (configRequest ?? getEmbedConfig(id, apiToken))
       if (!res?.channelId) {
         loadError.value = t('embedPublish.invalidChannel')
         return

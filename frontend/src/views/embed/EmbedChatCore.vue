@@ -2,13 +2,11 @@
   <div class="embed-chat">
     <div ref="scrollContainer" class="embed-chat__scroll" @scroll="handleScroll">
       <div class="embed-chat__messages">
+        <!-- 历史会话加载中：与首屏/推荐问题骨架同一套块，交接时不跳 -->
         <div v-if="historyLoading && messagesList.length === 0 && !hasWelcomeText" class="msg-skeleton-list">
-          <div class="msg-skeleton msg-skeleton-user"><div class="sk-line sk-line--short" /></div>
-          <div class="msg-skeleton msg-skeleton-bot">
-            <div class="sk-line" />
-            <div class="sk-line" />
-            <div class="sk-line sk-line--medium" />
-          </div>
+          <span class="eb-skel eb-bubble" />
+          <span class="eb-skel eb-bubble eb-bubble--user" />
+          <span class="eb-skel eb-row" />
         </div>
 
         <div
@@ -46,8 +44,12 @@
               <t-icon name="refresh" size="14px" :class="{ 'is-spinning': suggestedLoading }" />
             </button>
           </div>
-          <div v-if="suggestedLoading && suggestedQuestions.length === 0" class="embed-suggested__grid">
-            <div v-for="n in 4" :key="`sq-skel-${n}`" class="embed-suggested__card embed-suggested__card--skeleton" />
+          <!-- 骨架与首屏骨架同形（欢迎气泡 + 用户气泡 + 卡片），交接时不跳 -->
+          <div v-if="suggestedLoading && suggestedQuestions.length === 0"
+            class="embed-suggested__grid embed-suggested__grid--skeleton">
+            <span class="eb-skel eb-bubble" />
+            <span class="eb-skel eb-bubble eb-bubble--user" />
+            <span class="eb-skel eb-row" />
           </div>
           <div v-else-if="suggestedQuestions.length > 0" class="embed-suggested__grid">
             <button
@@ -488,11 +490,18 @@ watch(
     display: flex;
     flex-direction: column;
     gap: 8px;
+
+    // 骨架态用首屏骨架的间距（16px），与 .embed-boot__body 一致
+    &--skeleton {
+      gap: 16px;
+    }
   }
 
   &__card {
     display: block;
     width: 100%;
+    // 真实卡片是 button（默认 border-box）；显式声明，避免换成 div 时宽度算法变掉
+    box-sizing: border-box;
     padding: 10px 12px;
     border: 1px solid var(--td-component-stroke);
     border-radius: 10px;
@@ -508,14 +517,6 @@ watch(
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     }
 
-    &--skeleton {
-      height: 40px;
-      cursor: default;
-      background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
-      background-size: 200% 100%;
-      animation: sk-shimmer 1.2s ease-in-out infinite;
-      border: none;
-    }
   }
 
   &__text {
@@ -641,39 +642,11 @@ watch(
   box-sizing: border-box;
 }
 
+/* 块本身的尺寸/动画来自共享的 .eb-skel/.eb-bubble/.eb-row，这里只管排布 */
 .msg-skeleton-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 8px 0;
-}
-
-.msg-skeleton-user {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.msg-skeleton-bot {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-left: 4px;
-}
-
-.sk-line {
-  height: 14px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e6e6e6 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: sk-shimmer 1.2s ease-in-out infinite;
-}
-
-.sk-line--short { width: 45%; height: 36px; }
-.sk-line--medium { width: 60%; }
-
-@keyframes sk-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  gap: 16px;
 }
 
 .scroll-to-bottom-btn {
