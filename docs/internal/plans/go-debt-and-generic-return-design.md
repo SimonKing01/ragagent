@@ -255,6 +255,33 @@ return ResponseEntity.ok(...) 之前 catch 后直接拼 e.getMessage()
 
 ---
 
+## 七点七、G5 / G8 收口（2026-11-03 续）
+
+**G5 动态 IN 命名参数化：8 处**
+
+| 文件 | 处数 | 形态 |
+|---|---|---|
+| `KnowledgeSpanRepository` | 3 | 条件 WHERE + BFS 批量查询 + 批量 UPDATE |
+| `HousekeepingService` | 3 | 三处 `Collections.nCopies` 手工占位符 |
+| `KnowledgeStartupRecovery` | 2 | 复位 UPDATE + 复位后复检查询 |
+
+均为「参数与 SQL 靠顺序对齐」的写法，改用 `MapSqlParameterSource` + `IN (:ids)` 原生展开。
+三处都有真 PG 集成测试覆盖（`KnowledgeSpanRepositoryTest` 8 条 / `HousekeepingServiceTest` 15 条）。
+
+注意：`NamedParameterJdbcTemplate` **不继承** `JdbcTemplate`，因此仓库同时持有两个模板（命名参数走前者，
+既有位置参数调用点走 `namedJdbc.getJdbcTemplate()`），避免为了改 3 处而重写 9 处。
+
+**G8 只做 2 处，其余三项明确不做**
+
+| 项 | 决定 | 理由 |
+|---|---|---|
+| `catch { return null }` / `{ return new LinkedHashMap<>() }` | ✅ 已改（补 warn 日志） | 原来连日志都没有，排障时无从发现 |
+| `byte[]` 越过业务边界（6 处） | 不做 | 需新增 `RawBody` 包装并改 5 个签名，落在 IM 回调解析主路径，收益是类型表达力，留独立批 |
+| `XxxID` → `Id`（25 文件） | 不做 | 动两个跨模块契约方法名（`batchUpdateChunkTagID` / `getModelID`），纯命名统一无功能收益 |
+| `QaSupport.userMessageID` 公开可变字段 | 不做 | 20+ 处访问点，改名收益低 |
+
+---
+
 ## 八、不做的事
 
 - 不引入新框架（不换 ORM、不引 MapStruct）。
