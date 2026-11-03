@@ -282,6 +282,34 @@ return ResponseEntity.ok(...) 之前 catch 后直接拼 e.getMessage()
 
 ---
 
+## 七点八、三项「不做」补做（2026-11-03 续二）
+
+前一版把三项判成"成本不划算"，判断标准错了：**改动风险可以验证，规范收益是长期的**。三项都补做，但补做过程中又收敛了一项。
+
+**`XxxID` → `XxxId`（全仓统一，210 文件 / 879 行对等增删）**
+
+- 覆盖方法名、方法名内嵌（`getByIDAndTenant`）、字段、局部变量，以及测试桩里"方法名即数据"的字符串。
+- **刻意不改**：字符串字面量里的键（`{"kbID","kbId"}` 兼容映射、Redis 键模板 `wiki:deleted:{kbID}:{knowledgeID}`）、注释里描述这些键格式的位置——**名字在那里是数据格式，不是标识符**。
+- 踩到并修好的两个坑：
+  1. 脚本第一版按"词尾 ID"规则把 `randomUUID` 改成了 `randomUUId`（`UUID` 结尾也是 `ID`），已回滚并复核 0 残留；
+  2. `javadoc -Werror` 抓出 4 处断链（`{@link #promptCacheSessionID}`、`{@link #listChunksByKnowledgeIDAndTypes}`、两处 `@param` 旧参数名），已修。
+
+**`QaSupport.userMessageID`**：改名 `userMessageId` 完成。封装改造（public → private）**未做**，原因不是成本，而是该类有 **74 个 public 字段**，单个字段改私有反而破坏一致性；正确改法是拆成若干不可变 record，属架构级重构，应单独立项。
+
+**`byte[]` 越过业务边界：6 处 → 实际只有 1 处**
+
+| 位置 | 判定 |
+|---|---|
+| `ImCredentials.parseCredentials(byte[])` | **真欠债**：JSON 文本来回转字节，9 个工厂都要先 `getBytes(UTF_8)` → 改为 `parseCredentials(String)` |
+| `DownloadedFile(byte[], String fileName)` | 保留：下载到的文件内容，`fileName` 已承载类型 |
+| `CallbackExchange.body()` | 保留：HTTP 原始请求体，下游分别喂 Jackson / XML 解析，需要字节 |
+| `SlackAdapterCore.parseCallback(byte[])` / `parseOutgoingBody` | 保留：同上 |
+| `ImAttachmentPreparer.tryReadWithDocReader(byte[])` | 保留：文档解析入口 |
+
+原方案把这 6 处一并列为"Go 的 `[]byte` 直译"，**是过度诊断**——除 `parseCredentials` 外，其余都是"HTTP / 文件 / 序列化输入"的正确类型。
+
+---
+
 ## 八、不做的事
 
 - 不引入新框架（不换 ORM、不引 MapStruct）。
