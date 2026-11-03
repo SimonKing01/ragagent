@@ -2,51 +2,55 @@
   <div class="embed-chat">
     <div ref="scrollContainer" class="embed-chat__scroll" @scroll="handleScroll">
       <div class="embed-chat__messages">
-        <!-- 历史会话加载中：与首屏/推荐问题骨架同一套块，交接时不跳 -->
-        <div v-if="historyLoading && messagesList.length === 0" class="msg-skeleton-list">
-          <span class="eb-skel eb-bubble" />
+        <!-- 历史会话加载中（含存量会话校验阶段）：与首屏骨架同一套块，交接时不跳 -->
+        <div v-if="(historyLoading || sessionRestoring) && messagesList.length === 0"
+          class="msg-skeleton-list">
           <span class="eb-skel eb-bubble eb-bubble--user" />
-          <span class="eb-skel eb-row" />
+          <span class="eb-skel eb-bubble" />
+          <span class="eb-skel eb-bubble eb-bubble--short" />
         </div>
 
+        <!-- 欢迎屏：问候语居中偏上，下面是「为您推荐」+ 问题列表；两者都关闭时只留问候语 -->
         <div
           v-if="showGreeting || showSuggestedBlock"
-          class="embed-suggested"
+          class="embed-intro"
         >
-          <!-- 问候语只有一行：渠道配了欢迎语就显示欢迎语，否则显示默认问候语 -->
-          <div v-if="showGreeting" class="embed-suggested__head">
-            <p class="embed-suggested__title">
-              {{ hasWelcomeText ? welcomeText : t('chat.suggestedQuestions') }}
-            </p>
-            <button
-              v-if="starterQuestionsEnabled"
-              type="button"
-              class="embed-refresh-btn"
-              :title="t('common.refresh')"
-              :aria-label="t('common.refresh')"
-              :disabled="suggestedLoading"
-              @click="refreshSuggestedQuestions"
-            >
-              <t-icon name="refresh" size="14px" :class="{ 'is-spinning': suggestedLoading }" />
-            </button>
-          </div>
-          <!-- 骨架与首屏骨架同形（欢迎气泡 + 用户气泡 + 卡片），交接时不跳 -->
-          <div v-if="suggestedLoading && suggestedQuestions.length === 0"
-            class="embed-suggested__grid embed-suggested__grid--skeleton">
-            <span class="eb-skel eb-bubble" />
-            <span class="eb-skel eb-bubble eb-bubble--user" />
-            <span class="eb-skel eb-row" />
-          </div>
-          <div v-else-if="suggestedQuestions.length > 0" class="embed-suggested__grid">
-            <button
-              v-for="item in suggestedQuestions"
-              :key="item.question"
-              type="button"
-              class="embed-suggested__card"
-              @click="handleSuggestedClick(item.question)"
-            >
-              <span class="embed-suggested__text">{{ item.question }}</span>
-            </button>
+          <p v-if="showGreeting" class="embed-intro__greeting">
+            {{ hasWelcomeText ? welcomeText : t('chat.defaultGreeting') }}
+          </p>
+
+          <div v-if="showSuggestedBlock" class="embed-suggested">
+            <div class="embed-suggested__head">
+              <p class="embed-suggested__title">{{ t('chat.suggestedQuestions') }}</p>
+              <button
+                v-if="starterQuestionsEnabled"
+                type="button"
+                class="embed-refresh-btn"
+                :title="t('common.refresh')"
+                :aria-label="t('common.refresh')"
+                :disabled="suggestedLoading"
+                @click="refreshSuggestedQuestions"
+              >
+                <t-icon name="refresh" size="14px" :class="{ 'is-spinning': suggestedLoading }" />
+              </button>
+            </div>
+            <!-- 骨架与真实卡片同形（标签已在上面，只缺卡片） -->
+            <div v-if="suggestedLoading && suggestedQuestions.length === 0"
+              class="embed-suggested__grid">
+              <span class="eb-skel eb-row" />
+              <span class="eb-skel eb-row" />
+            </div>
+            <div v-else-if="suggestedQuestions.length > 0" class="embed-suggested__grid">
+              <button
+                v-for="item in suggestedQuestions"
+                :key="item.question"
+                type="button"
+                class="embed-suggested__card"
+                @click="handleSuggestedClick(item.question)"
+              >
+                <span class="embed-suggested__text">{{ item.question }}</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -171,6 +175,8 @@ const props = defineProps<{
   hostContext?: Record<string, unknown>
   /** 懒创建：发送前确保会话已存在（来自 useEmbedBridge）。 */
   ensureSession?: () => Promise<boolean>
+  /** 存量会话校验中：此时 sessionId 仍为空，不能当成「新会话」显示问候屏。 */
+  sessionRestoring?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -331,20 +337,22 @@ const showGlobalTypingIndicator = computed(() =>
 )
 
 /**
- * 问候语行：配了欢迎语就用它，否则用默认问候语；访客发言后隐藏。
- * 开场问题关掉时也要显示欢迎语，所以不挂在 showSuggestedBlock 上。
+ * 问候语：配了欢迎语就用它，否则用默认问候语；访客发言后隐藏。
+ * 不挂在 showSuggestedBlock 上——推荐问题关掉时也要有问候语，
+ * 否则「无欢迎语 + 未开推荐问题」会是一整片空白。
  */
 const showGreeting = computed(() =>
   !hasUserMessage.value
   && !loading.value
   && !historyLoading.value
-  && (hasWelcomeText.value || starterQuestionsEnabled.value))
+  && !props.sessionRestoring)
 
 const showSuggestedBlock = computed(() =>
   starterQuestionsEnabled.value
   && !hasUserMessage.value
   && !loading.value
   && !historyLoading.value
+  && !props.sessionRestoring
   && (suggestedLoading.value || suggestedQuestions.value.length > 0))
 
 const fetchSuggestedQuestions = async () => {
@@ -469,27 +477,41 @@ watch(
   width: 100%;
 }
 
+// 欢迎屏：问候语居中偏上，推荐问题在下方；两者都关闭时只剩问候语
+.embed-intro {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  // 「居中偏上一点」：随面板高度取一段顶部留白，最高不超过 88px
+  padding-top: clamp(24px, 12vh, 88px);
+
+  &__greeting {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.5;
+    font-weight: 600;
+    text-align: center;
+    color: var(--td-text-color-primary);
+    // 欢迎语由渠道配置，可能自带换行
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}
+
 .embed-suggested {
   width: 100%;
 
   &__title {
-    margin: 20px 0;
-    font-size: 14px;
+    margin: 20px 0 12px;
+    font-size: 13px;
     font-weight: 500;
     color: var(--td-text-color-secondary);
-    // 欢迎语由渠道配置，可能自带换行
-    white-space: pre-wrap;
   }
 
   &__grid {
     display: flex;
     flex-direction: column;
     gap: 8px;
-
-    // 骨架态用首屏骨架的间距（16px），与 .embed-boot__body 一致
-    &--skeleton {
-      gap: 16px;
-    }
   }
 
   &__card {
@@ -601,10 +623,27 @@ watch(
 }
 
 /* 块本身的尺寸/动画来自共享的 .eb-skel/.eb-bubble/.eb-row，这里只管排布 */
+// 历史会话多数在 100~300ms 内返回：先藏 150ms 再淡入，快的情况根本不出现骨架
+// （避免「骨架闪一下 → 消息滚到底部」的跳动），慢的时候才作为兜底出现。
 .msg-skeleton-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  opacity: 0;
+  animation: msg-skeleton-in 0.15s ease 0.15s forwards;
+}
+
+@keyframes msg-skeleton-in {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .msg-skeleton-list {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 .scroll-to-bottom-btn {

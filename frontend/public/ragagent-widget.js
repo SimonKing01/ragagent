@@ -82,7 +82,8 @@
     return '<span class="weknora-shield-skel" style="' + extraStyle + '"></span>';
   }
 
-  // 面板内骨架：形态与 embed 页自身首屏骨架一致，故 iframe 就绪后淡出不会跳。
+  // 面板内骨架：只画「一定存在」的头部与输入框。正文区不放任何猜测块——iframe 那边会按
+  // 有无存量会话画问候屏或对话骨架，宿主这里猜错反而会多一次形态切换；留白交给 iframe。
   function buildBootShield() {
     ensureShieldStyle();
     var shield = document.createElement('div');
@@ -105,11 +106,7 @@
       shieldBlock('width:24px;height:24px;border-radius:6px;flex:0 0 auto') +
       shieldBlock('width:24px;height:24px;border-radius:6px;flex:0 0 auto') +
       '</div>' +
-      '<div style="display:flex;flex-direction:column;gap:16px;flex:1 1 auto;padding:12px 16px 0;overflow:hidden">' +
-      shieldBlock('width:72%;height:40px;border-radius:4px 14px 14px 14px') +
-      shieldBlock('width:46%;height:40px;border-radius:14px 4px 14px 14px;align-self:flex-end') +
-      shieldBlock('width:100%;height:40px;border-radius:10px') +
-      '</div>' +
+      '<div style="flex:1 1 auto"></div>' +
       '<div style="padding:8px 16px 16px;flex:0 0 auto">' +
       shieldBlock('width:100%;height:88px;border-radius:12px') +
       '</div>';

@@ -78,11 +78,59 @@
   flex: 0 0 auto;
 }
 
-/* 欢迎语气泡（左） */
+/* 两种骨架形态：默认「问候屏」，有存量会话时切「对话气泡」。
+   切换由 embed.html 的内联脚本 / EmbedBootSkeleton 依据 localStorage 会话键决定。 */
+[data-boot-variant="conversation"] {
+  display: none;
+}
+
+.embed-boot--conversation [data-boot-variant="greeting"] {
+  display: none;
+}
+
+.embed-boot--conversation [data-boot-variant="conversation"] {
+  display: block;
+}
+
+/* 欢迎屏形态：问候语居中偏上、「为您推荐」标签、卡片行（与 EmbedChatCore 的
+   .embed-intro 对齐；顶部留白 = 消息区的 12px + 问候语的 clamp 偏移） */
+.embed-boot__body--intro {
+  padding-top: calc(12px + clamp(24px, 12vh, 88px));
+  gap: 8px;
+}
+
+/* 对话骨架沿用消息区原本的间距 */
+.embed-boot--conversation .embed-boot__body--intro {
+  padding-top: 12px;
+  gap: 16px;
+}
+
+.eb-intro-greeting {
+  width: 58%;
+  height: 26px;
+  border-radius: 6px;
+  margin: 0 auto;
+}
+
+/* 高度取真实标签的行高（13px 字号 / 18px 行高），加上容器的 8px gap 后间距才对得上 */
+.eb-intro-label {
+  width: 72px;
+  height: 18px;
+  border-radius: 4px;
+  margin: 12px 0 5px;
+}
+
+/* 对话骨架：一条用户消息（右）+ 两条 Agent 回复（左，多行高度） */
 .eb-bubble {
-  width: 72%;
-  height: 40px;
+  width: 100%;
+  height: 64px;
   border-radius: 4px 14px 14px 14px;
+}
+
+/* 第二条 Agent 回复略短，避免两条完全同宽显得呆板 */
+.eb-bubble--short {
+  width: 88%;
+  height: 52px;
 }
 
 /* 用户气泡（右） */

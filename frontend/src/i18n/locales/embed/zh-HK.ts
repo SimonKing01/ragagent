@@ -92,7 +92,8 @@ export default {
     tokenRequiredForPreview: '需要發佈 Token 才能預覽。請先建立渠道，或點擊「輪換 Token」取得新 Token。'
   },
   chat: {
-    suggestedQuestions: '嗨，有什麼可以幫你的？',
+    suggestedQuestions: '為您推薦',
+    defaultGreeting: '嗨，有什麼可以幫你的？',
     followUpQuestions: '繼續追問',
     followUpQuestionsLoading: '正在載入建議問題',
     refreshSuggestedQuestions: '更多',

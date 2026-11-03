@@ -92,7 +92,8 @@ export default {
     tokenRequiredForPreview: 'ต้องมีโทเคนเผยแพร่จึงจะดูตัวอย่างได้ สร้างช่องหรือหมุนเวียนโทเคนก่อน'
   },
   chat: {
-    suggestedQuestions: 'สวัสดี มีอะไรให้ช่วยไหม?',
+    suggestedQuestions: 'แนะนำสำหรับคุณ',
+    defaultGreeting: 'สวัสดี มีอะไรให้ช่วยไหม?',
     followUpQuestions: 'ถามต่อ',
     followUpQuestionsLoading: 'กำลังโหลดคำถามแนะนำ',
     refreshSuggestedQuestions: 'เพิ่มเติม',

@@ -93,7 +93,8 @@ export default {
   chat: {
     title: 'Chat',
     newChat: 'New Chat',
-    suggestedQuestions: 'Вы можете спросить так',
+    suggestedQuestions: 'Рекомендуем',
+    defaultGreeting: 'Здравствуйте! Чем могу помочь?',
     suggestedQuestionsLoading: 'Загрузка...',
     followUpQuestions: 'Спрашивайте дальше',
     followUpQuestionsLoading: 'Загрузка рекомендуемых вопросов',

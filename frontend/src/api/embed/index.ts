@@ -105,7 +105,12 @@ export type WidgetPosition = 'bottom-right' | 'bottom-left' | 'top-right' | 'top
 /** Prefix of short-lived embed session tokens minted by the backend. */
 export const EMBED_SESSION_TOKEN_PREFIX = 'ems_'
 
-/** localStorage key prefix for persisted embed chat sessions (per channel). */
+/**
+ * localStorage key prefix for persisted embed chat sessions (per channel).
+ *
+ * <p>改名时需同步 `frontend/embed.html` 里的内联脚本：首屏骨架靠这个键判断该画
+ * 「问候屏」还是「对话气泡」（有存量会话 ⇒ 对话气泡，避免加载历史时切换形态）。</p>
+ */
 export const EMBED_CHAT_SESSION_STORAGE_PREFIX = 'ragagent-embed-session:'
 
 /** localStorage key prefix for anonymous embed visitor ids (per channel). */

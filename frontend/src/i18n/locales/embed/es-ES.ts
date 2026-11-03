@@ -92,7 +92,8 @@ export default {
     tokenRequiredForPreview: 'Se necesita un token de publicación para la vista previa. Cree un canal o rote el token primero.'
   },
   chat: {
-    suggestedQuestions: '¡Hola, cómo puedo ayudarte?',
+    suggestedQuestions: 'Recomendado para ti',
+    defaultGreeting: '¡Hola! ¿En qué puedo ayudarte?',
     followUpQuestions: 'Seguir preguntando',
     followUpQuestionsLoading: 'Cargando preguntas sugeridas',
     refreshSuggestedQuestions: 'Más',

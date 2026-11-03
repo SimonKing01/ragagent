@@ -30,16 +30,36 @@
       <span class="eb-skel embed-boot__action"></span>
       <span class="eb-skel embed-boot__action"></span>
     </div>
-    <div class="embed-boot__body">
-      <span class="eb-skel eb-bubble"></span>
-      <span class="eb-skel eb-bubble eb-bubble--user"></span>
-      <span class="eb-skel eb-row"></span>
+    <div class="embed-boot__body embed-boot__body--intro">
+      <span class="eb-skel eb-intro-greeting" data-boot-variant="greeting"></span>
+      <span class="eb-skel eb-intro-label" data-boot-variant="greeting"></span>
+      <span class="eb-skel eb-row" data-boot-variant="greeting"></span>
+      <span class="eb-skel eb-row" data-boot-variant="greeting"></span>
+      <span class="eb-skel eb-bubble eb-bubble--user" data-boot-variant="conversation"></span>
+      <span class="eb-skel eb-bubble" data-boot-variant="conversation"></span>
+      <span class="eb-skel eb-bubble eb-bubble--short" data-boot-variant="conversation"></span>
     </div>
     <div class="embed-boot__footer">
       <span class="eb-skel embed-boot__input"></span>
     </div>
   </div>
 </div>
+<script>
+(function(){
+  // 有存量会话 ⇒ 首屏直接画「对话气泡」骨架：历史消息加载时用的是同形骨架，
+  // 不会出现「问候屏骨架 → 对话骨架」的切换。（读不到就保持问候屏形态）
+  try {
+    var seg = location.pathname.split('/').filter(Boolean);
+    var idx = seg.indexOf('embed');
+    var channel = idx >= 0 ? seg[idx + 1] : '';
+    if (!channel) return;
+    if (localStorage.getItem('ragagent-embed-session:' + channel)) {
+      var boot = document.querySelector('.embed-boot');
+      if (boot) boot.className += ' embed-boot--conversation';
+    }
+  } catch (e) { /* 隐私模式等读不到 localStorage：保持问候屏形态 */ }
+})();
+</script>
 <script src="/config.js"></script>
 <!-- 图标 sprite 需在 Vue 挂载前注册，否则首帧的 <t-icon> 取不到符号；保持同步加载即可。 -->
 <script src="/tdesign-icons/0.4.1/fonts/index.js"></script>

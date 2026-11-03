@@ -93,7 +93,8 @@ export default {
   chat: {
     title: 'Chat',
     newChat: 'New Chat',
-    suggestedQuestions: 'Hello, how can i help you?',
+    suggestedQuestions: 'Recommended for you',
+    defaultGreeting: 'Hello, how can I help you?',
     suggestedQuestionsLoading: 'Loading...',
     followUpQuestions: 'Keep asking',
     followUpQuestionsLoading: 'Loading suggested questions',

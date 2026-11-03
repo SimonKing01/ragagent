@@ -93,7 +93,8 @@ export default {
   chat: {
     title: 'Chat',
     newChat: 'New Chat',
-    suggestedQuestions: '이렇게 물어보세요',
+    suggestedQuestions: '추천 질문',
+    defaultGreeting: '안녕하세요, 무엇을 도와드릴까요?',
     suggestedQuestionsLoading: '로딩 중...',
     followUpQuestions: '이어서 질문',
     followUpQuestionsLoading: '추천 질문 로딩 중',

@@ -93,7 +93,8 @@ export default {
   chat: {
     title: 'チャット',
     newChat: '新しいチャット',
-    suggestedQuestions: 'こんな質問ができます',
+    suggestedQuestions: 'おすすめ',
+    defaultGreeting: 'こんにちは。どのようなご用件でしょうか？',
     suggestedQuestionsLoading: '読み込み中...',
     followUpQuestions: '続けて質問',
     followUpQuestionsLoading: 'おすすめの質問を読み込み中',

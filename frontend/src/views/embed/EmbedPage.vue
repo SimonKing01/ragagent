@@ -64,6 +64,7 @@
           :use-session-header-title="useSessionHeaderTitle"
           :host-context="hostContext"
           :ensure-session="ensureSession"
+          :session-restoring="restoringSession"
           @session-title="sessionTitle = $event"
           @messages-state="chatHasMessages = $event"
           @streaming-state="streaming = $event"
@@ -149,6 +150,7 @@ const {
   loadError,
   awaitingToken,
   bootstrapping,
+  restoringSession,
   hostContext,
   ensureSession,
   selectSession,

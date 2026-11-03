@@ -100,6 +100,11 @@ export function useEmbedBridge(channelId: Ref<string>) {
   const loadError = ref('')
   const awaitingToken = ref(false)
   const bootstrapping = ref(false)
+  /**
+   * 存量会话校验中（一次 RTT）。config 先就绪、会话后恢复，中间聊天会带着空
+   * sessionId 挂载——期间不能显示「新会话问候屏」，否则会闪一下问候语再跳回历史。
+   */
+  const restoringSession = ref(false)
   const hostContext = ref<Record<string, unknown>>({})
 
   let removeHostListener: (() => void) | null = null
@@ -215,12 +220,17 @@ export function useEmbedBridge(channelId: Ref<string>) {
       const configAgentId = String(res.agentId || '').trim()
       const stored = readStoredSession(id)
       const agentMatches = !stored?.agentId || !configAgentId || stored.agentId === configAgentId
-      if (stored && agentMatches && (await isStoredSessionValid(id, apiToken, stored))) {
-        sessionId.value = stored.id
-        sessionSig.value = stored.sig
-        writeStoredSession(id, { ...stored, agentId: configAgentId || stored.agentId })
-      } else {
-        writeStoredSession(id, null)
+      restoringSession.value = Boolean(stored && agentMatches)
+      try {
+        if (stored && agentMatches && (await isStoredSessionValid(id, apiToken, stored))) {
+          sessionId.value = stored.id
+          sessionSig.value = stored.sig
+          writeStoredSession(id, { ...stored, agentId: configAgentId || stored.agentId })
+        } else {
+          writeStoredSession(id, null)
+        }
+      } finally {
+        restoringSession.value = false
       }
       token.value = apiToken
       postEmbedReady(id)
@@ -411,6 +421,7 @@ export function useEmbedBridge(channelId: Ref<string>) {
     loadError,
     awaitingToken,
     bootstrapping,
+    restoringSession,
     hostContext,
     ensureSession,
     selectSession,

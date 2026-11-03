@@ -93,7 +93,8 @@ export default {
   chat: {
     title: '对话',
     newChat: '新对话',
-    suggestedQuestions: '您好，有什么可以帮到您？',
+    suggestedQuestions: '为您推荐',
+    defaultGreeting: '您好，有什么可以帮到您？',
     suggestedQuestionsLoading: '加载中...',
     followUpQuestions: '继续问',
     followUpQuestionsLoading: '加载推荐问题',
