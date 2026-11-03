@@ -360,5 +360,12 @@ class ChunkQuestionServiceTest {
         // 非正 count / 空输出 → 空列表
         assertThat(ChunkQuestionService.parseGeneratedQuestions(output, 0)).isEmpty();
         assertThat(ChunkQuestionService.parseGeneratedQuestions(null, 3)).isEmpty();
+
+        // 退化行（模型重复循环，线上真实样本）不落库：丢弃后不占名额，后续正常行照常收
+        String withGarbled = "1. 什么是知识库？\n"
+                + "2. 度PTRurna iso(Mpp（（ssiMB（（9（。（（（（（（（（（（（，，，，（，（（（（（（（（（（\n"
+                + "3) 如何配置嵌入模型";
+        assertThat(ChunkQuestionService.parseGeneratedQuestions(withGarbled, 2))
+                .containsExactly("什么是知识库？", "如何配置嵌入模型");
     }
 }

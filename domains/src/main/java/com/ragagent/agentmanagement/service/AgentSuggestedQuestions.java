@@ -10,6 +10,7 @@ import com.ragagent.agentmanagement.service.config.AgentConfigJson;
 import com.ragagent.contract.apikey.TenantAPIKeyScope;
 import com.ragagent.contract.knowledge.KnowledgeBaseCatalogPort;
 import com.ragagent.contract.wiki.WikiLanguageSupport;
+import com.ragagent.platform.text.DegenerateText;
 import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -258,7 +259,11 @@ public final class AgentSuggestedQuestions {
             }
             JsonNode first = qs.get(0);
             String q = first.isObject() ? first.path("question").asText("") : first.asText("");
-            return q == null ? "" : q;
+            if (q == null || DegenerateText.isDegenerate(q)) {
+                // 退化串（模型重复循环的历史脏数据）不进推荐池；写侧已加同一道判定，这里兜底存量
+                return null;
+            }
+            return q;
         } catch (Exception e) {
             return null;
         }

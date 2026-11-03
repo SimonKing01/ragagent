@@ -39,6 +39,11 @@ class AgentSuggestedQuestionsTest {
         String plain = "{\"generatedQuestions\":[\"纯字符串问题\"]}";
         assertThat(AgentSuggestedQuestions.firstGeneratedQuestion(plain)).isEqualTo("纯字符串问题");
 
+        // 退化串（模型重复循环落库的历史脏数据）→ null：不进推荐池（线上真实样本）
+        String garbled = "{\"generatedQuestions\":[{\"question\":\"度PTRurna iso(Mpp（（ssiMB（（9（。（（（（（（"
+                + "（（（（（（（（（（（，，，，（，（（（（（（（（（（\"}]}";
+        assertThat(AgentSuggestedQuestions.firstGeneratedQuestion(garbled)).isNull();
+
         // 空数组 / 缺键 / null / 畸形 JSON → null（不得抛错）
         assertThat(AgentSuggestedQuestions.firstGeneratedQuestion("{\"generatedQuestions\":[]}")).isNull();
         assertThat(AgentSuggestedQuestions.firstGeneratedQuestion("{\"other\":1}")).isNull();

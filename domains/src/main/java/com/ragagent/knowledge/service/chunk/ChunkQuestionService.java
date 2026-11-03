@@ -33,6 +33,7 @@ import com.ragagent.platform.knowledge.ChunkSearchUtil;
 import com.ragagent.platform.prompt.AgentPromptPlaceholders;
 import com.ragagent.platform.prompt.PromptInstructions;
 import com.ragagent.platform.settings.ConversationProperties;
+import com.ragagent.platform.text.DegenerateText;
 import com.ragagent.platform.web.JsonMappers;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -523,6 +524,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
     /**
      * 逐行解析：
      * 逐行 trim → 裁前缀符号（{@code "0123456789.-*) "}）→ trim → 非空且 &gt;5 字节
+     * → 非退化（{@link DegenerateText}：模型重复循环产出的串不落库）
      */
     static List<String> parseGeneratedQuestions(String content, int questionCount) {
         List<String> questions = new ArrayList<>(Math.max(questionCount, 0));
@@ -536,7 +538,8 @@ public class ChunkQuestionService implements ChunkQuestionPort {
             }
             line = trimLeftCharSet(line, "0123456789.-*) ");
             line = ChunkRepository.trimSpace(line);
-            if (!line.isEmpty() && line.getBytes(StandardCharsets.UTF_8).length > 5) {
+            if (!line.isEmpty() && line.getBytes(StandardCharsets.UTF_8).length > 5
+                    && !DegenerateText.isDegenerate(line)) {
                 questions.add(line);
                 if (questions.size() >= questionCount) {
                     break;
