@@ -1,12 +1,13 @@
 import { applyFinalArtifactContent } from '@/utils/finalArtifactContent'
 import { normalizeKnowledgeReference } from '@/utils/referenceSources'
-import { markRaw, nextTick, type Ref } from 'vue'
+import { markRaw, nextTick, onScopeDispose, type Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ensureRagPipelineHistoryStream } from '@/utils/rag-pipeline-history'
 import { applyMessageCreatedAt, bindServerTurnTimestamps, ensureMessageCreatedAt } from '@/utils/messageTimestamp'
 import { expandSteerForksInHistory, forkAfterInjectedUser, steerStepEvents, resetSteerTurnForReplay } from '@/utils/steerStreamFork'
 import type { BackendStreamEvent, ChatMessage } from '@/types/chatStream'
 import { normalizeStreamEvent } from '@/types/chatStream'
+import { preambleRetractDelayMs } from '@/utils/preambleRetract'
 
 export interface UseChatStreamHandlerOptions {
   messagesList: ChatMessage[]
@@ -318,6 +319,50 @@ export function useChatStreamHandler(options: UseChatStreamHandlerOptions) {
     }
     return out
   }
+
+  // 工具调用会把刚流出的「前言」段落撤回（标记 superseded，折进思考卡片）。
+  // 立即撤回时内容往往刚上屏一瞬，观感是「话没打完就没了」；这里按前言字数让出打字机
+  // 需要的时间，再撤回（preambleRetractDelayMs）。新答案一到则立即撤回，避免两段内容
+  // 同框把气泡撑高再缩回。
+  const pendingRetractions = new Map<
+    ChatMessage,
+    { timer: ReturnType<typeof setTimeout>; targets: ChatMessage[] }
+  >()
+
+  const retractAnswerPreamble = (message: ChatMessage, targets: ChatMessage[]) => {
+    let retracted = false
+    for (const ev of targets) {
+      if (ev.type === 'answer' && !ev.superseded && ev.content && String(ev.content).trim()) {
+        ev.superseded = true
+        ev.done = true
+        retracted = true
+      }
+    }
+    if (!retracted) return
+    message.content = recomposeAgentAnswer(message)
+    fullContent.value = String(message.content || '')
+  }
+
+  const cancelPendingRetraction = (message: ChatMessage) => {
+    const entry = pendingRetractions.get(message)
+    if (!entry) return
+    clearTimeout(entry.timer)
+    pendingRetractions.delete(message)
+  }
+
+  /** 立即执行待撤回（新答案到来时调用），与计时器互为兜底。 */
+  const flushPendingRetraction = (message: ChatMessage) => {
+    const entry = pendingRetractions.get(message)
+    if (!entry) return
+    pendingRetractions.delete(message)
+    clearTimeout(entry.timer)
+    retractAnswerPreamble(message, entry.targets)
+  }
+
+  onScopeDispose(() => {
+    for (const entry of pendingRetractions.values()) clearTimeout(entry.timer)
+    pendingRetractions.clear()
+  })
 
   const reconstructEventStreamFromSteps = (
     agentSteps: unknown[],
@@ -790,18 +835,23 @@ export function useChatStreamHandler(options: UseChatStreamHandlerOptions) {
       }
       case 'toolCall': {
         if (dataPayload?.toolName === 'finalAnswer') break
-        if (message.agentEventStream) {
-          let retracted = false
-          for (const ev of message.agentEventStream as ChatMessage[]) {
-            if (ev.type === 'answer' && !ev.superseded && ev.content && String(ev.content).trim()) {
-              ev.superseded = true
-              ev.done = true
-              retracted = true
-            }
-          }
-          if (retracted) {
-            message.content = recomposeAgentAnswer(message)
-            fullContent.value = String(message.content || '')
+        if (message.agentEventStream && !pendingRetractions.has(message)) {
+          // 只撤本次工具调用前已上屏的前言；延后触发，先让打字机把话说完
+          const targets = (message.agentEventStream as ChatMessage[]).filter(
+            (ev) => ev.type === 'answer' && !ev.superseded && ev.content && String(ev.content).trim(),
+          )
+          if (targets.length) {
+            const pendingChars = targets.reduce(
+              (sum, ev) => sum + String(ev.content || '').length,
+              0,
+            )
+            const timer = setTimeout(() => {
+              const entry = pendingRetractions.get(message)
+              pendingRetractions.delete(message)
+              if (!entry || message.completed) return
+              retractAnswerPreamble(message, entry.targets)
+            }, preambleRetractDelayMs(pendingChars))
+            pendingRetractions.set(message, { timer, targets })
           }
         }
         if (dataPayload && (dataPayload.toolName || dataPayload.toolCallId)) {
@@ -951,6 +1001,8 @@ export function useChatStreamHandler(options: UseChatStreamHandlerOptions) {
       }
       case 'answer': {
         message.thinking = false
+        // 新答案开始：先把待撤回的前言清掉，别让「前言 + 新答案」同框把气泡撑高
+        flushPendingRetraction(message)
         const eventId = dataPayload?.eventId as string | undefined
         if (!message.agentEventStream) message.agentEventStream = []
         if (!message._eventMap) message._eventMap = new Map()
@@ -1044,6 +1096,7 @@ export function useChatStreamHandler(options: UseChatStreamHandlerOptions) {
       }
       case 'complete': {
         if (dataId) replaySegments.delete(dataId)
+        cancelPendingRetraction(message)
         log('[Agent] Complete event received')
         applyFinalArtifactContent(message, (dataPayload as any)?.finalContent)
         loading.value = false
