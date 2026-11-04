@@ -3210,7 +3210,7 @@ export default {
   knowledgeEditor: {
     // 图片 OCR（原「图像处理」）：默认开启，按知识库控制入库图片是否走 OCR
     ocr: {
-      title: '图片处理',
+      title: '图像处理',
       description: '扫描件与文档内图片在入库时自动识别文字，识别结果插入正文并参与检索。',
       label: '图片OCR功能',
       desc: '默认开启；关闭后该知识库的图片只保留原图，不提取文字。',

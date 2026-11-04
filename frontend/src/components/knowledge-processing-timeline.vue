@@ -1380,12 +1380,8 @@ const processConfigLines = computed<string[]>(() => {
     lines.push(`${t(k('parser'))}: ${formatParserRulesForCurrentFile(rules)}`)
   }
 
-  const vlm = o.vlmConfig ?? (o as any).vlm_config
-  const mm = vlm?.enabled ?? o.enableMultimodel ?? (o as any).enable_multimodel
-  if (mm != null) lines.push(`${t(k('multimodal'))}: ${onOff(mm)}`)
-
-  const asr = o.asrConfig ?? (o as any).asr_config
-  if (asr?.enabled != null) lines.push(`${t(k('asr'))}: ${onOff(asr.enabled)}`)
+  // 多模态与 ASR 已从覆盖载荷移除（无解析管线消费）；历史 metadata 里可能残留，
+  // 时间线不再展示这两项，避免"配了没生效"的误导。
 
   const qg = o.questionGenerationConfig
   if (qg?.enabled != null) {
@@ -1393,7 +1389,7 @@ const processConfigLines = computed<string[]>(() => {
   }
 
   const graph = o.graphEnabled ?? (o as any).graph_enabled
-    ?? o.extractConfig?.enabled ?? (o as any).extract_config?.enabled
+    ?? (o as any).extract_config?.enabled
   if (graph != null) lines.push(`${t(k('graph'))}: ${onOff(graph)}`)
 
   return lines.length ? lines : [t('knowledgeStages.processConfig.kbDefault')]

@@ -371,61 +371,6 @@
                     </div>
                   </div>
 
-                  <div v-show="activeSection === 'asr'" class="section" data-section="asr">
-                    <div class="kb-settings-block">
-                      <div class="section-header">
-                        <h2 class="section-title">{{ t('knowledgeEditor.asr.title') }}</h2>
-                        <p class="section-desc">{{ t('knowledgeEditor.asr.description') }}</p>
-                      </div>
-                      <div v-if="issueSectionKeys.has('asr')" class="section-notice">
-                        <t-icon name="info-circle-filled" />
-                        <span>{{ t('uploadConfirm.asrSetupHint') }}</span>
-                      </div>
-                      <div class="settings-group">
-                        <div class="setting-row">
-                          <div class="setting-info">
-                            <label>{{ t('knowledgeEditor.asr.label') }}</label>
-                            <p class="desc">{{ t('knowledgeEditor.asr.desc') }}</p>
-                          </div>
-                          <div class="setting-control">
-                            <t-switch v-model="uiState.asrConfig.enabled" size="medium" />
-                          </div>
-                        </div>
-                        <div v-if="uiState.asrConfig.enabled" class="setting-row">
-                          <div class="setting-info">
-                            <label>{{ t('knowledgeEditor.asr.modelLabel') }} <span class="required">*</span></label>
-                            <p class="desc">{{ t('knowledgeEditor.asr.modelDescription') }}</p>
-                          </div>
-                          <div class="setting-control">
-                            <ModelSelector
-                              model-type="ASR"
-                              :selected-model-id="uiState.asrConfig.modelId"
-                              :all-models="allModels"
-                              :status="showAsrModelError ? 'error' : 'default'"
-                              :placeholder="t('knowledgeEditor.asr.modelPlaceholder')"
-                              @update:selected-model-id="(val: string) => { uiState.asrConfig.modelId = val }"
-                              @add-model="handleAddASRModel"
-                            />
-                          </div>
-                        </div>
-                        <div v-if="uiState.asrConfig.enabled" class="setting-row">
-                          <div class="setting-info">
-                            <label>{{ t('knowledgeEditor.asr.languageLabel') }}</label>
-                            <p class="desc">{{ t('knowledgeEditor.asr.languageDescription') }}</p>
-                          </div>
-                          <div class="setting-control">
-                            <t-input
-                              v-model="uiState.asrConfig.language"
-                              clearable
-                              :placeholder="t('knowledgeEditor.asr.languagePlaceholder')"
-                              :style="{ width: '280px' }"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
                   <div v-show="activeSection === 'question'" class="section">
                     <div class="kb-settings-block">
                       <div class="section-header">
@@ -449,20 +394,6 @@
                               :style="{ width: '88px' }"
                             />
                             <t-switch v-model="uiState.questionGenerationConfig.enabled" size="medium" />
-                          </div>
-                        </div>
-                        <div v-if="uiState.questionGenerationConfig.enabled" class="setting-row setting-row-vertical">
-                          <div class="setting-info">
-                            <label>{{ t('knowledgeEditor.advanced.questionGeneration.instructionsLabel') }}</label>
-                            <p class="desc">{{ t('knowledgeEditor.advanced.questionGeneration.instructionsDescription') }}</p>
-                          </div>
-                          <div class="setting-control setting-control-full">
-                            <t-textarea
-                              v-model="uiState.questionGenerationConfig.customInstructions"
-                              :placeholder="t('knowledgeEditor.advanced.questionGeneration.instructionsPlaceholder')"
-                              :maxlength="4000"
-                              :autosize="{ minRows: 3, maxRows: 8 }"
-                            />
                           </div>
                         </div>
                       </div>
@@ -499,7 +430,6 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { MessagePlugin } from 'tdesign-vue-next'
-import ModelSelector from '@/components/ModelSelector.vue'
 import KBParserSettings from '../settings/KBParserSettings.vue'
 import GraphSettings from '../settings/GraphSettings.vue'
 import { useChatResourcesStore } from '@/stores/chatResources'
@@ -520,10 +450,9 @@ import type {
   UploadConfirmResult,
 } from '@/stores/uploadConfirm'
 
-const AUDIO_EXTENSIONS = ['mp3', 'wav', 'm4a', 'flac', 'ogg']
 
-type ConfigSectionKey = 'tags' | 'parser' | 'chunking' | 'multimodal' | 'asr' | 'question' | 'graph'
-type IssueSectionKey = 'asr'
+type ConfigSectionKey = 'tags' | 'parser' | 'chunking' | 'multimodal' | 'question' | 'graph'
+type IssueSectionKey = never
 
 interface ChunkingUIConfig {
   chunkSize: number
@@ -547,8 +476,7 @@ interface UploadUIState {
   chunkingConfig: ChunkingUIConfig
   /** 逐文档图片 OCR 开关（默认继承 KB，缺省开启） */
   imageOcrEnabled: boolean
-  asrConfig: { enabled: boolean; modelId: string; language: string }
-  questionGenerationConfig: { enabled: boolean; questionCount: number; customInstructions?: string }
+  questionGenerationConfig: { enabled: boolean; questionCount: number }
   nodeExtractConfig: {
     enabled: boolean
     text: string
@@ -793,10 +721,6 @@ const tagOptions = computed(() => availableTags.value.map(tag => ({
 
 const llmModelId = computed(() => props.kbInfo?.summaryModelId || '')
 
-const hasAudio = computed(() => {
-  return batchFileExts.value.some(ext => AUDIO_EXTENSIONS.includes(ext))
-})
-
 const isGraphDatabaseEnabled = computed(() => {
   const engine = editorResources.systemInfo?.graphDatabaseEngine
   return !!engine && engine !== 'Not Enabled'
@@ -806,21 +730,8 @@ const isGraphSectionAvailable = computed(() => {
   return isGraphDatabaseEnabled.value && uiState.value.graphEnabled
 })
 
-const showAsrModelError = computed(() => {
-  return uiState.value.asrConfig.enabled && !uiState.value.asrConfig.modelId
-})
-
-const issueSectionKeys = computed(() => {
-  const keys = new Set<IssueSectionKey>()
-  if (hasAudio.value) {
-    if (!uiState.value.asrConfig.enabled || !uiState.value.asrConfig.modelId) {
-      keys.add('asr')
-    }
-  } else if (showAsrModelError.value) {
-    keys.add('asr')
-  }
-  return keys
-})
+// 目前没有「必须先补配置才能上传」的分区（ASR 无解析管线，已从弹窗移除）
+const issueSectionKeys = computed(() => new Set<IssueSectionKey>())
 
 const navItems = computed(() => {
   const items: Array<{
@@ -856,12 +767,6 @@ const navItems = computed(() => {
     'multimodal',
     'image',
     t('knowledgeEditor.sidebar.multimodal'),
-  )
-  push(
-    'asr',
-    'sound',
-    t('knowledgeEditor.sidebar.asr'),
-    issueSectionKeys.value.has('asr'),
   )
   push('question', 'chat', t('knowledgeEditor.advanced.questionGeneration.label'))
   if (isGraphSectionAvailable.value) {
@@ -903,19 +808,6 @@ function getSectionNavStatus(
         ? { status: t('knowledgeEditor.ocr.label') }
         : { status: t('uploadConfirm.statusOff'), statusTone: 'muted' }
     }
-    case 'asr': {
-      if (issue) {
-        return { status: t('uploadConfirm.statusNeedsSetup'), statusTone: 'error' }
-      }
-      const asr = uiState.value.asrConfig
-      if (!asr.enabled) {
-        return { status: t('uploadConfirm.statusOff'), statusTone: 'muted' }
-      }
-      return {
-        status: asr.modelId ? getModelName(asr.modelId) : t('uploadConfirm.notSet'),
-        statusTone: asr.modelId ? undefined : 'warning',
-      }
-    }
     case 'question': {
       const question = uiState.value.questionGenerationConfig
       if (!question.enabled) {
@@ -943,20 +835,11 @@ function getSectionNavStatus(
 const canConfirm = computed(() => {
   if (props.mode === 'file' && batchItemCount.value === 0) return false
   if (props.mode === 'manual' && !props.manualPreview?.content?.trim()) return false
-  if (hasAudio.value) {
-    if (!uiState.value.asrConfig.enabled || !uiState.value.asrConfig.modelId) {
-      return false
-    }
-  }
-  if (showAsrModelError.value) {
-    return false
-  }
   return true
 })
 
 function getDefaultSection(): ConfigSectionKey {
   if (props.mode === 'reparse') return 'parser'
-  if (issueSectionKeys.value.has('asr')) return 'asr'
   return 'tags'
 }
 
@@ -983,8 +866,7 @@ function createDefaultUIState(): UploadUIState {
       tableMetadataInstructions: '',
     },
     imageOcrEnabled: true,
-    asrConfig: { enabled: false, modelId: '', language: '' },
-    questionGenerationConfig: { enabled: true, questionCount: 3, customInstructions: '' },
+    questionGenerationConfig: { enabled: true, questionCount: 3 },
     nodeExtractConfig: {
       enabled: false,
       text: '',
@@ -1020,16 +902,10 @@ function initFromKbInfo(kb: any) {
     },
     // 缺省开启：只有知识库里显式 false 才关
     imageOcrEnabled: kb.imageProcessingConfig?.ocrEnabled !== false,
-    asrConfig: {
-      enabled: !!kb.asrConfig?.enabled,
-      modelId: kb.asrConfig?.modelId || '',
-      language: kb.asrConfig?.language || '',
-    },
     // questionGenerationConfig 是落库 jsonb 透传（内层键为 snake，见 KB 更新请求）
     questionGenerationConfig: {
       enabled: kb.questionGenerationConfig?.enabled ?? true,
       questionCount: kb.questionGenerationConfig?.questionCount || 3,
-      customInstructions: kb.questionGenerationConfig?.customInstructions || '',
     },
     nodeExtractConfig: {
       enabled: !!kb.extractConfig?.enabled && !!kb.indexingStrategy?.graphEnabled,
@@ -1069,31 +945,11 @@ function buildProcessOverrides(): KnowledgeProcessOverrides {
     imageProcessingConfig: {
       ocrEnabled: state.imageOcrEnabled,
     },
-    asrConfig: {
-      enabled: state.asrConfig.enabled,
-      modelId: state.asrConfig.modelId,
-      language: state.asrConfig.language,
-    },
     questionGenerationConfig: {
       enabled: state.questionGenerationConfig.enabled,
       questionCount: state.questionGenerationConfig.questionCount,
-      customInstructions: state.questionGenerationConfig.customInstructions,
     },
     graphEnabled: state.nodeExtractConfig.enabled && state.graphEnabled,
-    extractConfig: {
-      enabled: state.nodeExtractConfig.enabled,
-      text: state.nodeExtractConfig.text,
-      tags: state.nodeExtractConfig.tags,
-      nodes: state.nodeExtractConfig.nodes,
-      relations: state.nodeExtractConfig.relations,
-      customInstructions: state.nodeExtractConfig.customInstructions,
-    },
-  }
-
-  if (state.pdfForceScanned) {
-    overrides.parserEngineOverrides = {
-      pdf_force_scanned: 'true',
-    }
   }
 
   return overrides
@@ -1130,36 +986,14 @@ function applyOverridesToState(o?: KnowledgeProcessOverrides | null) {
   if (o.imageProcessingConfig?.ocrEnabled != null) {
     s.imageOcrEnabled = o.imageProcessingConfig.ocrEnabled
   }
-  const asr = o.asrConfig ?? (o as any).asr_config
-  if (asr) {
-    if (asr.enabled != null) s.asrConfig.enabled = asr.enabled
-    if (asr.modelId != null) s.asrConfig.modelId = asr.modelId
-    if (asr.language != null) s.asrConfig.language = asr.language
-  }
   const qg = o.questionGenerationConfig
   if (qg) {
     if (qg.enabled != null) s.questionGenerationConfig.enabled = qg.enabled
     if (qg.questionCount != null) s.questionGenerationConfig.questionCount = qg.questionCount
-    if (qg.customInstructions != null) s.questionGenerationConfig.customInstructions = qg.customInstructions
-  }
-  const ec = o.extractConfig ?? (o as any).extract_config
-  if (ec) {
-    if (ec.enabled != null) s.nodeExtractConfig.enabled = ec.enabled
-    if (ec.text != null) s.nodeExtractConfig.text = ec.text
-    if (ec.tags) s.nodeExtractConfig.tags = ec.tags
-    if (ec.nodes) s.nodeExtractConfig.nodes = ec.nodes.map((n: any) => ({ name: n.name, attributes: n.attributes || [] }))
-    if (ec.relations) s.nodeExtractConfig.relations = ec.relations
-    if (ec.customInstructions != null) s.nodeExtractConfig.customInstructions = ec.customInstructions
   }
   const graph = o.graphEnabled ?? (o as any).graph_enabled
   if (graph != null) s.graphEnabled = graph
   s.nodeExtractConfig.enabled = s.nodeExtractConfig.enabled && s.graphEnabled
-  const engineOverrides = o.parserEngineOverrides ?? (o as any).parser_engine_overrides
-  if (engineOverrides && engineOverrides.pdf_force_scanned === 'true') {
-    s.pdfForceScanned = true
-  } else {
-    s.pdfForceScanned = false
-  }
 }
 
 async function loadModels() {
@@ -1276,31 +1110,12 @@ const handleParserEngineRulesUpdate = (rules: Array<{
   uiState.value.chunkingConfig.parserEngineRules = rules
 }
 
-const handleAddASRModel = () => {
-  uiStore.openSettings('models', 'asr')
-}
-
 const handleNodeExtractUpdate = (config: UploadUIState['nodeExtractConfig']) => {
   uiState.value.nodeExtractConfig = { ...config }
   uiState.value.graphEnabled = config.enabled
 }
 
-const validateBeforeConfirm = (): boolean => {
-
-  if (hasAudio.value) {
-    if (!uiState.value.asrConfig.enabled || !uiState.value.asrConfig.modelId) {
-      MessagePlugin.warning(t('uploadConfirm.asrModelRequired'))
-      uiState.value.asrConfig.enabled = true
-      goToSection('asr')
-      return false
-    }
-  } else if (showAsrModelError.value) {
-    MessagePlugin.warning(t('uploadConfirm.asrModelSelectRequired'))
-    goToSection('asr')
-    return false
-  }
-  return true
-}
+const validateBeforeConfirm = (): boolean => true
 
 const handleCancel = () => {
   emit('cancel')
