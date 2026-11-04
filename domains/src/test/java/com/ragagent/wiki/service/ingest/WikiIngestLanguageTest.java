@@ -75,9 +75,9 @@ class WikiIngestLanguageTest {
     @Test
     @DisplayName("TestResolveLanguageNameRecoversLegacyPendingOp：语言字段为空的旧行仍产出本地化页面")
     void recoversLegacyPendingOp() {
-        WikiLanguageSupport.setCurrentLocale("ko-KR");
+        WikiLanguageSupport.setCurrentLocale("ru-RU");
         // 旧行的 Language 是空串 —— worker 必须拿 ctx + 默认值解析，而不是信载荷
-        assertThat(WikiLanguageSupport.resolveLanguageName("")).isEqualTo("Korean");
+        assertThat(WikiLanguageSupport.resolveLanguageName("")).isEqualTo("Russian");
 
         WikiLanguageSupport.clearCurrentLocale();
         assertThat(WikiLanguageSupport.resolveLanguageName("")).isNotEmpty();
@@ -92,8 +92,6 @@ class WikiIngestLanguageTest {
             "zh-TW, Chinese (Traditional)",
             "en-US, English",
             "en, English",
-            "ko-KR, Korean",
-            "ja-JP, Japanese",
             "ru-RU, Russian",
             "fr-FR, French",
             "de-DE, German",
@@ -179,9 +177,9 @@ class WikiIngestLanguageTest {
     @Test
     @DisplayName("resolveLanguage：显式 locale 优先于上下文，上下文优先于默认")
     void resolveLanguagePrecedence() {
-        WikiLanguageSupport.setCurrentLocale("ko-KR");
-        assertThat(WikiLanguageSupport.resolveLanguage("ja-JP")).isEqualTo("ja-JP");
-        assertThat(WikiLanguageSupport.resolveLanguage("  ")).isEqualTo("ko-KR");
+        WikiLanguageSupport.setCurrentLocale("th-TH");
+        assertThat(WikiLanguageSupport.resolveLanguage("ru-RU")).isEqualTo("ru-RU");
+        assertThat(WikiLanguageSupport.resolveLanguage("  ")).isEqualTo("th-TH");
         WikiLanguageSupport.clearCurrentLocale();
         assertThat(WikiLanguageSupport.resolveLanguage("")).isEqualTo(WikiLanguageSupport.defaultLanguage());
     }

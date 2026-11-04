@@ -33,7 +33,7 @@ public class AgentPlaceholders {
     private static final P WEB_SEARCH_STATUS = new P("web_search_status", "网络搜索状态",
             "网络搜索工具是否启用的状态（Enabled 或 Disabled）");
     private static final P LANGUAGE = new P("language", "用户语言",
-            "用户界面的语言偏好，如 Chinese (Simplified)、English、Korean 等，用于控制 LLM 回答语言");
+            "用户界面的语言偏好，如 Chinese (Simplified)、English 等，用于控制 LLM 回答语言");
 
     public ObjectNode data() {
         // 键按字母序输出(键 = 前端字段面, camel);P 名 = 模板令牌(数据值, 一律 snake——由 AgentPlaceholdersTest 守住)

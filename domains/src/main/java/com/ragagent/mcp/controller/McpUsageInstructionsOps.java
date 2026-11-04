@@ -68,8 +68,6 @@ final class McpUsageInstructionsOps {
     private static final Map<String, String> LANGUAGE_MAP = Map.of(
             "zh-CN", "Simplified Chinese",
             "en-US", "English",
-            "ja-JP", "Japanese",
-            "ko-KR", "Korean",
             "ru-RU", "Russian");
 
     // ── 使用说明生成 ─────────────────────────────────────────────────────

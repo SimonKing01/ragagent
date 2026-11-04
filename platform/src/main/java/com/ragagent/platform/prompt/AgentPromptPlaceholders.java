@@ -42,7 +42,7 @@ public final class AgentPromptPlaceholders {
             "当前日期（ISO 格式：2006-01-02）。只用日期、不用时钟，避免秒级变化打断 provider 前缀缓存。");
     public static final PromptPlaceholder PLACEHOLDER_LANGUAGE = new PromptPlaceholder(
             "language", "用户语言",
-            "用户界面的语言偏好，如 Chinese (Simplified)、English、Korean 等，用于控制 LLM 回答语言");
+            "用户界面的语言偏好，如 Chinese (Simplified)、English 等，用于控制 LLM 回答语言");
 
     /** agent_system_prompt 字段的可用占位符。 */
     public static List<PromptPlaceholder> placeholdersByFieldAgentSystemPrompt() {

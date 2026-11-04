@@ -156,8 +156,6 @@ public final class WikiLanguageSupport {
             case "zh-CN", "zh", "zh-Hans" -> "Chinese (Simplified)";
             case "zh-TW", "zh-HK", "zh-Hant" -> "Chinese (Traditional)";
             case "en-US", "en", "en-GB" -> "English";
-            case "ko-KR", "ko" -> "Korean";
-            case "ja-JP", "ja" -> "Japanese";
             case "ru-RU", "ru" -> "Russian";
             case "fr-FR", "fr" -> "French";
             case "de-DE", "de" -> "German";
