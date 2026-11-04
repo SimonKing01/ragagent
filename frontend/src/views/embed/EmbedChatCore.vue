@@ -510,13 +510,13 @@ watch(
 .embed-intro {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  margin: 0 10px;
   // 「居中偏上一点」：随面板高度取一段顶部留白，最高不超过 88px
   padding-top: clamp(24px, 12vh, 88px);
 
   &__greeting {
     margin: 0;
-    font-size: 18px;
+    font-size: 20px;
     line-height: 1.5;
     font-weight: 600;
     text-align: center;
@@ -524,6 +524,7 @@ watch(
     // 欢迎语由渠道配置，可能自带换行
     white-space: pre-wrap;
     word-break: break-word;
+    margin-bottom: 20px;
   }
 }
 
@@ -654,26 +655,16 @@ watch(
 /* 块本身的尺寸/动画来自共享的 .eb-skel/.eb-bubble/.eb-row，这里只管排布 */
 // 历史会话多数在 100~300ms 内返回：先藏 150ms 再淡入，快的情况根本不出现骨架
 // （避免「骨架闪一下 → 消息滚到底部」的跳动），慢的时候才作为兜底出现。
+// 立即显示、不做延迟淡入：首屏骨架（宿主遮罩 / 静态骨架）在聊天挂载的同一帧被移除，
+// 这里若再延迟 150ms 淡入，中间会露出空白；而历史在 200~400ms 返回时，动画还没跑完就被
+// 内容替换，观感就是「闪一下」。骨架与首屏骨架同形，直接显示反而无缝。
 .msg-skeleton-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  opacity: 0;
-  animation: msg-skeleton-in 0.15s ease 0.15s forwards;
 }
 
-@keyframes msg-skeleton-in {
-  to {
-    opacity: 1;
-  }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .msg-skeleton-list {
-    animation: none;
-    opacity: 1;
-  }
-}
 
 .scroll-to-bottom-btn {
   position: absolute;

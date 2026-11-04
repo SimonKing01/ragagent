@@ -100,7 +100,7 @@
       'transition:opacity .2s ease',
     ].join(';');
     shield.innerHTML =
-      '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #e7e7e7">' +
+      '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:.5px solid #e7e7e7">' +
       shieldBlock('width:36px;height:36px;border-radius:50%;flex:0 0 auto') +
       shieldBlock('width:108px;height:14px;border-radius:4px;margin-right:auto') +
       shieldBlock('width:24px;height:24px;border-radius:6px;flex:0 0 auto') +
