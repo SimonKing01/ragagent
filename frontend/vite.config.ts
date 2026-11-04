@@ -100,6 +100,10 @@ export default defineConfig({
       },
       output: {
         manualChunks(id) {
+          // Vite 的 __vitePreload 辅助函数：谁跟它同块，谁就被所有用到动态 import 的
+          // 分块静态引入。之前它落在 vendor-mermaid / vendor-highlight 里，把 1.1 MB
+          // 拖进首屏；给重库命名后它又落进文档预览块（945 KB，含 xlsx）。单独成块最稳。
+          if (id.includes('vite/preload-helper')) return 'vendor-preload'
           if (!id.includes('node_modules')) return
           // mermaid / highlight.js 不单独命名分块：它们只在动态 import 里用到，
           // 交给 Rollup 自然拆成异步块。此前给它们起了名字，Vite 的 __vitePreload
@@ -118,10 +122,23 @@ export default defineConfig({
     embedHtmlDevFallback(),
   ],
   resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
-      '@vue-office/pptx': resolveVueOfficePptxEntry(),
-    },
+    alias: [
+      // 只匹配裸包名：包根 barrel 会把 1400+ 个图标组件全部导出（生产 893 KB gzip），
+      // 而 <t-icon name> 用的是 svg-sprite 版 Icon。换成按需 shim（见 src/shims/tdesign-icons.ts），
+      // 深路径（tdesign-icons-vue-next/esm/...）不受影响。
+      {
+        find: /^tdesign-icons-vue-next$/,
+        replacement: fileURLToPath(new URL('./src/shims/tdesign-icons.ts', import.meta.url)),
+      },
+      {
+        find: '@',
+        replacement: fileURLToPath(new URL('./src', import.meta.url)),
+      },
+      {
+        find: '@vue-office/pptx',
+        replacement: resolveVueOfficePptxEntry(),
+      },
+    ],
   },
   server: {
     port: 5173,
