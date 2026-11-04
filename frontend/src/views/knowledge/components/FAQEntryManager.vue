@@ -884,7 +884,6 @@ import {
   getFAQImportProgress,
   updateFAQImportResultDisplayStatus,
 } from '@/api/knowledge-base'
-import * as XLSX from 'xlsx'
 import Papa from 'papaparse'
 import FAQTagTooltip from '@/components/FAQTagTooltip.vue'
 import KBInfoPopover from '@/components/KBInfoPopover.vue'
@@ -1956,6 +1955,8 @@ const parseCSVFile = async (file: File): Promise<FAQEntryPayload[]> => {
 }
 
 const parseExcelFile = async (file: File): Promise<FAQEntryPayload[]> => {
+  // xlsx 只在真正导入/导出 Excel 时才需要（~1 MB），别跟着列表页静态打包
+  const XLSX = await import('xlsx')
   const data = await file.arrayBuffer()
   const workbook = XLSX.read(data, { type: 'array' })
   const sheetName = workbook.SheetNames[0]
@@ -2440,7 +2441,7 @@ const handleDownloadExample = (data: { value: string }) => {
       downloadCSVExample()
       break
     case 'excel':
-      downloadExcelExample()
+      void downloadExcelExample()
       break
   }
 }
@@ -2496,7 +2497,8 @@ const downloadCSVExample = () => {
 }
 
 // 下载 Excel 示例
-const downloadExcelExample = () => {
+const downloadExcelExample = async () => {
+  const XLSX = await import('xlsx')
   const worksheet = XLSX.utils.json_to_sheet(
     exampleData.map((item) => ({
       '标签(必填)': item.tagName || '',
