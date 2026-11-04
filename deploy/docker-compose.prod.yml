@@ -30,6 +30,20 @@ services:
       retries: 20
     restart: unless-stopped
 
+  ocr:
+    image: ragagent-ocr:${OCR_VERSION:-latest}
+    container_name: RagAgent-ocr
+    restart: unless-stopped
+    # RapidOCR 是 CPU 推理：2 核机器上给 1 核 + 700M，避免和 app 抢资源
+    cpus: "1.0"
+    mem_limit: 700m
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:18092/health').read()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
   docreader:
     image: wechatopenai/weknora-docreader:latest
     container_name: RagAgent-docreader
@@ -48,6 +62,10 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       DOCREADER_ADDR: docreader:50051
+      # 入库图片 OCR：指向同网络下的 ocr 服务；置空即关闭整条 OCR 链路
+      OCR_ENDPOINT: ${OCR_ENDPOINT:-http://ocr:18092}
+      OCR_MAX_PAGES: ${OCR_MAX_PAGES:-30}
+      OCR_CONCURRENCY: ${OCR_CONCURRENCY:-1}
       RETRIEVE_DRIVER: postgres
       SERVER_PORT: "8080"
       LOCAL_STORAGE_BASE_DIR: /app/data/files

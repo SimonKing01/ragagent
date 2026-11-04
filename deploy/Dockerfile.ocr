@@ -1,0 +1,23 @@
+# 入库图片 OCR 服务（RapidOCR，纯 CPU）
+#
+# 由 app 通过 knowledge.ocr.endpoint 调用：
+#   接口：GET /health、POST /ocr（请求体=图片字节，返回 {"text": "..."}）
+#   环境变量：OCR_ENDPOINT=http://ocr:18092
+#
+# 构建（context 必须是仓库根目录，因为要拷 scripts/ocr-server.py）：
+#   docker build -f deploy/Dockerfile.ocr -t ragagent-ocr:latest .
+#
+# 资源：RapidOCR 是 onnxruntime CPU 推理，2 核机器上并发 1 已能打满一个核；
+# 容器内限内存防止拖垮同机 app（app 自身 mem_limit 1200m）。
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 只装推理依赖，不装 opencv 全家桶之外的额外包
+RUN pip install --no-cache-dir rapidocr-onnxruntime
+
+COPY scripts/ocr-server.py /app/ocr-server.py
+
+EXPOSE 18092
+
+CMD ["python", "/app/ocr-server.py", "18092"]
