@@ -4,6 +4,10 @@
  * 一个语言一个文件、全量手写维护；键集合必须与 zh-CN 包完全一致（embedLocale.test.ts 有守卫）。
  */
 export default {
+  mermaid: {
+    diagram: 'Diagram',
+    expand: 'Expand'
+  },
   embedPublish: {
     title: 'Web Page Embed',
     description: 'Embed this agent on your website so visitors can chat via an in-page window or a floating launcher.',

@@ -2,9 +2,9 @@
  * Tool Icons Utility
  * Maps tool names and match types to icons for better UI display
  */
-import i18n from '@/i18n'
+import { tText } from '@/utils/activeI18n'
 
-const t = (key: string) => i18n.global.t(key)
+const t = (key: string) => tText(key)
 
 // Tool name to icon mapping
 export const toolIcons: Record<string, string> = {

@@ -594,7 +594,7 @@ import { useUIStore } from '@/stores/ui';
 import { useSettingsStore } from '@/stores/settings';
 import { useAuthStore } from '@/stores/auth';
 import { useI18n } from 'vue-i18n';
-import i18n from '@/i18n';
+import { tText } from '@/utils/activeI18n';
 import { hydrateProtectedFileImages, clearProtectedFileFailureCache, sanitizeMarkdownHTML } from '@/utils/security';
 import {
   artifactIndexFromEventTarget,
@@ -720,7 +720,7 @@ const sanitizeForDisplay = (text: string): string => {
   if (!text) return text;
   let result = text;
   for (const [name, i18nKey] of Object.entries(TOOL_NAME_KEYS)) {
-    result = result.replaceAll(name, i18n.global.t(i18nKey));
+    result = result.replaceAll(name, tText(i18nKey));
   }
   // Format any remaining mcp_ tool names inline
   result = result.replace(/\bmcp_([a-z0-9_]+)/g, (_match, rest) => {

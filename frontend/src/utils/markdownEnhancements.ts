@@ -1,4 +1,6 @@
-import i18n from '@/i18n';
+// 文案走 activeI18n 访问器：直接 import '@/i18n' 会静态引入平台全部 9 种语言
+// （源文件 2 MB+），嵌入页会因此把整包语言资源带进首屏。
+import { tText } from '@/utils/activeI18n';
 import { getHljs, loadHighlight } from '@/utils/highlightRuntime';
 import { openMermaidFullscreen } from '@/utils/mermaidViewer';
 import { copyToClipboard } from '@/utils/clipboard';
@@ -87,7 +89,7 @@ export function buildCodeBlockHtml(
   highlightLang: string,
 ): string {
   const displayLang = escapeHtml(formatCodeLang(lang));
-  const copyLabel = escapeHtml(i18n.global.t('embedPublish.copyCode'));
+  const copyLabel = escapeHtml(tText('embedPublish.copyCode'));
   const safeLang = escapeHtml(highlightLang || lang || 'text');
   return `<div class="chat-code-block">
     <div class="chat-code-block__header">
@@ -103,8 +105,8 @@ export function buildCodeBlockHtml(
 }
 
 export function buildMermaidBlockHtml(innerHtml: string, preAttrs = ''): string {
-  const label = escapeHtml(i18n.global.t('mermaid.diagram'));
-  const expandLabel = escapeHtml(i18n.global.t('mermaid.expand'));
+  const label = escapeHtml(tText('mermaid.diagram'));
+  const expandLabel = escapeHtml(tText('mermaid.expand'));
   const attrs = preAttrs ? ` ${preAttrs}` : '';
   return `<div class="chat-mermaid-block">
     <div class="chat-mermaid-block__header">
@@ -118,7 +120,7 @@ export function buildMermaidBlockHtml(innerHtml: string, preAttrs = ''): string 
 }
 
 export function buildMermaidLoadingHtml(): string {
-  const label = escapeHtml(i18n.global.t('mermaid.diagram'));
+  const label = escapeHtml(tText('mermaid.diagram'));
   return `<div class="chat-mermaid-block chat-mermaid-block--loading">
     <div class="chat-mermaid-block__header">
       <span class="chat-mermaid-block__badge">${label}</span>
@@ -132,8 +134,8 @@ async function handleCodeCopy(btn: HTMLButtonElement): Promise<void> {
   if (!code) return;
 
   const textEl = btn.querySelector<HTMLElement>('.chat-code-block__copy-text');
-  const copiedLabel = i18n.global.t('common.copied');
-  const defaultLabel = i18n.global.t('embedPublish.copyCode');
+  const copiedLabel = tText('common.copied');
+  const defaultLabel = tText('embedPublish.copyCode');
 
   const ok = await copyToClipboard(code);
   if (ok) {

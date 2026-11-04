@@ -1,4 +1,4 @@
-import i18n from '@/i18n';
+import { tText } from '@/utils/activeI18n';
 import { buildMermaidBlockHtml, buildMermaidLoadingHtml } from '@/utils/markdownEnhancements';
 import {
   injectCachedMermaidSvg as injectCachedMermaidSvgHtml,
@@ -68,16 +68,16 @@ export const injectCachedMermaidSvg = (
 
 export const formatManualTitle = (question?: string): string => {
   if (!question) {
-    return i18n.global.t('chat.sessionExcerpt');
+    return tText('chat.sessionExcerpt');
   }
   const condensed = question.replace(/\s+/g, ' ').trim();
   if (!condensed) {
-    return i18n.global.t('chat.sessionExcerpt');
+    return tText('chat.sessionExcerpt');
   }
   return condensed.length > 40 ? `${condensed.slice(0, 40)}...` : condensed;
 };
 
 export const buildManualMarkdown = (_question: string, answer: string): string => {
-  const safeAnswer = answer?.trim() || i18n.global.t('chat.noAnswerContent');
+  const safeAnswer = answer?.trim() || tText('chat.noAnswerContent');
   return `${safeAnswer}`;
 };

@@ -2,7 +2,7 @@
  * Mermaid 图表全屏查看器
  * 支持：点击放大、滚轮缩放、鼠标拖拽、高清导出
  */
-import i18n from '@/i18n';
+import { tText } from '@/utils/activeI18n';
 
 /**
  * 下载 SVG 为 PNG 图片（使用实际渲染尺寸）
@@ -55,7 +55,7 @@ const showBtnFeedback = (btn: HTMLElement, success: boolean, text?: string): voi
   const origColor = btn.style.color
   const origTitle = btn.title
   btn.style.color = success ? '#374151' : '#ef4444'
-  btn.title = text || (success ? i18n.global.t('common.success') : i18n.global.t('common.failed'))
+  btn.title = text || (success ? tText('common.success') : tText('common.failed'))
   setTimeout(() => {
     btn.style.color = origColor
     btn.title = origTitle
@@ -94,7 +94,7 @@ export const openMermaidFullscreen = (svgHtml: string): void => {
     return btn
   }
 
-  const t = (key: string) => i18n.global.t(key);
+  const t = (key: string) => tText(key);
   const zoomInBtn = createBtn(t('mermaid.zoomIn'), '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>')
   const zoomOutBtn = createBtn(t('mermaid.zoomOut'), '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>')
   const resetBtn = createBtn(t('mermaid.reset'), '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>')

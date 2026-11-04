@@ -23,7 +23,7 @@ before(async () => {
         options.onopen?.({ ok: true, status: 200 });
       }`,
     '@/utils/index': `export const generateRandomString = () => 'test-request';`,
-    '@/i18n': `export default { global: { t: key => key, locale: { value: 'zh-CN' } } };`,
+    '@/utils/activeI18n': `export const tText = key => key; export const activeLocale = () => 'zh-CN';`,
   }
   server = await createServer({
     configFile: false,

@@ -15,6 +15,7 @@ import "@/components/css/chat-hljs-dark.less";
 // Without it the scroller computes 0 height and renders no items.
 import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 import i18n from "./i18n";
+import { setActiveI18n } from "@/utils/activeI18n";
 import { initTheme } from "@/composables/useTheme";
 import { initFont } from "@/composables/useFont";
 import { installTDesignIconOfflineGuard } from "@/utils/tdesign-icon-offline";
@@ -51,6 +52,7 @@ async function bootstrap() {
   }
 
   app.use(router);
+  setActiveI18n(i18n);
   app.use(i18n);
 
   // 等首屏路由（含导航守卫、Lite 自动登录）完成后再挂载，避免先闪默认页再跳转

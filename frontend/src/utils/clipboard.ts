@@ -1,5 +1,5 @@
 import { MessagePlugin } from 'tdesign-vue-next'
-import i18n from '@/i18n'
+import { tText } from '@/utils/activeI18n'
 
 /**
  * Copy text to the clipboard, falling back to a hidden textarea +
@@ -59,9 +59,9 @@ export async function copyWithToast(
   if (!text) return false
   const ok = await copyToClipboard(text)
   if (ok) {
-    MessagePlugin.success(i18n.global.t(successKey))
+    MessagePlugin.success(tText(successKey))
   } else {
-    MessagePlugin.error(i18n.global.t(failureKey))
+    MessagePlugin.error(tText(failureKey))
   }
   return ok
 }

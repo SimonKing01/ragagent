@@ -2,7 +2,7 @@
 import axios from "axios";
 import { StorageKeys } from './storageKeys'
 import { generateRandomString, MAX_FILE_SIZE_MB } from "./index";
-import i18n from '@/i18n'
+import { activeLocale, tText } from '@/utils/activeI18n'
 import { getApiBaseUrl } from './api-base';
 import {
   forceReloginRedirect,
@@ -16,7 +16,7 @@ import {
 
 export { forceReloginRedirect, refreshAccessTokenShared };
 
-const t = (key: string) => i18n.global.t(key)
+const t = (key: string) => tText(key)
 
 // API基础URL
 const BASE_URL = getApiBaseUrl();
@@ -68,7 +68,7 @@ const instance = axios.create({
 
 // 获取当前用户语言（用于 Accept-Language header）
 export function getCurrentLanguage(): string {
-  return i18n.global.locale?.value || localStorage.getItem('locale') || 'zh-CN'
+  return activeLocale()
 }
 
 
@@ -242,7 +242,7 @@ instance.interceptors.response.use(
     if (error.response.status === ERR_ENTITY_TOO_LARGE) {
       return Promise.reject(withHttpStatus({
         status: ERR_ENTITY_TOO_LARGE,
-        message: i18n.global.t('error.fileSizeExceeded', { size: MAX_FILE_SIZE_MB }),
+        message: tText('error.fileSizeExceeded', { size: MAX_FILE_SIZE_MB }),
         success: false
       }, ERR_ENTITY_TOO_LARGE));
     }

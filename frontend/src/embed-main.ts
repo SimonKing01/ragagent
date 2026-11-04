@@ -15,6 +15,7 @@ import 'tdesign-vue-next/es/style/index.css'
 import '@/assets/theme/theme.css'
 import { installTDesignIconOfflineGuard } from '@/utils/tdesign-icon-offline'
 import i18n from './i18n/embed'
+import { setActiveI18n } from '@/utils/activeI18n'
 import EmbedPage from '@/views/embed/EmbedPage.vue'
 import ProtectedResourcePreview from '@/components/ProtectedResourcePreview.vue'
 
@@ -42,6 +43,7 @@ EMBED_COMPONENTS.forEach((component) => {
 })
 app.use(createPinia())
 app.use(router)
+setActiveI18n(i18n)
 app.use(i18n)
 
 // 回答气泡里的正文/引用是异步组件：历史会话渲染时才去取分块，会出现

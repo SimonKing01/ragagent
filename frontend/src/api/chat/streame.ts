@@ -3,7 +3,7 @@ import { StorageKeys } from '../../utils/storageKeys'
 import { ref, onUnmounted } from 'vue';
 import { generateRandomString } from '@/utils/index';
 import type { MentionedItem } from '@/types/mention';
-import i18n from '@/i18n';
+import { activeLocale, tText } from '@/utils/activeI18n';
 import { getApiBaseUrl } from '@/utils/api-base';
 import {
   sanitizeStreamRequestBody,
@@ -81,7 +81,7 @@ export function useStream(options: { onClosed?: (reason: StreamCloseReason) => v
     const embedToken = params.embed_token;
     const token = embedToken || localStorage.getItem(StorageKeys.token);
     if (!token) {
-      error.value = i18n.global.t('error.tokenNotFound');
+      error.value = tText('error.tokenNotFound');
       stopStream();
       return;
     }
@@ -188,7 +188,7 @@ export function useStream(options: { onClosed?: (reason: StreamCloseReason) => v
           "Content-Type": "application/json",
           // 嵌入平面：authToken 即会话票（重放时是换回来的新票）
           "Authorization": embedToken ? `Embed ${authToken}` : `Bearer ${authToken}`,
-          "Accept-Language": i18n.global.locale?.value || localStorage.getItem('locale') || 'zh-CN',
+          "Accept-Language": activeLocale(),
           "X-Request-ID": requestID,
           ...(!embedToken && tenantIdHeader ? { "X-Tenant-ID": tenantIdHeader } : {}),
           ...(params.embed_session_sig ? { "X-Embed-Session": params.embed_session_sig } : {}),
@@ -237,7 +237,7 @@ export function useStream(options: { onClosed?: (reason: StreamCloseReason) => v
         onerror: (err) => {
           if (isStreamAuthError(err)) throw err;
           notifyClosed('error')
-          throw new Error(`${i18n.global.t('error.streamFailed')}: ${err}`);
+          throw new Error(`${tText('error.streamFailed')}: ${err}`);
         },
 
         onclose: () => {
@@ -255,13 +255,13 @@ export function useStream(options: { onClosed?: (reason: StreamCloseReason) => v
         isCurrent: () => myGeneration === streamGeneration && !streamAbort.signal.aborted,
         refreshAccessToken: () => refreshAccessTokenShared({
           messages: {
-            pleaseRelogin: i18n.global.t('error.pleaseRelogin'),
-            tokenRefreshFailed: i18n.global.t('error.tokenRefreshFailed'),
+            pleaseRelogin: tText('error.pleaseRelogin'),
+            tokenRefreshFailed: tText('error.tokenRefreshFailed'),
           },
         }),
         // 嵌入访客：会话票过期 → 换票 + 重放一次（无宿主时该函数返回 null，按原错误上抛）
         refreshEmbedToken: embedToken ? () => refreshEmbedTokenShared() : undefined,
-        reloginMessage: i18n.global.t('error.pleaseRelogin'),
+        reloginMessage: tText('error.pleaseRelogin'),
       });
     } catch (err) {
       error.value = err instanceof Error ? err.message : String(err)
@@ -298,7 +298,7 @@ export function useStream(options: { onClosed?: (reason: StreamCloseReason) => v
   const armIdle = () => {
     disarmIdle()
     idleTimer = setTimeout(() => {
-      error.value = i18n.global.t('error.streamTimeout')
+      error.value = tText('error.streamTimeout')
       notifyClosed('timeout')
       stopStream()
     }, IDLE_TIMEOUT_MS)

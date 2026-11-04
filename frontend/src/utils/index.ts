@@ -1,5 +1,5 @@
 import { MessagePlugin } from "tdesign-vue-next";
-import i18n from '@/i18n';
+import { tText } from '@/utils/activeI18n';
 import { shouldRejectKnowledgeFileType } from "./fileTypeVerification";
 
 // 声明全局运行时配置类型
@@ -52,7 +52,7 @@ export function formatStringDate(date: any) {
 export function fileSizeVerification(file: Pick<File, 'size'>, silent = false) {
   if (file.size <= MAX_FILE_SIZE_BYTES) return false;
   if (!silent) {
-    MessagePlugin.error(i18n.global.t('error.fileSizeExceeded', { size: MAX_FILE_SIZE_MB }));
+    MessagePlugin.error(tText('error.fileSizeExceeded', { size: MAX_FILE_SIZE_MB }));
   }
   return true;
 }
@@ -64,7 +64,7 @@ export function fileSizeVerification(file: Pick<File, 'size'>, silent = false) {
 export function kbFileTypeVerification(file: any, silent = false, validTypes?: Set<string> | string[]) {
   if (shouldRejectKnowledgeFileType(file.name, validTypes)) {
     if (!silent) {
-      MessagePlugin.error(i18n.global.t('error.unsupportedFileType'));
+      MessagePlugin.error(tText('error.unsupportedFileType'));
     }
     return true;
   }

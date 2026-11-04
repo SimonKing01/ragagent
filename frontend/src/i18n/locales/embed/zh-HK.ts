@@ -5,6 +5,10 @@
  * 键集合必须与 `src/i18n/embed.ts` 里的 zh-CN 语言包完全一致（`embedLocale.test.ts` 有守卫）。
  */
 export default {
+  mermaid: {
+    diagram: '圖表',
+    expand: '展開'
+  },
   embedPublish: {
     create: '新增嵌入頻道',
     empty: '尚無嵌入頻道',
