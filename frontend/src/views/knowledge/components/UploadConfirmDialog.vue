@@ -1053,45 +1053,45 @@ function buildProcessOverrides(): KnowledgeProcessOverrides {
 
   const overrides: KnowledgeProcessOverrides = {
     // KB 配置规则是 camel 面，覆盖是 snake 面 —— 显式转换（直接透传会让运行时读不到）
-    parser_engine_rules: toOverrideParserRules(chunking.parserEngineRules ?? []),
-    chunking_config: {
-      chunk_size: chunking.chunkSize,
-      chunk_overlap: chunking.chunkOverlap,
+    parserEngineRules: toOverrideParserRules(chunking.parserEngineRules ?? []),
+    chunkingConfig: {
+      chunkSize: chunking.chunkSize,
+      chunkOverlap: chunking.chunkOverlap,
       separators: chunking.separators,
-      enable_parent_child: chunking.enableParentChild,
-      parent_chunk_size: chunking.parentChunkSize,
-      child_chunk_size: chunking.childChunkSize,
+      enableParentChild: chunking.enableParentChild,
+      parentChunkSize: chunking.parentChunkSize,
+      childChunkSize: chunking.childChunkSize,
       strategy: chunking.strategy,
-      token_limit: chunking.tokenLimit,
+      tokenLimit: chunking.tokenLimit,
       languages: chunking.languages,
-      table_metadata_instructions: chunking.tableMetadataInstructions,
+      tableMetadataInstructions: chunking.tableMetadataInstructions,
     },
     imageProcessingConfig: {
       ocrEnabled: state.imageOcrEnabled,
     },
-    asr_config: {
+    asrConfig: {
       enabled: state.asrConfig.enabled,
       modelId: state.asrConfig.modelId,
       language: state.asrConfig.language,
     },
-    question_generation_config: {
+    questionGenerationConfig: {
       enabled: state.questionGenerationConfig.enabled,
-      question_count: state.questionGenerationConfig.questionCount,
-      custom_instructions: state.questionGenerationConfig.customInstructions,
+      questionCount: state.questionGenerationConfig.questionCount,
+      customInstructions: state.questionGenerationConfig.customInstructions,
     },
-    graph_enabled: state.nodeExtractConfig.enabled && state.graphEnabled,
-    extract_config: {
+    graphEnabled: state.nodeExtractConfig.enabled && state.graphEnabled,
+    extractConfig: {
       enabled: state.nodeExtractConfig.enabled,
       text: state.nodeExtractConfig.text,
       tags: state.nodeExtractConfig.tags,
       nodes: state.nodeExtractConfig.nodes,
       relations: state.nodeExtractConfig.relations,
-      custom_instructions: state.nodeExtractConfig.customInstructions,
+      customInstructions: state.nodeExtractConfig.customInstructions,
     },
   }
 
   if (state.pdfForceScanned) {
-    overrides.parser_engine_overrides = {
+    overrides.parserEngineOverrides = {
       pdf_force_scanned: 'true',
     }
   }
@@ -1102,47 +1102,60 @@ function buildProcessOverrides(): KnowledgeProcessOverrides {
 function applyOverridesToState(o?: KnowledgeProcessOverrides | null) {
   if (!o) return
   const s = uiState.value
-  const cc = o.chunking_config
+  const cc = o.chunkingConfig ?? (o as any).chunking_config
   if (cc) {
-    if (cc.chunk_size != null) s.chunkingConfig.chunkSize = cc.chunk_size
-    if (cc.chunk_overlap != null) s.chunkingConfig.chunkOverlap = cc.chunk_overlap
-    if (cc.separators) s.chunkingConfig.separators = cc.separators
-    if (cc.enable_parent_child != null) s.chunkingConfig.enableParentChild = cc.enable_parent_child
-    if (cc.parent_chunk_size != null) s.chunkingConfig.parentChunkSize = cc.parent_chunk_size
-    if (cc.child_chunk_size != null) s.chunkingConfig.childChunkSize = cc.child_chunk_size
-    if (cc.strategy != null) s.chunkingConfig.strategy = cc.strategy
-    if (cc.token_limit != null) s.chunkingConfig.tokenLimit = cc.token_limit
-    if (cc.languages) s.chunkingConfig.languages = cc.languages
-    if (cc.table_metadata_instructions != null) s.chunkingConfig.tableMetadataInstructions = cc.table_metadata_instructions
-    if (cc.parser_engine_rules) s.chunkingConfig.parserEngineRules = fromOverrideParserRules(cc.parser_engine_rules)
+    const raw = cc as any
+    if (raw.chunkSize != null) s.chunkingConfig.chunkSize = raw.chunkSize
+    if (raw.chunk_size != null) s.chunkingConfig.chunkSize = raw.chunk_size
+    if (raw.chunkOverlap != null) s.chunkingConfig.chunkOverlap = raw.chunkOverlap
+    if (raw.chunk_overlap != null) s.chunkingConfig.chunkOverlap = raw.chunk_overlap
+    if (raw.separators) s.chunkingConfig.separators = raw.separators
+    if (raw.enableParentChild != null) s.chunkingConfig.enableParentChild = raw.enableParentChild
+    if (raw.enable_parent_child != null) s.chunkingConfig.enableParentChild = raw.enable_parent_child
+    if (raw.parentChunkSize != null) s.chunkingConfig.parentChunkSize = raw.parentChunkSize
+    if (raw.parent_chunk_size != null) s.chunkingConfig.parentChunkSize = raw.parent_chunk_size
+    if (raw.childChunkSize != null) s.chunkingConfig.childChunkSize = raw.childChunkSize
+    if (raw.child_chunk_size != null) s.chunkingConfig.childChunkSize = raw.child_chunk_size
+    if (raw.strategy != null) s.chunkingConfig.strategy = raw.strategy
+    if (raw.tokenLimit != null) s.chunkingConfig.tokenLimit = raw.tokenLimit
+    if (raw.token_limit != null) s.chunkingConfig.tokenLimit = raw.token_limit
+    if (raw.languages) s.chunkingConfig.languages = raw.languages
+    if (raw.tableMetadataInstructions != null) s.chunkingConfig.tableMetadataInstructions = raw.tableMetadataInstructions
+    if (raw.table_metadata_instructions != null) s.chunkingConfig.tableMetadataInstructions = raw.table_metadata_instructions
+    if (raw.parserEngineRules) s.chunkingConfig.parserEngineRules = fromOverrideParserRules(raw.parserEngineRules)
+    if (raw.parser_engine_rules) s.chunkingConfig.parserEngineRules = fromOverrideParserRules(raw.parser_engine_rules)
   }
-  if (o.parser_engine_rules) s.chunkingConfig.parserEngineRules = fromOverrideParserRules(o.parser_engine_rules)
+  const topRules = o.parserEngineRules ?? (o as any).parser_engine_rules
+  if (topRules) s.chunkingConfig.parserEngineRules = fromOverrideParserRules(topRules)
   if (o.imageProcessingConfig?.ocrEnabled != null) {
     s.imageOcrEnabled = o.imageProcessingConfig.ocrEnabled
   }
-  if (o.asr_config) {
-    if (o.asr_config.enabled != null) s.asrConfig.enabled = o.asr_config.enabled
-    if (o.asr_config.modelId != null) s.asrConfig.modelId = o.asr_config.modelId
-    if (o.asr_config.language != null) s.asrConfig.language = o.asr_config.language
+  const asr = o.asrConfig ?? (o as any).asr_config
+  if (asr) {
+    if (asr.enabled != null) s.asrConfig.enabled = asr.enabled
+    if (asr.modelId != null) s.asrConfig.modelId = asr.modelId
+    if (asr.language != null) s.asrConfig.language = asr.language
   }
-  const qg = o.question_generation_config
+  const qg = o.questionGenerationConfig
   if (qg) {
     if (qg.enabled != null) s.questionGenerationConfig.enabled = qg.enabled
-    if (qg.question_count != null) s.questionGenerationConfig.questionCount = qg.question_count
-    if (qg.custom_instructions != null) s.questionGenerationConfig.customInstructions = qg.custom_instructions
+    if (qg.questionCount != null) s.questionGenerationConfig.questionCount = qg.questionCount
+    if (qg.customInstructions != null) s.questionGenerationConfig.customInstructions = qg.customInstructions
   }
-  const ec = o.extract_config
+  const ec = o.extractConfig ?? (o as any).extract_config
   if (ec) {
     if (ec.enabled != null) s.nodeExtractConfig.enabled = ec.enabled
     if (ec.text != null) s.nodeExtractConfig.text = ec.text
     if (ec.tags) s.nodeExtractConfig.tags = ec.tags
-    if (ec.nodes) s.nodeExtractConfig.nodes = ec.nodes.map(n => ({ name: n.name, attributes: n.attributes || [] }))
+    if (ec.nodes) s.nodeExtractConfig.nodes = ec.nodes.map((n: any) => ({ name: n.name, attributes: n.attributes || [] }))
     if (ec.relations) s.nodeExtractConfig.relations = ec.relations
-    if (ec.custom_instructions != null) s.nodeExtractConfig.customInstructions = ec.custom_instructions
+    if (ec.customInstructions != null) s.nodeExtractConfig.customInstructions = ec.customInstructions
   }
-  if (o.graph_enabled != null) s.graphEnabled = o.graph_enabled
+  const graph = o.graphEnabled ?? (o as any).graph_enabled
+  if (graph != null) s.graphEnabled = graph
   s.nodeExtractConfig.enabled = s.nodeExtractConfig.enabled && s.graphEnabled
-  if (o.parser_engine_overrides && o.parser_engine_overrides.pdf_force_scanned === 'true') {
+  const engineOverrides = o.parserEngineOverrides ?? (o as any).parser_engine_overrides
+  if (engineOverrides && engineOverrides.pdf_force_scanned === 'true') {
     s.pdfForceScanned = true
   } else {
     s.pdfForceScanned = false

@@ -1,30 +1,40 @@
-/** Matches backend types.KnowledgeProcessOverrides (snake_case JSON). */
+/**
+ * 上传/重解析的逐文档处理覆盖（multipart 字段 `processConfig`）。
+ *
+ * 键名统一 **camelCase**：这是本仓自有的 JSON 面（后端只把它存进
+ * `knowledge.metadata.processOverrides`，再由解析管线按需读取），
+ * 不适用 Go 期遗留的 snake 约定；守卫 `check-json-key-case.py --strict`
+ * 也禁止在自有 JSON 面上新增 snake 键。
+ *
+ * 兼容性：早期上传落库的旧数据是 snake 键，读侧（处理时间线 / 回填）保留
+ * snake 兜底，写入一律用 camel。
+ */
 
 export interface ParserEngineRule {
-  file_types: string[]
+  fileTypes: string[]
   engine: string
-  xlsx_first_row_as_header?: boolean
+  xlsxFirstRowAsHeader?: boolean
 }
 
 export interface ChunkingConfigOverride {
-  chunk_size?: number
-  chunk_overlap?: number
+  chunkSize?: number
+  chunkOverlap?: number
   separators?: string[]
-  parser_engine_rules?: ParserEngineRule[]
-  enable_parent_child?: boolean
-  parent_chunk_size?: number
-  child_chunk_size?: number
+  parserEngineRules?: ParserEngineRule[]
+  enableParentChild?: boolean
+  parentChunkSize?: number
+  childChunkSize?: number
   strategy?: string
-  token_limit?: number
+  tokenLimit?: number
   languages?: string[]
-  table_metadata_instructions?: string
+  tableMetadataInstructions?: string
 }
 
 export interface VLMConfigOverride {
   enabled?: boolean
   modelId?: string
-  description_language?: string
-  custom_instructions?: string
+  descriptionLanguage?: string
+  customInstructions?: string
 }
 
 export interface ASRConfigOverride {
@@ -35,8 +45,8 @@ export interface ASRConfigOverride {
 
 export interface QuestionGenerationConfigOverride {
   enabled?: boolean
-  question_count?: number
-  custom_instructions?: string
+  questionCount?: number
+  customInstructions?: string
 }
 
 export interface GraphNodeOverride {
@@ -56,19 +66,20 @@ export interface ExtractConfigOverride {
   tags?: string[]
   nodes?: GraphNodeOverride[]
   relations?: GraphRelationOverride[]
-  custom_instructions?: string
+  customInstructions?: string
 }
 
 export interface KnowledgeProcessOverrides {
-  parser_engine_rules?: ParserEngineRule[]
-  chunking_config?: ChunkingConfigOverride
-  /** 逐文档图片处理覆盖：目前只消费 ocrEnabled（图片 OCR 开关） */
+  parserEngineRules?: ParserEngineRule[]
+  chunkingConfig?: ChunkingConfigOverride
+  /** 逐文档图片处理覆盖：解析管线消费 ocrEnabled（图片 OCR 开关） */
   imageProcessingConfig?: { ocrEnabled?: boolean }
-  enable_multimodel?: boolean
-  vlm_config?: VLMConfigOverride
-  asr_config?: ASRConfigOverride
-  question_generation_config?: QuestionGenerationConfigOverride
-  graph_enabled?: boolean
-  extract_config?: ExtractConfigOverride
-  parser_engine_overrides?: Record<string, string>
+  enableMultimodel?: boolean
+  vlmConfig?: VLMConfigOverride
+  asrConfig?: ASRConfigOverride
+  /** 逐文档推荐问题覆盖：解析管线消费 enabled / questionCount */
+  questionGenerationConfig?: QuestionGenerationConfigOverride
+  graphEnabled?: boolean
+  extractConfig?: ExtractConfigOverride
+  parserEngineOverrides?: Record<string, string>
 }

@@ -349,8 +349,8 @@ test('解析引擎规则两面：KB 配置面 camel / 覆盖与智能体面 snak
   )
   assert.match(
     upload,
-    /parser_engine_rules: toOverrideParserRules\(chunking\.parserEngineRules \?\? \[\]\)/,
-    '搬进上传覆盖时必须显式转成 snake（后端运行时读 file_types）',
+    /parserEngineRules: toOverrideParserRules\(chunking\.parserEngineRules \?\? \[\]\)/,
+    '搬进上传覆盖时仍走显式转换（覆盖载荷已统一 camel）',
   )
   assert.match(
     upload,
@@ -358,11 +358,13 @@ test('解析引擎规则两面：KB 配置面 camel / 覆盖与智能体面 snak
     '从覆盖搬回 KB 配置时必须显式转回 camel',
   )
 
-  // 反向：覆盖/智能体面**必须**保持 snake —— 别为了"统一"把运行时契约改掉
-  // （后端 ParserEngineRules.resolve 读 rule.get("file_types")）。
+  // 上传覆盖面已统一为 camel（自有 JSON 面，后端只落 metadata、无运行时读者）；
+  // 智能体面**必须**保持 snake —— 后端 ParserEngineRules.resolve 读 rule.get("file_types")。
   const overridesType = readFileSync(join(SRC, 'types/knowledgeProcess.ts'), 'utf8')
-  assert.match(overridesType, /file_types: string\[\]/,
-    'types/knowledgeProcess：上传覆盖仍是 snake 面（后端 resolve 读 file_types）')
+  assert.match(overridesType, /fileTypes: string\[\]/,
+    'types/knowledgeProcess：上传覆盖面是 camel（自有契约，与 KB 配置面一致）')
+  assert.doesNotMatch(overridesType, /file_types:\s*string\[\]/,
+    'types/knowledgeProcess：上传覆盖面不得回流 snake（守卫 check-json-key-case 亦禁止）')
   const agentApi = readFileSync(join(SRC, 'api/agent/index.ts'), 'utf8')
   assert.match(agentApi, /chatParserEngineRules\?: \{ file_types: string\[\]; engine: string \}\[\]/,
     'api/agent：智能体 chatParserEngineRules 的内层键仍是 snake（运行时契约）')

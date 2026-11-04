@@ -46,18 +46,18 @@ test('归一架：畸形项丢弃、缺 fileTypes 给空数组、非字符串元
   ])
 })
 
-test('互转：KB 配置（camel）→ 覆盖/智能体（snake）→ 回 KB 配置，round-trip 不丢字段', () => {
+test('互转：KB 配置（camel）→ 上传覆盖（camel）→ 回 KB 配置，round-trip 不丢字段', () => {
   const kb = [
     { engine: 'builtin', fileTypes: ['pdf'], xlsxFirstRowAsHeader: false },
     { engine: 'markitdown', fileTypes: ['pptx', 'ppt'] },
   ]
   const override = toOverrideParserRules(kb)
   assert.deepEqual(override, [
-    { engine: 'builtin', file_types: ['pdf'], xlsx_first_row_as_header: false },
-    { engine: 'markitdown', file_types: ['pptx', 'ppt'] },
+    { engine: 'builtin', fileTypes: ['pdf'], xlsxFirstRowAsHeader: false },
+    { engine: 'markitdown', fileTypes: ['pptx', 'ppt'] },
   ])
   // 未设置 xlsxFirstRowAsHeader 时不得凭空造键
-  assert.equal('xlsx_first_row_as_header' in override[1], false)
+  assert.equal('xlsxFirstRowAsHeader' in override[1], false)
 
   assert.deepEqual(fromOverrideParserRules(override), kb)
   // 覆盖入参不被原地修改

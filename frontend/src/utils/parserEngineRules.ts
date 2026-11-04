@@ -4,9 +4,10 @@
  * - **KB 配置面**（`knowledge_bases.chunking_config.parserEngineRules`）：**camelCase**
  *   —— KB 配置 jsonb 键名已统一 camelCase（V2 存量迁移），后端视图
  *   `ChunkingConfigView.ParserEngineRuleView(fileTypes, engine, xlsxFirstRowAsHeader)`。
- * - **覆盖 / 智能体面**（上传覆盖 `parser_engine_rules`、智能体 `chatParserEngineRules`）：
- *   **snake_case** —— 后端运行时 `ParserEngineRules.resolve` 读的是 `rule.file_types`
- *   （智能体/租户兜底路径），docreader 侧的覆盖也是 snake。
+ * - **上传覆盖面**（`processConfig.parserEngineRules`）：**camelCase** —— 与 KB 配置面
+ *   一致；该载荷由本仓前后端共同约束（后端只落 metadata，未接管线前不会被消费）。
+ * - **智能体面**（`chatParserEngineRules`）：条目内仍是 **snake**（`rule.file_types`）——
+ *   后端运行时 `ParserEngineRules.resolve` 按 snake 读，这条不改。
  *
  * 两面在 UI 里会互相搬运（上传确认对话框把 KB 配置搬进覆盖、再搬回 KB 配置），
  * 所以转换必须**显式**——直接透传会让「读侧按 snake 拿 camel 数据」崩掉
@@ -20,9 +21,9 @@ export interface KbParserEngineRule {
 }
 
 export interface OverrideParserEngineRule {
-  file_types: string[]
+  fileTypes: string[]
   engine: string
-  xlsx_first_row_as_header?: boolean
+  xlsxFirstRowAsHeader?: boolean
 }
 
 function pickFileTypes(raw: Record<string, unknown>): string[] {
@@ -52,18 +53,18 @@ export function normalizeKbParserRules(raw: unknown): KbParserEngineRule[] {
   return out
 }
 
-/** 覆盖/智能体规则（snake）→ KB 配置规则（camel）。 */
+/** 覆盖规则（camel，含历史 snake）→ KB 配置规则（camel）。 */
 export function fromOverrideParserRules(raw: unknown): KbParserEngineRule[] {
   return normalizeKbParserRules(raw)
 }
 
-/** KB 配置规则（camel）→ 覆盖/智能体规则（snake）。 */
+/** KB 配置规则（camel）→ 上传覆盖规则（camel）。 */
 export function toOverrideParserRules(rules: KbParserEngineRule[] | null | undefined): OverrideParserEngineRule[] {
   return (rules ?? []).map((rule) => ({
-    file_types: [...(rule.fileTypes ?? [])],
+    fileTypes: [...(rule.fileTypes ?? [])],
     engine: rule.engine,
     ...(rule.xlsxFirstRowAsHeader !== undefined
-      ? { xlsx_first_row_as_header: rule.xlsxFirstRowAsHeader }
+      ? { xlsxFirstRowAsHeader: rule.xlsxFirstRowAsHeader }
       : {}),
   }))
 }

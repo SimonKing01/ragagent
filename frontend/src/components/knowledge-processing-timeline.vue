@@ -1362,32 +1362,38 @@ const processConfigLines = computed<string[]>(() => {
   const onOff = (v: boolean) => (v ? t(k('on')) : t(k('off')))
   const lines: string[] = []
 
-  const cc = o.chunking_config
+  const cc = o.chunkingConfig ?? (o as any).chunking_config
   if (cc) {
     const parts: string[] = []
-    if (cc.chunk_size != null) parts.push(t(k('chunkSize'), { n: cc.chunk_size }))
-    if (cc.enable_parent_child != null) {
-      parts.push(cc.enable_parent_child ? t(k('parentChildOn')) : t(k('parentChildOff')))
+    const size = cc.chunkSize ?? (cc as any).chunk_size
+    if (size != null) parts.push(t(k('chunkSize'), { n: size }))
+    const parentChild = cc.enableParentChild ?? (cc as any).enable_parent_child
+    if (parentChild != null) {
+      parts.push(parentChild ? t(k('parentChildOn')) : t(k('parentChildOff')))
     }
     if (parts.length) lines.push(`${t(k('chunking'))}: ${parts.join(' · ')}`)
   }
 
-  const rules = o.parser_engine_rules || cc?.parser_engine_rules
+  const rules = o.parserEngineRules || (o as any).parser_engine_rules
+    || cc?.parserEngineRules || (cc as any)?.parser_engine_rules
   if (rules?.length) {
     lines.push(`${t(k('parser'))}: ${formatParserRulesForCurrentFile(rules)}`)
   }
 
-  const mm = o.vlm_config?.enabled ?? o.enable_multimodel
+  const vlm = o.vlmConfig ?? (o as any).vlm_config
+  const mm = vlm?.enabled ?? o.enableMultimodel ?? (o as any).enable_multimodel
   if (mm != null) lines.push(`${t(k('multimodal'))}: ${onOff(mm)}`)
 
-  if (o.asr_config?.enabled != null) lines.push(`${t(k('asr'))}: ${onOff(o.asr_config.enabled)}`)
+  const asr = o.asrConfig ?? (o as any).asr_config
+  if (asr?.enabled != null) lines.push(`${t(k('asr'))}: ${onOff(asr.enabled)}`)
 
-  const qg = o.question_generation_config
+  const qg = o.questionGenerationConfig
   if (qg?.enabled != null) {
-    lines.push(`${t(k('question'))}: ${qg.enabled ? t(k('questionOn'), { n: qg.question_count ?? 3 }) : t(k('off'))}`)
+    lines.push(`${t(k('question'))}: ${qg.enabled ? t(k('questionOn'), { n: qg.questionCount ?? 3 }) : t(k('off'))}`)
   }
 
-  const graph = o.graph_enabled ?? o.extract_config?.enabled
+  const graph = o.graphEnabled ?? (o as any).graph_enabled
+    ?? o.extractConfig?.enabled ?? (o as any).extract_config?.enabled
   if (graph != null) lines.push(`${t(k('graph'))}: ${onOff(graph)}`)
 
   return lines.length ? lines : [t('knowledgeStages.processConfig.kbDefault')]
