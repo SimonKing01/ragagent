@@ -150,6 +150,8 @@ const {
   loadError,
   awaitingToken,
   bootstrapping,
+  // 模板里的 :session-restoring 要用它：存量会话校验期间隐藏问候屏、保持骨架，
+  // 漏解构会报「ComponentPublicInstance 上不存在属性 restoringSession」
   restoringSession,
   hostContext,
   ensureSession,
@@ -377,7 +379,7 @@ watch(headerTitle, (title) => {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  border-bottom: 1px solid var(--td-component-stroke);
+  border-bottom: .5px solid var(--td-component-stroke);
   background: var(--td-bg-color-container);
   flex-shrink: 0;
 
