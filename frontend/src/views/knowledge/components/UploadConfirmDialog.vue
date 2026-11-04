@@ -351,80 +351,6 @@
                     </div>
                   </div>
 
-                  <div v-show="activeSection === 'multimodal'" class="section" data-section="multimodal">
-                    <div class="kb-settings-block">
-                      <div class="section-header">
-                        <h2 class="section-title">{{ t('knowledgeEditor.multimodal.title') }}</h2>
-                        <p class="section-desc">{{ t('knowledgeEditor.multimodal.description') }}</p>
-                      </div>
-                      <div v-if="issueSectionKeys.has('multimodal')" class="section-notice">
-                        <t-icon name="info-circle-filled" />
-                        <span>{{ t('uploadConfirm.multimodalSetupHint') }}</span>
-                      </div>
-                      <div class="settings-group">
-                        <div class="setting-row">
-                          <div class="setting-info">
-                            <label>{{ t('knowledgeEditor.advanced.multimodal.label') }}</label>
-                            <p class="desc">{{ t('knowledgeEditor.advanced.multimodal.description') }}</p>
-                          </div>
-                          <div class="setting-control">
-                            <t-switch v-model="uiState.multimodalConfig.enabled" size="medium" />
-                          </div>
-                        </div>
-                        <div v-if="uiState.multimodalConfig.enabled" class="setting-row">
-                          <div class="setting-info">
-                            <label>{{ t('knowledgeEditor.advanced.multimodal.vllmLabel') }} <span class="required">*</span></label>
-                            <p class="desc">{{ t('knowledgeEditor.advanced.multimodal.vllmDescription') }}</p>
-                          </div>
-                          <div class="setting-control">
-                            <ModelSelector
-                              model-type="VLLM"
-                              :selected-model-id="uiState.multimodalConfig.vllmModelId"
-                              :all-models="allModels"
-                              :status="showMultimodalModelError ? 'error' : 'default'"
-                              :placeholder="t('knowledgeEditor.advanced.multimodal.vllmPlaceholder')"
-                              @update:selected-model-id="handleMultimodalVLLMChange"
-                              @add-model="handleAddVLLMModel"
-                            />
-                          </div>
-                        </div>
-                        <div v-if="uiState.multimodalConfig.enabled" class="setting-row">
-                          <div class="setting-info">
-                            <label>{{ t('knowledgeEditor.advanced.multimodal.descriptionLanguageLabel') }}</label>
-                            <p class="desc">{{ t('knowledgeEditor.advanced.multimodal.descriptionLanguageDescription') }}</p>
-                          </div>
-                          <div class="setting-control">
-                            <t-select
-                              v-model="uiState.multimodalConfig.descriptionLanguage"
-                              clearable
-                              :placeholder="t('knowledgeEditor.advanced.multimodal.descriptionLanguageAuto')"
-                              :style="{ width: '280px' }"
-                            >
-                              <t-option value="Chinese" :label="t('language.zhCN')" />
-                              <t-option value="English" :label="t('language.enUS')" />
-                              <t-option value="Korean" :label="t('language.koKR')" />
-                              <t-option value="Russian" :label="t('language.ruRU')" />
-                            </t-select>
-                          </div>
-                        </div>
-                        <div v-if="uiState.multimodalConfig.enabled" class="setting-row setting-row-vertical">
-                          <div class="setting-info">
-                            <label>{{ t('knowledgeEditor.advanced.multimodal.customInstructionsLabel') }}</label>
-                            <p class="desc">{{ t('knowledgeEditor.advanced.multimodal.customInstructionsDescription') }}</p>
-                          </div>
-                          <div class="setting-control setting-control-full">
-                            <t-textarea
-                              v-model="uiState.multimodalConfig.customInstructions"
-                              :placeholder="t('knowledgeEditor.advanced.multimodal.customInstructionsPlaceholder')"
-                              :maxlength="4000"
-                              :autosize="{ minRows: 3, maxRows: 8 }"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
                   <div v-show="activeSection === 'asr'" class="section" data-section="asr">
                     <div class="kb-settings-block">
                       <div class="section-header">
@@ -574,11 +500,10 @@ import type {
   UploadConfirmResult,
 } from '@/stores/uploadConfirm'
 
-const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
 const AUDIO_EXTENSIONS = ['mp3', 'wav', 'm4a', 'flac', 'ogg']
 
-type ConfigSectionKey = 'tags' | 'parser' | 'chunking' | 'multimodal' | 'asr' | 'question' | 'graph'
-type IssueSectionKey = 'multimodal' | 'asr'
+type ConfigSectionKey = 'tags' | 'parser' | 'chunking' | 'asr' | 'question' | 'graph'
+type IssueSectionKey = 'asr'
 
 interface ChunkingUIConfig {
   chunkSize: number
@@ -600,7 +525,6 @@ interface ChunkingUIConfig {
 
 interface UploadUIState {
   chunkingConfig: ChunkingUIConfig
-  multimodalConfig: { enabled: boolean; vllmModelId: string; descriptionLanguage?: string; customInstructions?: string }
   asrConfig: { enabled: boolean; modelId: string; language: string }
   questionGenerationConfig: { enabled: boolean; questionCount: number; customInstructions?: string }
   nodeExtractConfig: {
@@ -847,14 +771,6 @@ const tagOptions = computed(() => availableTags.value.map(tag => ({
 
 const llmModelId = computed(() => props.kbInfo?.summaryModelId || '')
 
-const hasImages = computed(() => {
-  if (props.mode === 'manual' && props.manualPreview?.content) {
-    const content = props.manualPreview.content
-    if (/data:image\/|!\[[^\]]*\]\([^)]+\)/i.test(content)) return true
-  }
-  return batchFileExts.value.some(ext => IMAGE_EXTENSIONS.includes(ext))
-})
-
 const hasAudio = computed(() => {
   return batchFileExts.value.some(ext => AUDIO_EXTENSIONS.includes(ext))
 })
@@ -868,23 +784,12 @@ const isGraphSectionAvailable = computed(() => {
   return isGraphDatabaseEnabled.value && uiState.value.graphEnabled
 })
 
-const showMultimodalModelError = computed(() => {
-  return uiState.value.multimodalConfig.enabled && !uiState.value.multimodalConfig.vllmModelId
-})
-
 const showAsrModelError = computed(() => {
   return uiState.value.asrConfig.enabled && !uiState.value.asrConfig.modelId
 })
 
 const issueSectionKeys = computed(() => {
   const keys = new Set<IssueSectionKey>()
-  if (hasImages.value) {
-    if (!uiState.value.multimodalConfig.enabled || !uiState.value.multimodalConfig.vllmModelId) {
-      keys.add('multimodal')
-    }
-  } else if (showMultimodalModelError.value) {
-    keys.add('multimodal')
-  }
   if (hasAudio.value) {
     if (!uiState.value.asrConfig.enabled || !uiState.value.asrConfig.modelId) {
       keys.add('asr')
@@ -926,12 +831,6 @@ const navItems = computed(() => {
   push('parser', 'file-search', t('settings.parserEngine'))
   push('chunking', 'file-copy', t('knowledgeEditor.sidebar.chunking'))
   push(
-    'multimodal',
-    'image',
-    t('knowledgeEditor.sidebar.multimodal'),
-    issueSectionKeys.value.has('multimodal'),
-  )
-  push(
     'asr',
     'sound',
     t('knowledgeEditor.sidebar.asr'),
@@ -971,19 +870,6 @@ function getSectionNavStatus(
         parts.push(t('uploadConfirm.summaryParentChildShort'))
       }
       return { status: parts.join(' · ') }
-    }
-    case 'multimodal': {
-      if (issue) {
-        return { status: t('uploadConfirm.statusNeedsSetup'), statusTone: 'error' }
-      }
-      const mm = uiState.value.multimodalConfig
-      if (!mm.enabled) {
-        return { status: t('uploadConfirm.statusOff'), statusTone: 'muted' }
-      }
-      return {
-        status: mm.vllmModelId ? getModelName(mm.vllmModelId) : t('uploadConfirm.notSet'),
-        statusTone: mm.vllmModelId ? undefined : 'warning',
-      }
     }
     case 'asr': {
       if (issue) {
@@ -1025,17 +911,12 @@ function getSectionNavStatus(
 const canConfirm = computed(() => {
   if (props.mode === 'file' && batchItemCount.value === 0) return false
   if (props.mode === 'manual' && !props.manualPreview?.content?.trim()) return false
-  if (hasImages.value) {
-    if (!uiState.value.multimodalConfig.enabled || !uiState.value.multimodalConfig.vllmModelId) {
-      return false
-    }
-  }
   if (hasAudio.value) {
     if (!uiState.value.asrConfig.enabled || !uiState.value.asrConfig.modelId) {
       return false
     }
   }
-  if (showMultimodalModelError.value || showAsrModelError.value) {
+  if (showAsrModelError.value) {
     return false
   }
   return true
@@ -1043,7 +924,6 @@ const canConfirm = computed(() => {
 
 function getDefaultSection(): ConfigSectionKey {
   if (props.mode === 'reparse') return 'parser'
-  if (issueSectionKeys.value.has('multimodal')) return 'multimodal'
   if (issueSectionKeys.value.has('asr')) return 'asr'
   return 'tags'
 }
@@ -1070,7 +950,6 @@ function createDefaultUIState(): UploadUIState {
       languages: [],
       tableMetadataInstructions: '',
     },
-    multimodalConfig: { enabled: false, vllmModelId: '', descriptionLanguage: '', customInstructions: '' },
     asrConfig: { enabled: false, modelId: '', language: '' },
     questionGenerationConfig: { enabled: true, questionCount: 3, customInstructions: '' },
     nodeExtractConfig: {
@@ -1105,12 +984,6 @@ function initFromKbInfo(kb: any) {
       tokenLimit: kb.chunkingConfig?.tokenLimit || 0,
       languages: kb.chunkingConfig?.languages || [],
       tableMetadataInstructions: kb.chunkingConfig?.tableMetadataInstructions || '',
-    },
-    multimodalConfig: {
-      enabled: !!kb.vlmConfig?.enabled,
-      vllmModelId: kb.vlmConfig?.modelId || '',
-      descriptionLanguage: kb.vlmConfig?.descriptionLanguage || '',
-      customInstructions: kb.vlmConfig?.customInstructions || '',
     },
     asrConfig: {
       enabled: !!kb.asrConfig?.enabled,
@@ -1157,13 +1030,6 @@ function buildProcessOverrides(): KnowledgeProcessOverrides {
       token_limit: chunking.tokenLimit,
       languages: chunking.languages,
       table_metadata_instructions: chunking.tableMetadataInstructions,
-    },
-    enable_multimodel: state.multimodalConfig.enabled,
-    vlm_config: {
-      enabled: state.multimodalConfig.enabled,
-      modelId: state.multimodalConfig.vllmModelId,
-      description_language: state.multimodalConfig.descriptionLanguage,
-      custom_instructions: state.multimodalConfig.customInstructions,
     },
     asr_config: {
       enabled: state.asrConfig.enabled,
@@ -1213,13 +1079,6 @@ function applyOverridesToState(o?: KnowledgeProcessOverrides | null) {
     if (cc.parser_engine_rules) s.chunkingConfig.parserEngineRules = fromOverrideParserRules(cc.parser_engine_rules)
   }
   if (o.parser_engine_rules) s.chunkingConfig.parserEngineRules = fromOverrideParserRules(o.parser_engine_rules)
-  if (o.enable_multimodel != null) s.multimodalConfig.enabled = o.enable_multimodel
-  if (o.vlm_config) {
-    if (o.vlm_config.enabled != null) s.multimodalConfig.enabled = o.vlm_config.enabled
-    if (o.vlm_config.modelId != null) s.multimodalConfig.vllmModelId = o.vlm_config.modelId
-    if (o.vlm_config.description_language != null) s.multimodalConfig.descriptionLanguage = o.vlm_config.description_language
-    if (o.vlm_config.custom_instructions != null) s.multimodalConfig.customInstructions = o.vlm_config.custom_instructions
-  }
   if (o.asr_config) {
     if (o.asr_config.enabled != null) s.asrConfig.enabled = o.asr_config.enabled
     if (o.asr_config.modelId != null) s.asrConfig.modelId = o.asr_config.modelId
@@ -1363,14 +1222,6 @@ const handleParserEngineRulesUpdate = (rules: Array<{
   uiState.value.chunkingConfig.parserEngineRules = rules
 }
 
-const handleMultimodalVLLMChange = (modelId: string) => {
-  uiState.value.multimodalConfig.vllmModelId = modelId
-}
-
-const handleAddVLLMModel = () => {
-  uiStore.openSettings('models', 'vllm')
-}
-
 const handleAddASRModel = () => {
   uiStore.openSettings('models', 'asr')
 }
@@ -1381,18 +1232,6 @@ const handleNodeExtractUpdate = (config: UploadUIState['nodeExtractConfig']) => 
 }
 
 const validateBeforeConfirm = (): boolean => {
-  if (hasImages.value) {
-    if (!uiState.value.multimodalConfig.enabled || !uiState.value.multimodalConfig.vllmModelId) {
-      MessagePlugin.warning(t('uploadConfirm.vlmModelRequired'))
-      uiState.value.multimodalConfig.enabled = true
-      goToSection('multimodal')
-      return false
-    }
-  } else if (showMultimodalModelError.value) {
-    MessagePlugin.warning(t('uploadConfirm.vlmModelSelectRequired'))
-    goToSection('multimodal')
-    return false
-  }
 
   if (hasAudio.value) {
     if (!uiState.value.asrConfig.enabled || !uiState.value.asrConfig.modelId) {

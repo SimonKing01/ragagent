@@ -75,6 +75,7 @@ test('uses section navigation with inline chunking controls and advanced options
   assert.match(dialog, /activeSection === 'graph'/)
   assert.match(dialog, /class="files-panel"/)
   assert.match(dialog, /statusFull/)
-  assert.match(dialog, /data-section="multimodal"/)
+  assert.doesNotMatch(dialog, /data-section="multimodal"/)
+  assert.match(dialog, /data-section="asr"/)
   assert.doesNotMatch(dialog, /<KBChunkingSettings/)
 })
