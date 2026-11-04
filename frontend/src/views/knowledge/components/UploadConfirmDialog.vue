@@ -351,6 +351,26 @@
                     </div>
                   </div>
 
+                  <div v-show="activeSection === 'multimodal'" class="section" data-section="multimodal">
+                    <div class="kb-settings-block">
+                      <div class="section-header">
+                        <h2 class="section-title">{{ t('knowledgeEditor.ocr.title') }}</h2>
+                        <p class="section-desc">{{ t('knowledgeEditor.ocr.description') }}</p>
+                      </div>
+                      <div class="settings-group">
+                        <div class="setting-row">
+                          <div class="setting-info">
+                            <label>{{ t('knowledgeEditor.ocr.label') }}</label>
+                            <p class="desc">{{ t('knowledgeEditor.ocr.desc') }}</p>
+                          </div>
+                          <div class="setting-control">
+                            <t-switch v-model="uiState.imageOcrEnabled" size="medium" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div v-show="activeSection === 'asr'" class="section" data-section="asr">
                     <div class="kb-settings-block">
                       <div class="section-header">
@@ -502,7 +522,7 @@ import type {
 
 const AUDIO_EXTENSIONS = ['mp3', 'wav', 'm4a', 'flac', 'ogg']
 
-type ConfigSectionKey = 'tags' | 'parser' | 'chunking' | 'asr' | 'question' | 'graph'
+type ConfigSectionKey = 'tags' | 'parser' | 'chunking' | 'multimodal' | 'asr' | 'question' | 'graph'
 type IssueSectionKey = 'asr'
 
 interface ChunkingUIConfig {
@@ -525,6 +545,8 @@ interface ChunkingUIConfig {
 
 interface UploadUIState {
   chunkingConfig: ChunkingUIConfig
+  /** 逐文档图片 OCR 开关（默认继承 KB，缺省开启） */
+  imageOcrEnabled: boolean
   asrConfig: { enabled: boolean; modelId: string; language: string }
   questionGenerationConfig: { enabled: boolean; questionCount: number; customInstructions?: string }
   nodeExtractConfig: {
@@ -831,6 +853,11 @@ const navItems = computed(() => {
   push('parser', 'file-search', t('settings.parserEngine'))
   push('chunking', 'file-copy', t('knowledgeEditor.sidebar.chunking'))
   push(
+    'multimodal',
+    'image',
+    t('knowledgeEditor.sidebar.multimodal'),
+  )
+  push(
     'asr',
     'sound',
     t('knowledgeEditor.sidebar.asr'),
@@ -870,6 +897,11 @@ function getSectionNavStatus(
         parts.push(t('uploadConfirm.summaryParentChildShort'))
       }
       return { status: parts.join(' · ') }
+    }
+    case 'multimodal': {
+      return uiState.value.imageOcrEnabled
+        ? { status: t('knowledgeEditor.ocr.label') }
+        : { status: t('uploadConfirm.statusOff'), statusTone: 'muted' }
     }
     case 'asr': {
       if (issue) {
@@ -950,6 +982,7 @@ function createDefaultUIState(): UploadUIState {
       languages: [],
       tableMetadataInstructions: '',
     },
+    imageOcrEnabled: true,
     asrConfig: { enabled: false, modelId: '', language: '' },
     questionGenerationConfig: { enabled: true, questionCount: 3, customInstructions: '' },
     nodeExtractConfig: {
@@ -985,6 +1018,8 @@ function initFromKbInfo(kb: any) {
       languages: kb.chunkingConfig?.languages || [],
       tableMetadataInstructions: kb.chunkingConfig?.tableMetadataInstructions || '',
     },
+    // 缺省开启：只有知识库里显式 false 才关
+    imageOcrEnabled: kb.imageProcessingConfig?.ocrEnabled !== false,
     asrConfig: {
       enabled: !!kb.asrConfig?.enabled,
       modelId: kb.asrConfig?.modelId || '',
@@ -1030,6 +1065,9 @@ function buildProcessOverrides(): KnowledgeProcessOverrides {
       token_limit: chunking.tokenLimit,
       languages: chunking.languages,
       table_metadata_instructions: chunking.tableMetadataInstructions,
+    },
+    imageProcessingConfig: {
+      ocrEnabled: state.imageOcrEnabled,
     },
     asr_config: {
       enabled: state.asrConfig.enabled,
@@ -1079,6 +1117,9 @@ function applyOverridesToState(o?: KnowledgeProcessOverrides | null) {
     if (cc.parser_engine_rules) s.chunkingConfig.parserEngineRules = fromOverrideParserRules(cc.parser_engine_rules)
   }
   if (o.parser_engine_rules) s.chunkingConfig.parserEngineRules = fromOverrideParserRules(o.parser_engine_rules)
+  if (o.imageProcessingConfig?.ocrEnabled != null) {
+    s.imageOcrEnabled = o.imageProcessingConfig.ocrEnabled
+  }
   if (o.asr_config) {
     if (o.asr_config.enabled != null) s.asrConfig.enabled = o.asr_config.enabled
     if (o.asr_config.modelId != null) s.asrConfig.modelId = o.asr_config.modelId

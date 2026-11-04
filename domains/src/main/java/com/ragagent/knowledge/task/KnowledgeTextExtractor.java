@@ -1,5 +1,6 @@
 package com.ragagent.knowledge.task;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.knowledge.rule.ParserEngineRules;
 import com.ragagent.knowledge.client.DocReaderClient;
 import com.ragagent.knowledge.domain.Knowledge;
@@ -85,11 +86,16 @@ final class KnowledgeTextExtractor {
     }
 
     /**
-     * KB 级「图片 OCR」开关：{@code image_processing_config.ocrEnabled}，缺省开启。
+     * KB 级「图片 OCR」开关：{@code imageProcessingConfig.ocrEnabled}，缺省开启。
      *
      * <p>只有显式 false 才关闭；KB 读不到（含知识库已删）时按开启处理，与产品默认一致。</p>
      */
     boolean resolveOcrEnabled(Knowledge k) {
+        // 逐文档覆盖优先（上传/重解析时带过来的 imageProcessingConfig.ocrEnabled）
+        Boolean override = ocrOverride(k);
+        if (override != null) {
+            return override;
+        }
         String kbId = k.getKnowledgeBaseId();
         if (kbId == null || kbId.isBlank()) {
             return true;
@@ -104,6 +110,18 @@ final class KnowledgeTextExtractor {
             log.warn("resolve ocr switch failed for knowledge {}", k.getId(), e);
             return true;
         }
+    }
+
+    /** {@code metadata.processOverrides.imageProcessingConfig.ocrEnabled}，没有则 null。 */
+    private Boolean ocrOverride(Knowledge k) {
+        JsonNode metadata = k.getMetadata();
+        if (metadata == null || !metadata.isObject()) {
+            return null;
+        }
+        JsonNode value = metadata.path("processOverrides")
+                .path("imageProcessingConfig")
+                .path("ocrEnabled");
+        return value.isBoolean() ? value.booleanValue() : null;
     }
 
     /**

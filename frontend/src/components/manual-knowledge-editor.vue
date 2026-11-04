@@ -610,7 +610,6 @@ const handleSave = async (targetStatus: ManualStatus) => {
       content: string
       status: string
       tag_ids?: string[]
-      process_config?: KnowledgeProcessOverrides
     } = {
       title: form.title.trim(),
       content: form.content,
@@ -643,7 +642,6 @@ const handleSave = async (targetStatus: ManualStatus) => {
             tagIds: [...manualTagIds.value],
           },
         })
-        payload.process_config = confirmResult.processConfig
         manualTagIds.value = [...(confirmResult.tagIds || [])]
         payload.tag_ids = [...manualTagIds.value]
       } catch {

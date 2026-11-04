@@ -535,7 +535,7 @@ async function fetchProcessOverrides() {
   try {
     const res: any = await getKnowledgeDetails(props.knowledgeId)
     if (res) {
-      processOverrides.value = res.metadata?.process_overrides ?? null
+      processOverrides.value = res.metadata?.processOverrides ?? null
       currentKnowledgeFileType.value = normalizeFileType(
         res.fileType || getFileTypeFromName(res.fileName || res.title || ''),
       )
@@ -1354,7 +1354,7 @@ function formatParserRulesForCurrentFile(
 }
 
 // Human-readable summary of the per-upload parse overrides stored in
-// knowledge.metadata.process_overrides. Empty overrides → KB defaults.
+// knowledge.metadata.processOverrides. Empty overrides → KB defaults.
 const processConfigLines = computed<string[]>(() => {
   const o = processOverrides.value
   if (!o) return [t('knowledgeStages.processConfig.kbDefault')]

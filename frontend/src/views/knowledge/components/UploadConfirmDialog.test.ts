@@ -75,7 +75,8 @@ test('uses section navigation with inline chunking controls and advanced options
   assert.match(dialog, /activeSection === 'graph'/)
   assert.match(dialog, /class="files-panel"/)
   assert.match(dialog, /statusFull/)
-  assert.doesNotMatch(dialog, /data-section="multimodal"/)
+  // 图片处理（OCR 开关）按文档可覆盖，分区保留
+  assert.match(dialog, /data-section="multimodal"/)
   assert.match(dialog, /data-section="asr"/)
   assert.doesNotMatch(dialog, /<KBChunkingSettings/)
 })

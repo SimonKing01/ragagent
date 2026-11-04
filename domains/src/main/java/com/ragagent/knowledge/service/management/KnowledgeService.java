@@ -155,6 +155,16 @@ public class KnowledgeService implements KnowledgeReadPort, KnowledgeDocumentGat
     // ── 创建 ─────────────────────────────────────────────────────────────
     public Knowledge createFromFile(String kbId, byte[] fileContent, String fileName,
                                     String displayName, JsonNode customMetadata, String channel) {
+        return createFromFile(kbId, fileContent, fileName, displayName, customMetadata, null, channel);
+    }
+
+    /**
+     * @param processConfig 逐文档处理覆盖（可空）：目前只需 {@code imageProcessingConfig.ocrEnabled}，
+     *                      落在 {@code metadata.processOverrides}，解析时优先于 KB 级配置。
+     */
+    public Knowledge createFromFile(String kbId, byte[] fileContent, String fileName,
+                                    String displayName, JsonNode customMetadata,
+                                    JsonNode processConfig, String channel) {
         KnowledgeBase kb = requireKb(kbId);
         long maxBytes = LocalStorageService.maxFileSizeBytes();
         if (fileContent.length > maxBytes) {
@@ -179,9 +189,22 @@ public class KnowledgeService implements KnowledgeReadPort, KnowledgeDocumentGat
         k.setFileHash(hash);
         k.setFilePath(fileStorage.save(tenantId(), k.getId(), fileName, fileContent));
         k.setCustomMetadata(mergeCustomMetadata(customMetadata));
+        k.setMetadata(mergeProcessOverrides(k.getMetadata(), processConfig));
         knowledgeRepository.insert(k);
         knowledgeIngest.enqueueProcessing(k.getId());
         return k;
+    }
+
+    /** 把逐文档覆盖合并进 metadata（保留既有键，只覆盖 processOverrides）。 */
+    private JsonNode mergeProcessOverrides(JsonNode metadata, JsonNode processConfig) {
+        if (processConfig == null || !processConfig.isObject() || processConfig.isEmpty()) {
+            return metadata;
+        }
+        ObjectNode base = metadata instanceof ObjectNode obj
+                ? obj.deepCopy()
+                : MAPPER.createObjectNode();
+        base.set("processOverrides", processConfig);
+        return base;
     }
 
     /** 拉取 URL 内容按文件入库（SSRF 在 controller；抓取口径与大小上限见 {@link UrlBytesFetcher}） */

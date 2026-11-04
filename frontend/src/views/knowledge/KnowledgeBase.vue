@@ -1839,13 +1839,13 @@ const confirmRebuildKnowledge = async (index: number, item: KnowledgeCard) => {
   }
 
   // Prefill the confirm dialog with the overrides this doc was last parsed with.
-  let processOverrides: KnowledgeProcessOverrides | null = item.metadata?.process_overrides ?? null;
+  let processOverrides: KnowledgeProcessOverrides | null = item.metadata?.processOverrides ?? null;
   let fileName = item.fileName || item.title || '';
   let fileType = item.fileType || '';
   try {
     const detail: any = await getKnowledgeDetails(item.id);
     if (detail) {
-      processOverrides = detail.metadata?.process_overrides ?? processOverrides;
+      processOverrides = detail.metadata?.processOverrides ?? processOverrides;
       fileName = detail.fileName || detail.title || fileName;
       fileType = detail.fileType || fileType;
     }
@@ -1857,7 +1857,7 @@ const confirmRebuildKnowledge = async (index: number, item: KnowledgeCard) => {
     const result = await uploadConfirmStore.open({
       mode: 'reparse',
       kbInfo: kbInfo.value,
-      // processOverrides 恒为 null：服务端从不写 metadata.process_overrides（移植缺口）
+      // 服务端在写入时会落 metadata.processOverrides（上传/重解析的逐文档覆盖）
       reparse: { knowledgeId: item.id, fileName, fileType, processOverrides },
     });
     if (result.mode === 'reparse' && result.reparse) {

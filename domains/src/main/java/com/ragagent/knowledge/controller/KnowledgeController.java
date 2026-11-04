@@ -85,8 +85,8 @@ public class KnowledgeController {
      * <p>返回 201 与新文档视图；真正的"解析 → 分块 → 向量化"由后台流水线执行，
      * 前端凭响应里的 {@code parseStatus} 与进度接口跟进。</p>
      *
-     * <p>{@code tag_ids} / {@code process_config} 参数被接收但静默丢弃（管线只读 KB 级配置；
-     * 完整落地需穿越处理分块与写链，待专项收口）。</p>
+     * <p>{@code process_config} 中的图片 OCR 开关会被写入 {@code metadata.processOverrides}，
+     * 解析时优先于 KB 级配置；其余覆盖项暂未消费。</p>
      */
     @PostMapping("/knowledge-bases/{id}/knowledge/file")
     public ResponseEntity<KnowledgeResponse> createFromFile(
@@ -95,15 +95,19 @@ public class KnowledgeController {
             @RequestParam(value = "fileName", required = false) String fileName,
             @RequestParam(value = "metadata", required = false) String metadataJson,
             @RequestParam(value = "tagIds", required = false) String tagIds,
-            @RequestParam(value = "channel", required = false) String channel)
+            @RequestParam(value = "channel", required = false) String channel,
+            @RequestParam(value = "processConfig", required = false) String processConfigJson)
             throws IOException {
         log.info("Start creating knowledge from file, KB: {}", kbId);
         JsonNode customMetadata = KnowledgeRouteGuards.parseJsonParam(MAPPER, metadataJson, "metadata");
+        // 逐文档处理覆盖（目前消费 imageProcessingConfig.ocrEnabled）：落 metadata，
+        // 解析时优先于 KB 级配置；解析失败按「未传」处理，不阻断上传。
+        JsonNode processConfig = KnowledgeRouteGuards.parseJsonParam(MAPPER, processConfigJson, "processConfig");
         byte[] content = LocalStorageService.readAll(file.getInputStream());
         var k = knowledgeService.createFromFile(
                 kbId, content,
                 fileName != null && !fileName.isEmpty() ? fileName : file.getOriginalFilename(),
-                fileName, customMetadata, channel);
+                fileName, customMetadata, processConfig, channel);
         return ResponseEntity.status(HttpStatus.CREATED).body(KnowledgeResponse.from(k));
     }
 

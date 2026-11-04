@@ -62,6 +62,8 @@ export interface ExtractConfigOverride {
 export interface KnowledgeProcessOverrides {
   parser_engine_rules?: ParserEngineRule[]
   chunking_config?: ChunkingConfigOverride
+  /** 逐文档图片处理覆盖：目前只消费 ocrEnabled（图片 OCR 开关） */
+  imageProcessingConfig?: { ocrEnabled?: boolean }
   enable_multimodel?: boolean
   vlm_config?: VLMConfigOverride
   asr_config?: ASRConfigOverride
