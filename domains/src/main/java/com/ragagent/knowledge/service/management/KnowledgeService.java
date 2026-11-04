@@ -524,6 +524,11 @@ public class KnowledgeService implements KnowledgeReadPort, KnowledgeDocumentGat
         return knowledgeParseService.reparseKnowledge(id);
     }
 
+    /** 重解析并替换逐文档处理覆盖（弹窗里的选择要生效，不能沿用它上次导入时的值）。 */
+    public Knowledge reparseKnowledge(String id, JsonNode processConfig) {
+        return knowledgeParseService.reparseKnowledge(id, processConfig);
+    }
+
     public Knowledge cancelKnowledgeParse(String id) {
         return knowledgeParseService.cancelKnowledgeParse(id);
     }

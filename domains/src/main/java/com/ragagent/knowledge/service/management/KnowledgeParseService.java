@@ -1,5 +1,6 @@
 package com.ragagent.knowledge.service.management;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.error.BizException;
 import com.ragagent.contract.knowledge.KnowledgeIngest;
 import com.ragagent.knowledge.domain.Knowledge;
@@ -8,6 +9,7 @@ import com.ragagent.knowledge.domain.KnowledgeTenants;
 import com.ragagent.knowledge.domain.span.SpanTracker;
 import com.ragagent.knowledge.repository.DocumentParser;
 import com.ragagent.knowledge.service.KnowledgeAccessHelper;
+import com.ragagent.knowledge.support.KnowledgeMetadataOverrides;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import org.springframework.stereotype.Service;
@@ -52,9 +54,23 @@ public class KnowledgeParseService {
  * 把清场与终态写入完全按代隔离（登记在 HANDOFF）。</p>
  */
     public Knowledge reparseKnowledge(String id) {
+        return reparseKnowledge(id, null);
+    }
+
+    /**
+     * 重解析并**替换**逐文档处理覆盖。
+     *
+     * <p>重解析弹窗里的选择（如「生成推荐问题」）必须覆盖上一次导入时落的
+     * {@code metadata.processOverrides}，否则旧的开关会一直生效——典型现象：
+     * 首次导入关掉推荐问题、重解析时打开，结果仍不生成。</p>
+     *
+     * @param processConfig 本次重解析的覆盖；null/空对象表示沿用既有 metadata
+     */
+    public Knowledge reparseKnowledge(String id, JsonNode processConfig) {
         Knowledge existing = folderService.loadKnowledgeWrite(id);
         KnowledgeBase kb = access.requireKb(existing.getKnowledgeBaseId());
         resetKnowledgeForReparse(existing, kb);
+        existing.setMetadata(KnowledgeMetadataOverrides.merge(existing.getMetadata(), processConfig));
         fileService.updateKnowledgeRow(existing, existing.getMetadata());
         knowledgeIngest.enqueueProcessing(existing.getId());
         return existing;

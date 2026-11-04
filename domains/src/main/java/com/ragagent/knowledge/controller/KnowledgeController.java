@@ -254,7 +254,8 @@ public class KnowledgeController {
     /**
      * 重新解析（异步受理）：返回受理后的文档视图，前端凭 {@code parseStatus} 跟进。
      *
-     * <p>body 可整体省略（保留上传时配置）；非空时仅做语法校验。</p>
+     * <p>body 可整体省略（保留上传时的 {@code metadata.processOverrides}）；带
+     * {@code processConfig} 时用它**替换**既有覆盖——重解析弹窗里的选择必须生效。</p>
      */
     @PostMapping("/knowledge/{id}/reparse")
     public ResponseEntity<KnowledgeResponse> reparseKnowledge(
@@ -262,7 +263,8 @@ public class KnowledgeController {
             @RequestBody(required = false) JsonNode body) {
         String safeId = requireKnowledgeId(id);
         guards.resolveKnowledgeByGuard(safeId, true);
-        var k = knowledgeService.reparseKnowledge(safeId);
+        JsonNode processConfig = body == null ? null : body.get("processConfig");
+        var k = knowledgeService.reparseKnowledge(safeId, processConfig);
         return ResponseEntity.ok(KnowledgeResponse.from(k));
     }
 
