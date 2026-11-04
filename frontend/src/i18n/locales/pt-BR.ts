@@ -2194,6 +2194,14 @@ export default {
     defaultLocaleBrowser: 'Navegador / padrão do hospedeiro'
   },
   knowledgeEditor: {
+    // 图片 OCR（原「图像处理」）：默认开启，按知识库控制入库图片是否走 OCR
+    ocr: {
+      title: 'OCR de imagens',
+      description: 'Digitalizações e imagens embutidas são reconhecidas na ingestão; o texto é inserido no corpo e indexado.',
+      label: 'Aplicar OCR às imagens',
+      desc: 'Ativado por padrão. Se desativado, as imagens ficam sem extração de texto.',
+      serviceHint: 'Requer um serviço de OCR no servidor (OCR_ENDPOINT); o interruptor não tem efeito até ser implantado.'
+    },
     activity: {
       title: 'Atividade',
       description: 'Mudanças importantes e pontos de entrada de tarefas em segundo plano para esta base de conhecimento. A retenção segue a política de registro de auditoria.',
@@ -2339,7 +2347,7 @@ export default {
       advanced: 'Configurações avançadas',
       faq: 'Configurações de FAQ',
       graph: 'Grafo de conhecimento',
-      multimodal: 'Processamento de imagens',
+      multimodal: 'OCR de imagens',
       asr: 'Áudio',
       datasource: 'Fontes de dados',
       share: 'Compartilhamento',

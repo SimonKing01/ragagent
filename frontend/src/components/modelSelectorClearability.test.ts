@@ -48,8 +48,6 @@ test('必填模型继续保持不可清空', () => {
   assertNotClearable(modelSelectorTag(agentEditor, 'formData.config.modelId'))
   assertNotClearable(modelSelectorTag(agentEditor, 'formData.config.vlmModelId'))
   assertNotClearable(modelSelectorTag(kbModelConfig, 'config.llmModelId'))
-  assertNotClearable(modelSelectorTag(kbEditor, 'formData.multimodalConfig.vllmModelId'))
   assertNotClearable(modelSelectorTag(kbEditor, 'formData.asrConfig.modelId'))
-  assertNotClearable(modelSelectorTag(uploadConfirm, 'uiState.multimodalConfig.vllmModelId'))
   assertNotClearable(modelSelectorTag(uploadConfirm, 'uiState.asrConfig.modelId'))
 })

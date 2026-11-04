@@ -274,76 +274,25 @@
                   />
                 </div>
 
-                <!-- 多模态配置 -->
+                <!-- 图片 OCR -->
                 <div v-if="!isFAQ" v-show="currentSection === 'multimodal'" class="section">
                   <div v-if="formData" class="kb-multimodal-settings">
                     <div class="section-header">
-                      <h2>{{ $t('knowledgeEditor.multimodal.title') }}</h2>
-                      <p class="section-description">{{ $t('knowledgeEditor.multimodal.description') }}</p>
+                      <h2>{{ $t('knowledgeEditor.ocr.title') }}</h2>
+                      <p class="section-description">{{ $t('knowledgeEditor.ocr.description') }}</p>
                     </div>
 
                     <div class="settings-group">
-                      <!-- 多模态开关 -->
-                      <div class="setting-row" data-guide="kb-create-multimodal-toggle">
+                      <div class="setting-row" data-guide="kb-create-ocr-toggle">
                         <div class="setting-info">
-                          <label>{{ $t('knowledgeEditor.advanced.multimodal.label') }}</label>
-                          <p class="desc">{{ $t('knowledgeEditor.advanced.multimodal.description') }}</p>
+                          <label>{{ $t('knowledgeEditor.ocr.label') }}</label>
+                          <p class="desc">{{ $t('knowledgeEditor.ocr.desc') }}</p>
                         </div>
                         <div class="setting-control">
-                          <t-switch
-                            v-model="formData.multimodalConfig.enabled"
-                            @change="handleMultimodalToggle"
-                            size="medium"
-                          />
+                          <t-switch v-model="formData.ocrEnabled" size="medium" />
                         </div>
                       </div>
-
-                      <!-- VLLM 模型选择（多模态启用时） -->
-                      <div v-if="formData.multimodalConfig.enabled" class="setting-row"
-                        data-guide="kb-create-multimodal-vllm">
-                        <div class="setting-info">
-                          <label>{{ $t('knowledgeEditor.advanced.multimodal.vllmLabel') }} <span class="required">*</span></label>
-                          <p class="desc">{{ $t('knowledgeEditor.advanced.multimodal.vllmDescription') }}</p>
-                        </div>
-                        <div class="setting-control">
-                          <ModelSelector
-                            model-type="VLLM"
-                            :selected-model-id="formData.multimodalConfig.vllmModelId"
-                            :all-models="allModels"
-                            @update:selected-model-id="handleMultimodalVLLMChange"
-                            @add-model="handleAddVLLMModel"
-                            :placeholder="$t('knowledgeEditor.advanced.multimodal.vllmPlaceholder')"
-                          />
-                        </div>
-                      </div>
-
-                      <div v-if="formData.multimodalConfig.enabled" class="setting-row">
-                        <div class="setting-info">
-                          <label>{{ $t('knowledgeEditor.advanced.multimodal.descriptionLanguageLabel') }}</label>
-                          <p class="desc">{{ $t('knowledgeEditor.advanced.multimodal.descriptionLanguageDescription') }}</p>
-                        </div>
-                        <div class="setting-control">
-                          <t-select v-model="formData.multimodalConfig.descriptionLanguage" clearable
-                            :placeholder="$t('knowledgeEditor.advanced.multimodal.descriptionLanguageAuto')">
-                            <t-option value="Chinese" :label="$t('language.zhCN')" />
-                            <t-option value="English" :label="$t('language.enUS')" />
-                            <t-option value="Korean" :label="$t('language.koKR')" />
-                            <t-option value="Russian" :label="$t('language.ruRU')" />
-                          </t-select>
-                        </div>
-                      </div>
-
-                      <div v-if="formData.multimodalConfig.enabled" class="setting-row setting-row-vertical">
-                        <div class="setting-info">
-                          <label>{{ $t('knowledgeEditor.advanced.multimodal.customInstructionsLabel') }}</label>
-                          <p class="desc">{{ $t('knowledgeEditor.advanced.multimodal.customInstructionsDescription') }}</p>
-                        </div>
-                        <div class="setting-control setting-control-full">
-                          <t-textarea v-model="formData.multimodalConfig.customInstructions"
-                            :placeholder="$t('knowledgeEditor.advanced.multimodal.customInstructionsPlaceholder')"
-                            :maxlength="4000" :autosize="{ minRows: 3, maxRows: 8 }" />
-                        </div>
-                      </div>
+                      <p class="section-description">{{ $t('knowledgeEditor.ocr.serviceHint') }}</p>
                     </div>
                   </div>
                 </div>
@@ -718,12 +667,8 @@ const initFormData = (type: 'document' | 'faq' = 'document') => {
     },
     storageBackendId: '' as string,
     storageProvider: '' as string,
-    multimodalConfig: {
-      enabled: false,
-      vllmModelId: '',
-      descriptionLanguage: '',
-      customInstructions: ''
-    },
+    // 图片 OCR 默认开启；服务端未配置 OCR 服务时不会生效
+    ocrEnabled: true,
     asrConfig: {
       enabled: false,
       modelId: '',
@@ -863,12 +808,8 @@ const loadKBData = async (
       },
       storageBackendId: (kb.storageBackendId || '') as string,
       storageProvider: (kb.storageProvider || 'local') as string,
-      multimodalConfig: {
-        enabled: !!kb.vlmConfig?.enabled,
-        vllmModelId: kb.vlmConfig?.modelId || '',
-        descriptionLanguage: kb.vlmConfig?.descriptionLanguage || '',
-        customInstructions: kb.vlmConfig?.customInstructions || ''
-      },
+      // 缺省开启：只有显式 false 才是关闭
+      ocrEnabled: kb.imageProcessingConfig?.ocrEnabled !== false,
       asrConfig: {
         enabled: !!kb.asrConfig?.enabled,
         modelId: kb.asrConfig?.modelId || '',
@@ -1034,18 +975,6 @@ const handleParserEngineRulesUpdate = (rules: any[]) => {
   }
 }
 
-const handleMultimodalToggle = () => {
-  if (formData.value && !formData.value.multimodalConfig.enabled) {
-    formData.value.multimodalConfig.vllmModelId = ''
-  }
-}
-
-const handleMultimodalVLLMChange = (modelId: string) => {
-  if (formData.value) {
-    formData.value.multimodalConfig.vllmModelId = modelId
-  }
-}
-
 const handleAddVLLMModel = () => {
   uiStore.openSettings('models', 'vllm')
 }
@@ -1150,13 +1079,6 @@ const validateForm = (): boolean => {
     return false
   }
 
-  // 验证多模态配置（如果启用）
-  if (formData.value.multimodalConfig.enabled && !formData.value.multimodalConfig.vllmModelId) {
-    MessagePlugin.warning(t('knowledgeEditor.messages.multimodalInvalid'))
-    currentSection.value = 'multimodal'
-    return false
-  }
-
   if (formData.value.type === 'faq' && !formData.value.faqConfig?.indexMode) {
     MessagePlugin.warning(t('knowledgeEditor.messages.indexModeRequired'))
     currentSection.value = 'faq'
@@ -1205,14 +1127,9 @@ const buildSubmitData = () => {
     data.vectorStoreId = formData.value.vectorStoreId
   }
 
-  // 添加多模态配置
-  data.vlmConfig = {
-    enabled: formData.value.multimodalConfig.enabled,
-    modelId: formData.value.multimodalConfig.enabled
-      ? (formData.value.multimodalConfig.vllmModelId || '')
-      : '',
-    descriptionLanguage: formData.value.multimodalConfig.descriptionLanguage || '',
-    customInstructions: formData.value.multimodalConfig.customInstructions || ''
+  // 图片 OCR 开关（缺省开启）。多模态图片描述未落地，不再写 vlmConfig
+  data.imageProcessingConfig = {
+    ocrEnabled: formData.value.ocrEnabled !== false
   }
 
   // 添加ASR语音识别配置

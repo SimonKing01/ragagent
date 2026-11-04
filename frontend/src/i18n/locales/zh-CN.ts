@@ -3208,6 +3208,14 @@ export default {
     attachmentStillProcessing: '附件 {name} 仍在解析，请稍候'
   },
   knowledgeEditor: {
+    // 图片 OCR（原「图像处理」）：默认开启，按知识库控制入库图片是否走 OCR
+    ocr: {
+      title: '图片 OCR',
+      description: '扫描件与文档内图片在入库时自动识别文字，识别结果插入正文并参与检索。',
+      label: '对入库图片做文字识别',
+      desc: '默认开启；关闭后该知识库的图片只保留原图，不提取文字。',
+      serviceHint: '需要在服务端部署 OCR 服务（OCR_ENDPOINT）；未部署时此开关不会生效。'
+    },
     titleCreate: '新建知识库',
     titleEdit: '知识库设置',
     advanced: {
@@ -3744,7 +3752,7 @@ export default {
       advanced: '高级设置',
       faq: 'FAQ 设置',
       graph: '知识图谱',
-      multimodal: '图像处理',
+      multimodal: '图片 OCR',
       asr: '音频处理',
       datasource: '数据源',
       share: '共享管理',

@@ -2194,6 +2194,14 @@ export default {
     defaultLocaleBrowser: 'Browser / host default'
   },
   knowledgeEditor: {
+    // 图片 OCR（原「图像处理」）：默认开启，按知识库控制入库图片是否走 OCR
+    ocr: {
+      title: 'Image OCR',
+      description: 'Scanned pages and embedded images are OCR-ed on ingest; recognized text is inserted into the body and indexed.',
+      label: 'OCR ingested images',
+      desc: 'On by default. When off, images are kept as-is without text extraction.',
+      serviceHint: 'Requires an OCR service on the server (OCR_ENDPOINT); the switch has no effect until one is deployed.'
+    },
     activity: {
       title: 'Activity',
       description: 'Important changes and background-task entry points for this knowledge base. Retention follows the audit-log policy.',
@@ -2339,7 +2347,7 @@ export default {
       advanced: 'Advanced Settings',
       faq: 'FAQ Settings',
       graph: 'Knowledge Graph',
-      multimodal: 'Image Processing',
+      multimodal: 'Image OCR',
       asr: 'Audio',
       datasource: 'Data Sources',
       share: 'Sharing',
