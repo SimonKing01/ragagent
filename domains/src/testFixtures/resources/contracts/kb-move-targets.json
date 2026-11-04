@@ -24,7 +24,8 @@
         "tableMetadataInstructions": null
       },
       "imageProcessingConfig": {
-        "modelId": ""
+        "modelId": "",
+        "ocrEnabled": true
       },
       "embeddingModelId": null,
       "summaryModelId": null,
@@ -102,7 +103,7 @@
         "tableMetadataInstructions": null
       },
       "imageProcessingConfig": {
-        "modelId": ""
+        "modelId": "", "ocrEnabled": true
       },
       "embeddingModelId": null,
       "summaryModelId": null,

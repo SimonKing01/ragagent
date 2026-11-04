@@ -108,7 +108,7 @@ class KnowledgeBaseConfigJsonContractTest {
                 {"enabled":false,"modelId":"whisper","language":"zh"}
                 """, KnowledgeBaseAsrConfig.class);
         assertRoundTrips("图像处理配置", """
-                {"modelId":"qwen-vl"}
+                {"modelId":"qwen-vl","ocrEnabled":true}
                 """, KnowledgeBaseImageProcessingConfig.class);
         assertRoundTrips("对象存储配置", """
                 {"secretId":"id","secretKey":"key","region":"ap-guangzhou","bucketName":"bucket",

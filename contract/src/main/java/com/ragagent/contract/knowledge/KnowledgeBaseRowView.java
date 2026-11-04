@@ -157,7 +157,7 @@ public class KnowledgeBaseRowView {
     public void setChunkingConfig(ChunkingConfigView v) { chunkingConfig = v; }
 
     public ImageProcessingConfigView getImageProcessingConfig() {
-        if (imageProcessingConfig == null) imageProcessingConfig = new ImageProcessingConfigView("");
+        if (imageProcessingConfig == null) imageProcessingConfig = new ImageProcessingConfigView("", true);
         return imageProcessingConfig;
     }
 

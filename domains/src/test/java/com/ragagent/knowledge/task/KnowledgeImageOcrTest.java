@@ -63,6 +63,20 @@ class KnowledgeImageOcrTest {
     }
 
     @Test
+    void skipsEverythingWhenKnowledgeBaseSwitchOff() throws Exception {
+        // 服务已配置，但知识库关掉了「图片 OCR」：整篇跳过，不读图、不请求
+        TenantFileStorage fileStorage = mock(TenantFileStorage.class);
+        String markdown = "![page](local://11/exports/page-1.jpg)";
+
+        // 开关关闭时在发请求前就返回，所以不需要真起 OCR 服务
+        String result = new KnowledgeImageOcr(fileStorage, properties("http://127.0.0.1:9"), mock(SpanTracker.class))
+                .enrich(knowledge(), markdown, 0, "kid", false);
+
+        assertThat(result).isEqualTo(markdown);
+        verify(fileStorage, never()).read(TENANT_ID, IMAGE_REF);
+    }
+
+    @Test
     void skipsEverythingWhenEndpointMissing() {
         TenantFileStorage fileStorage = mock(TenantFileStorage.class);
         String markdown = "![page](local://11/exports/page-1.jpg)";

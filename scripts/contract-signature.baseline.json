@@ -2038,44 +2038,44 @@
    3
   ],
   "kb-create-empty.json": [
-   "750ead326bf7",
-   64
+   "37d79876b604",
+   65
   ],
   "kb-create-forbidden-viewer.json": [
    "f9d434d42098",
    3
   ],
   "kb-create.json": [
-   "8559eb78cae6",
-   67
+   "9925c32cfe27",
+   68
   ],
   "kb-get-cross-tenant.json": [
-   "750ead326bf7",
-   64
+   "37d79876b604",
+   65
   ],
   "kb-get.json": [
-   "8559eb78cae6",
-   67
+   "9925c32cfe27",
+   68
   ],
   "kb-list.json": [
-   "8559eb78cae6",
-   67
+   "9925c32cfe27",
+   68
   ],
   "kb-move-targets.json": [
-   "8559eb78cae6",
-   67
+   "9925c32cfe27",
+   68
   ],
   "kb-not-found.json": [
    "f9d434d42098",
    3
   ],
   "kb-pin.json": [
-   "8559eb78cae6",
-   67
+   "9925c32cfe27",
+   68
   ],
   "kb-update.json": [
-   "8559eb78cae6",
-   67
+   "9925c32cfe27",
+   68
   ],
   "kg-batch-badkb.json": [
    "f9d434d42098",
@@ -2582,12 +2582,12 @@
    3
   ],
   "ks-duplicate-again.json": [
-   "30c21a274997",
-   70
+   "171453f2ee61",
+   71
   ],
   "ks-duplicate.json": [
-   "30c21a274997",
-   70
+   "171453f2ee61",
+   71
   ],
   "ks-hybrid-404.json": [
    "f9d434d42098",
@@ -4674,8 +4674,8 @@
    3
   ],
   "w5a-tag-kb-create.json": [
-   "8559eb78cae6",
-   67
+   "9925c32cfe27",
+   68
   ],
   "w5a-tag-list-badpage.json": [
    "f9d434d42098",

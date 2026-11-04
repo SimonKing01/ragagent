@@ -98,7 +98,7 @@ public final class KnowledgeBaseConfigMaps {
     // ── 图像处理 ──
 
     public static ImageProcessingConfigView toView(KnowledgeBaseImageProcessingConfig c) {
-        return c == null ? null : new ImageProcessingConfigView(c.getModelId());
+        return c == null ? null : new ImageProcessingConfigView(c.getModelId(), c.isOcrEnabled());
     }
 
     public static KnowledgeBaseImageProcessingConfig toDomain(ImageProcessingConfigView v) {
@@ -107,6 +107,7 @@ public final class KnowledgeBaseConfigMaps {
         }
         KnowledgeBaseImageProcessingConfig c = new KnowledgeBaseImageProcessingConfig();
         c.setModelId(v.modelId());
+        c.setOcrEnabled(v.ocrEnabled());
         return c;
     }
 

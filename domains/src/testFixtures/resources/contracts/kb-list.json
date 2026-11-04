@@ -40,7 +40,8 @@
       "faqConfig": null,
       "id": "882a3361-fa2d-402b-a383-2a302f9c0184",
       "imageProcessingConfig": {
-        "modelId": ""
+        "modelId": "",
+        "ocrEnabled": true
       },
       "indexingStrategy": {
         "vectorEnabled": true,
@@ -118,7 +119,7 @@
       "faqConfig": null,
       "id": "793fcc0f-2f4d-4db6-871a-0a7aaf82ae9a",
       "imageProcessingConfig": {
-        "modelId": ""
+        "modelId": "", "ocrEnabled": true
       },
       "indexingStrategy": {
         "vectorEnabled": true,

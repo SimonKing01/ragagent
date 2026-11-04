@@ -53,7 +53,7 @@ final class KnowledgeTextExtractor {
         if ("manual".equals(k.getType())) {
             String content = k.getMetadata() != null && k.getMetadata().hasNonNull("content")
                     ? k.getMetadata().get("content").asText() : "";
-            return imageOcr.enrich(k, content, attempt, knowledgeId);
+            return imageOcr.enrich(k, content, attempt, knowledgeId, resolveOcrEnabled(k));
         }
         SpanTracker.SpanHandle docSpan = beginStageSpan(attempt, knowledgeId,
                 KnowledgeProcessingSpan.STAGE_DOC_READER,
@@ -81,7 +81,29 @@ final class KnowledgeTextExtractor {
             throw e;
         }
         endStageSpan(docSpan, Map.of("chars", markdown.length()));
-        return imageOcr.enrich(k, markdown, attempt, knowledgeId);
+        return imageOcr.enrich(k, markdown, attempt, knowledgeId, resolveOcrEnabled(k));
+    }
+
+    /**
+     * KB 级「图片 OCR」开关：{@code image_processing_config.ocrEnabled}，缺省开启。
+     *
+     * <p>只有显式 false 才关闭；KB 读不到（含知识库已删）时按开启处理，与产品默认一致。</p>
+     */
+    boolean resolveOcrEnabled(Knowledge k) {
+        String kbId = k.getKnowledgeBaseId();
+        if (kbId == null || kbId.isBlank()) {
+            return true;
+        }
+        try {
+            KnowledgeBase kb = kbRepository.findByIdOnly(kbId);
+            if (kb == null || kb.getImageProcessingConfig() == null) {
+                return true;
+            }
+            return kb.getImageProcessingConfig().isOcrEnabled();
+        } catch (RuntimeException e) {
+            log.warn("resolve ocr switch failed for knowledge {}", k.getId(), e);
+            return true;
+        }
     }
 
     /**

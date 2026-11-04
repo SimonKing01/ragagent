@@ -35,7 +35,8 @@
   "faqConfig": null,
   "id": "0af07405-b814-495b-8554-117da273cae4",
   "imageProcessingConfig": {
-    "modelId": ""
+    "modelId": "",
+    "ocrEnabled": true
   },
   "indexingStrategy": {
     "vectorEnabled": true,

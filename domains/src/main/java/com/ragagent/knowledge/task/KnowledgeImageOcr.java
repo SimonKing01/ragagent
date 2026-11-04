@@ -69,6 +69,18 @@ final class KnowledgeImageOcr {
      * <p>未启用、无图片、全部识别失败时原样返回。</p>
      */
     String enrich(Knowledge k, String markdown, int attempt, String knowledgeId) {
+        return enrich(k, markdown, attempt, knowledgeId, true);
+    }
+
+    /**
+     * @param kbOcrEnabled 知识库级开关（缺省开启）；false 时整篇跳过，不再看全局 endpoint。
+     */
+    String enrich(Knowledge k, String markdown, int attempt, String knowledgeId,
+                  boolean kbOcrEnabled) {
+        if (!kbOcrEnabled) {
+            skipSpan(attempt, knowledgeId, "kb-disabled");
+            return markdown;
+        }
         if (!properties.enabled()) {
             skipSpan(attempt, knowledgeId, "disabled");
             return markdown;
