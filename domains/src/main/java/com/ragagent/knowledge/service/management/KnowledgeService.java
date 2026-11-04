@@ -34,6 +34,7 @@ import com.ragagent.knowledge.service.query.KnowledgeSearchService;
 import com.ragagent.knowledge.service.query.KnowledgeSpanService;
 import com.ragagent.knowledge.storage.LocalStorageService;
 import com.ragagent.knowledge.storage.TenantFileStorage;
+import com.ragagent.knowledge.support.KnowledgeMetadataOverrides;
 import com.ragagent.knowledge.support.KnowledgePaths;
 import com.ragagent.knowledge.support.KnowledgeRowViews;
 import com.ragagent.knowledge.support.TagViews;
@@ -189,22 +190,10 @@ public class KnowledgeService implements KnowledgeReadPort, KnowledgeDocumentGat
         k.setFileHash(hash);
         k.setFilePath(fileStorage.save(tenantId(), k.getId(), fileName, fileContent));
         k.setCustomMetadata(mergeCustomMetadata(customMetadata));
-        k.setMetadata(mergeProcessOverrides(k.getMetadata(), processConfig));
+        k.setMetadata(KnowledgeMetadataOverrides.merge(k.getMetadata(), processConfig));
         knowledgeRepository.insert(k);
         knowledgeIngest.enqueueProcessing(k.getId());
         return k;
-    }
-
-    /** 把逐文档覆盖合并进 metadata（保留既有键，只覆盖 processOverrides）。 */
-    private JsonNode mergeProcessOverrides(JsonNode metadata, JsonNode processConfig) {
-        if (processConfig == null || !processConfig.isObject() || processConfig.isEmpty()) {
-            return metadata;
-        }
-        ObjectNode base = metadata instanceof ObjectNode obj
-                ? obj.deepCopy()
-                : MAPPER.createObjectNode();
-        base.set("processOverrides", processConfig);
-        return base;
     }
 
     /** 拉取 URL 内容按文件入库（SSRF 在 controller；抓取口径与大小上限见 {@link UrlBytesFetcher}） */
