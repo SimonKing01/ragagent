@@ -149,6 +149,22 @@ class ChunkExtractServiceTest {
     }
 
     @Test
+    @DisplayName("逐文档覆盖：文档关掉抽取时跳过，即便 KB 已启用")
+    void documentOverrideDisablesExtract() throws Exception {
+        when(kbRepository.findByIdAny("kb-1"))
+                .thenReturn(kbWithExtractConfig("{\"enabled\":true,\"tags\":[\"kb-tag\"]}"));
+        Knowledge doc = new Knowledge();
+        doc.setId("kn-1");
+        doc.setMetadata(JSON.readTree(
+                "{\"processOverrides\":{\"extractConfig\":{\"enabled\":false}}}"));
+        when(knowledgeRepository.findByIdAny("kn-1")).thenReturn(doc);
+
+        service.handle(payload());
+
+        assertTrue(graphRepo.addedGraphs.isEmpty());
+    }
+
+    @Test
     @DisplayName("supersede：在开 span/取数之前返回，且不减计数、不写图")
     void supersededSkipsEverything() {
         when(spanTracker.isAttemptSuperseded("kn-1", 3)).thenReturn(true);

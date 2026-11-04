@@ -134,9 +134,13 @@ final class KnowledgeFinalizingStage {
                 && hasWikiSynthesisModel(kb);
         boolean kbGraphEnabled = kb.getIndexingStrategy() != null
                 && kb.getIndexingStrategy().isGraphEnabled();
+        // 抽取配置（含逐文档覆盖）也要在此拦一道：否则会白入队一批注定被 worker 跳过的子任务
+        JsonNode extractCfg = ProcessOverridesResolver.extractConfig(k, kb.getExtractConfig());
+        boolean extractEnabled = extractCfg != null && extractCfg.path("enabled").asBoolean(false);
         List<Chunk> graphChunks = ProcessOverridesResolver.graphEnabled(k, kbGraphEnabled)
-                ? GraphChunkSelector.selectGraphChunks(chunks)
-                : List.of();
+                && extractEnabled
+                        ? GraphChunkSelector.selectGraphChunks(chunks)
+                        : List.of();
         // 逐文档覆盖优先：上传确认弹窗里关掉推荐问题时，不能再用 KB 级开关覆盖它
         boolean questionEnabled = QuestionGenerationPolicy.enabled(k, kb);
         boolean kbNeedsEmbedding = kb.getIndexingStrategy() != null

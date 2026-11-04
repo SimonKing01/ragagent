@@ -37,6 +37,27 @@ export interface ChunkingConfigOverride {
   tableMetadataInstructions?: string
 }
 
+export interface GraphNodeOverride {
+  name: string
+  attributes?: string[]
+}
+
+export interface GraphRelationOverride {
+  node1: string
+  node2: string
+  type: string
+}
+
+/** 图谱抽取配置：节点/关系示例、标签与自定义指令都会进抽取提示词 */
+export interface ExtractConfigOverride {
+  enabled?: boolean
+  text?: string
+  tags?: string[]
+  nodes?: GraphNodeOverride[]
+  relations?: GraphRelationOverride[]
+  customInstructions?: string
+}
+
 export interface QuestionGenerationConfigOverride {
   enabled?: boolean
   questionCount?: number
@@ -51,4 +72,6 @@ export interface KnowledgeProcessOverrides {
   questionGenerationConfig?: QuestionGenerationConfigOverride
   /** 图谱抽取开关：KB 打开时可按文档关闭 */
   graphEnabled?: boolean
+  /** 逐文档图谱抽取配置：解析管线消费（节点/关系/标签/指令进提示词） */
+  extractConfig?: ExtractConfigOverride
 }

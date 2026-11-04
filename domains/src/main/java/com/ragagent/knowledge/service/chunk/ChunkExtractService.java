@@ -23,6 +23,7 @@ import com.ragagent.knowledge.repository.ChunkRepository;
 import com.ragagent.knowledge.repository.KnowledgeBaseRepository;
 import com.ragagent.knowledge.repository.KnowledgeRepository;
 import com.ragagent.knowledge.runtime.KnowledgeTrace;
+import com.ragagent.knowledge.support.ProcessOverridesResolver;
 import com.ragagent.knowledge.support.SubtaskDrain;
 import com.ragagent.platform.access.TenantScopes;
 import com.ragagent.platform.prompt.ExtractPrompts;
@@ -192,14 +193,13 @@ public class ChunkExtractService implements ChunkExtractConsumer {
     /** @return 失败消息（null = 成功或"按设计跳过"） */
     private String runExtract(ExtractChunkPayload p, Map<String, Object> graphOut) {
         // 取消/删除短路：图抽取是管线里最贵的富化 fan-out，取消即跳
-        if (!p.knowledgeId().isEmpty()) {
-            Knowledge k = knowledgeRepository.findByIdAny(p.knowledgeId());
-            if (k != null && k.isAborted()) {
-                log.info("graph extract: knowledge {} aborted ({}), skipping chunk {}",
-                        p.knowledgeId(), k.getParseStatus(), p.chunkId());
-                graphOut.put("skipped", "knowledge_" + k.getParseStatus());
-                return null;
-            }
+        Knowledge doc = p.knowledgeId().isEmpty() ? null
+                : knowledgeRepository.findByIdAny(p.knowledgeId());
+        if (doc != null && doc.isAborted()) {
+            log.info("graph extract: knowledge {} aborted ({}), skipping chunk {}",
+                    p.knowledgeId(), doc.getParseStatus(), p.chunkId());
+            graphOut.put("skipped", "knowledge_" + doc.getParseStatus());
+            return null;
         }
 
         Chunk chunk = chunkRepository.getChunkById(p.tenantId(), p.chunkId());
@@ -216,7 +216,8 @@ public class ChunkExtractService implements ChunkExtractConsumer {
             throw new IllegalStateException("failed to get knowledge base: " + chunk.getKnowledgeBaseId());
         }
 
-        JsonNode extractCfg = kb.getExtractConfig();
+        // 逐文档覆盖优先（上传/重解析弹窗里的实体、关系、标签与自定义指令）
+        JsonNode extractCfg = ProcessOverridesResolver.extractConfig(doc, kb.getExtractConfig());
         if (extractCfg == null || !extractCfg.path("enabled").asBoolean(false)) {
             log.warn("extract config not enabled");
             graphOut.put("skipped", "extract_disabled");

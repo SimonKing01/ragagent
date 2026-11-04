@@ -1389,7 +1389,6 @@ const processConfigLines = computed<string[]>(() => {
   }
 
   const graph = o.graphEnabled ?? (o as any).graph_enabled
-    ?? (o as any).extract_config?.enabled
   if (graph != null) lines.push(`${t(k('graph'))}: ${onOff(graph)}`)
 
   return lines.length ? lines : [t('knowledgeStages.processConfig.kbDefault')]

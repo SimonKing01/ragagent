@@ -1149,7 +1149,7 @@ const buildSubmitData = () => {
   data.storageProvider = resolvedStorageProvider()
 
   // 添加知识图谱配置 — now synced via indexingStrategy.graphEnabled
-  // extract_config is sent below along with indexing_strategy
+  // extractConfig is sent below along with indexing_strategy
 
   // 添加问题生成配置
   if (formData.value.questionGenerationConfig?.enabled) {
@@ -1202,7 +1202,7 @@ const buildSubmitData = () => {
     }
   }
 
-  // Always persist extract_config so the toggle state from GraphSettings is saved,
+  // Always persist extractConfig so the toggle state from GraphSettings is saved,
   // regardless of whether the graph indexing strategy is currently enabled.
   if (formData.value.nodeExtractConfig) {
     data.extractConfig = {

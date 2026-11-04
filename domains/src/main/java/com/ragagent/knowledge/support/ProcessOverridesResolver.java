@@ -1,6 +1,7 @@
 package com.ragagent.knowledge.support;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.knowledge.domain.Knowledge;
 import com.ragagent.knowledge.domain.KnowledgeBaseChunkingConfig;
 import java.util.ArrayList;
@@ -91,6 +92,42 @@ public final class ProcessOverridesResolver {
         }
         JsonNode node = overrides(k).path("graphEnabled");
         return !node.isBoolean() || node.asBoolean();
+    }
+
+
+    /**
+     * 图谱抽取配置：以 KB 的 {@code extractConfig} 为底，叠加逐文档覆盖
+     * （{@code text} / {@code tags} / {@code nodes} / {@code relations} / {@code customInstructions}）。
+     *
+     * <p>{@code enabled} 只能改「关」不能改「开」：KB 未启用抽取时，文档级打开也没有
+     * 提示词模板与图库命名空间可用。</p>
+     *
+     * @return 生效配置；KB 未配置（null/非对象）时返回 null，调用方跳过抽取
+     */
+    public static JsonNode extractConfig(Knowledge k, JsonNode kbCfg) {
+        if (kbCfg == null || !kbCfg.isObject()) {
+            return null;
+        }
+        ObjectNode effective = ((ObjectNode) kbCfg).deepCopy();
+        JsonNode ov = overrides(k).path("extractConfig");
+        if (!ov.isObject()) {
+            return effective;
+        }
+        if (ov.path("enabled").isBoolean()) {
+            boolean kbEnabled = kbCfg.path("enabled").asBoolean(false);
+            effective.put("enabled", kbEnabled && ov.path("enabled").asBoolean());
+        }
+        for (String key : new String[] {"text", "customInstructions"}) {
+            if (ov.path(key).isTextual()) {
+                effective.put(key, ov.path(key).asText());
+            }
+        }
+        for (String key : new String[] {"tags", "nodes", "relations"}) {
+            if (ov.path(key).isArray()) {
+                effective.set(key, ov.path(key).deepCopy());
+            }
+        }
+        return effective;
     }
 
     private static List<String> strings(JsonNode array) {

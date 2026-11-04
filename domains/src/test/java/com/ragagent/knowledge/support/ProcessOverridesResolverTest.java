@@ -94,4 +94,47 @@ class ProcessOverridesResolverTest {
         assertThat(ProcessOverridesResolver.graphEnabled(off, true)).isFalse();
         assertThat(ProcessOverridesResolver.graphEnabled(doc(null), true)).isTrue();
     }
+
+    // ── 图谱抽取配置 ──
+
+    private static com.fasterxml.jackson.databind.JsonNode kbExtract() throws Exception {
+        return MAPPER.readTree("{\"enabled\":true,\"tags\":[\"kb-tag\"],\"text\":\"kb-text\","
+                + "\"customInstructions\":\"kb-ins\",\"nodes\":[{\"name\":\"kb-node\"}]}");
+    }
+
+    @Test
+    void extractConfigOverridesTagsAndInstructions() throws Exception {
+        Knowledge k = doc("{\"processOverrides\":{\"extractConfig\":"
+                + "{\"tags\":[\"doc-tag\"],\"customInstructions\":\"doc-ins\","
+                + "\"nodes\":[{\"name\":\"doc-node\"}],\"relations\":[{\"node1\":\"a\",\"node2\":\"b\",\"type\":\"t\"}]}}}");
+
+        var effective = ProcessOverridesResolver.extractConfig(k, kbExtract());
+
+        org.assertj.core.api.Assertions.assertThat(effective.path("tags").get(0).asText()).isEqualTo("doc-tag");
+        org.assertj.core.api.Assertions.assertThat(effective.path("customInstructions").asText()).isEqualTo("doc-ins");
+        org.assertj.core.api.Assertions.assertThat(effective.path("nodes").get(0).path("name").asText()).isEqualTo("doc-node");
+        org.assertj.core.api.Assertions.assertThat(effective.path("relations").size()).isEqualTo(1);
+        // 覆盖里没给的键沿用 KB
+        org.assertj.core.api.Assertions.assertThat(effective.path("text").asText()).isEqualTo("kb-text");
+        org.assertj.core.api.Assertions.assertThat(effective.path("enabled").asBoolean()).isTrue();
+    }
+
+    @Test
+    void extractConfigCanBeDisabledPerDocumentOnly() throws Exception {
+        Knowledge off = doc("{\"processOverrides\":{\"extractConfig\":{\"enabled\":false}}}");
+        org.assertj.core.api.Assertions.assertThat(
+                ProcessOverridesResolver.extractConfig(off, kbExtract()).path("enabled").asBoolean()).isFalse();
+
+        // KB 关着时，文档级不能强行打开
+        var kbOff = MAPPER.readTree("{\"enabled\":false}");
+        Knowledge on = doc("{\"processOverrides\":{\"extractConfig\":{\"enabled\":true}}}");
+        org.assertj.core.api.Assertions.assertThat(
+                ProcessOverridesResolver.extractConfig(on, kbOff).path("enabled").asBoolean()).isFalse();
+    }
+
+    @Test
+    void extractConfigNullWhenKbHasNone() throws Exception {
+        Knowledge k = doc("{\"processOverrides\":{\"extractConfig\":{\"enabled\":true}}}");
+        org.assertj.core.api.Assertions.assertThat(ProcessOverridesResolver.extractConfig(k, null)).isNull();
+    }
 }

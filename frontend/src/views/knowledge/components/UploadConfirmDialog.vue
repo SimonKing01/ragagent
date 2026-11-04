@@ -950,6 +950,14 @@ function buildProcessOverrides(): KnowledgeProcessOverrides {
       questionCount: state.questionGenerationConfig.questionCount,
     },
     graphEnabled: state.nodeExtractConfig.enabled && state.graphEnabled,
+    extractConfig: {
+      enabled: state.nodeExtractConfig.enabled && state.graphEnabled,
+      text: state.nodeExtractConfig.text,
+      tags: state.nodeExtractConfig.tags,
+      nodes: state.nodeExtractConfig.nodes,
+      relations: state.nodeExtractConfig.relations,
+      customInstructions: state.nodeExtractConfig.customInstructions,
+    },
   }
 
   return overrides
@@ -993,6 +1001,22 @@ function applyOverridesToState(o?: KnowledgeProcessOverrides | null) {
   }
   const graph = o.graphEnabled ?? (o as any).graph_enabled
   if (graph != null) s.graphEnabled = graph
+
+  // 只认 camel：旧数据里从未真正持久化过该键（后端此前不读）
+  const ec = o.extractConfig
+  if (ec) {
+    if (ec.enabled != null) s.nodeExtractConfig.enabled = ec.enabled
+    if (ec.text != null) s.nodeExtractConfig.text = ec.text
+    if (ec.tags) s.nodeExtractConfig.tags = ec.tags
+    if (ec.nodes) {
+      s.nodeExtractConfig.nodes = ec.nodes.map((n: any) => ({
+        name: n.name,
+        attributes: n.attributes || [],
+      }))
+    }
+    if (ec.relations) s.nodeExtractConfig.relations = ec.relations
+    if (ec.customInstructions != null) s.nodeExtractConfig.customInstructions = ec.customInstructions
+  }
   s.nodeExtractConfig.enabled = s.nodeExtractConfig.enabled && s.graphEnabled
 }
 
