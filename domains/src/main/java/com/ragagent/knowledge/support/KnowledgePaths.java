@@ -80,4 +80,41 @@ private static String stripTrailing(String s, String cutset) {
     }
     return s;
 }
+
+    /**
+     * 上传时前端把「目标目录」编码进 fileName（如 {@code 2026/合同/a.pdf}，拖拽上传目录同理）。
+     * 拆成 (folderPath, fileName)：文件夹树按 {@code knowledges.folder_path} 聚合，
+     * 不拆会退化成「标题带目录前缀、目录本身不存在」。
+     */
+    public static UploadPath splitUploadPath(String raw) {
+        String name = raw == null ? "" : raw.replace('\\', '/');
+        int slash = name.lastIndexOf('/');
+        String folderPath = slash >= 0
+                ? normalizeKnowledgeFolderPath(name.substring(0, slash)) : "";
+        String fileName = (slash >= 0 ? name.substring(slash + 1) : name).trim();
+        return new UploadPath(folderPath, fileName.isEmpty() ? "untitled" : fileName);
+    }
+
+    /** 上传路径拆分结果：{@code folderPath} 已归一化，{@code fileName} 一定非空。 */
+    public record UploadPath(String folderPath, String fileName) {
+    }
+
+    /**
+     * 上传落库前的身份解析：拆目录、定文件名与标题。
+     *
+     * <p>控制器把同一个值既当 {@code fileName} 又当 {@code displayName}，所以与原始路径
+     * 相同的 displayName 要丢弃，避免目录名混进标题。</p>
+     */
+    public static UploadIdentity resolveUploadIdentity(String rawFileName, String displayName) {
+        String raw = rawFileName == null ? "" : rawFileName.replace('\\', '/');
+        UploadPath path = splitUploadPath(rawFileName);
+        String title = displayName != null && !displayName.isBlank() && !raw.equals(displayName.trim())
+                ? displayName.trim()
+                : path.fileName();
+        return new UploadIdentity(path.folderPath(), path.fileName(), title);
+    }
+
+    /** 上传身份：归一化后的目录、文件名与标题。 */
+    public record UploadIdentity(String folderPath, String fileName, String title) {
+    }
 }

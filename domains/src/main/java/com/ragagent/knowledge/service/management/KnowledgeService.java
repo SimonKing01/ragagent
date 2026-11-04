@@ -179,16 +179,22 @@ public class KnowledgeService implements KnowledgeReadPort, KnowledgeDocumentGat
             throw new DuplicateKnowledgeException(KnowledgeRowViews.rowView(dup), ErrorCode.KNOWLEDGE_DUPLICATE_FILE,
                     "文件已存在（相同内容）");
         }
-        String title = displayName != null && !displayName.isEmpty() ? displayName : fileName;
-        String fileType = fileName != null && fileName.contains(".")
-                ? fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase() : "";
+        // 前端把「目标目录」编码进 fileName（如 "2026/合同/a.pdf"，拖拽上传目录同理）；
+        // 不拆会退化成「标题带目录前缀、目录本身不存在」——文件夹树按 folder_path 聚合。
+        KnowledgePaths.UploadIdentity upload = KnowledgePaths.resolveUploadIdentity(fileName, displayName);
+        String folderPath = upload.folderPath();
+        String baseName = upload.fileName();
+        String title = upload.title();
+        String fileType = baseName.contains(".")
+                ? baseName.substring(baseName.lastIndexOf('.') + 1).toLowerCase() : "";
 
         Knowledge k = newKnowledge(kb, "file", title, channel);
-        k.setFileName(fileName);
+        k.setFileName(baseName);
+        k.setFolderPath(folderPath);
         k.setFileType(fileType);
         k.setFileSize((long) fileContent.length);
         k.setFileHash(hash);
-        k.setFilePath(fileStorage.save(tenantId(), k.getId(), fileName, fileContent));
+        k.setFilePath(fileStorage.save(tenantId(), k.getId(), baseName, fileContent));
         k.setCustomMetadata(mergeCustomMetadata(customMetadata));
         k.setMetadata(KnowledgeMetadataOverrides.merge(k.getMetadata(), processConfig));
         knowledgeRepository.insert(k);
