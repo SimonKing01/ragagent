@@ -292,7 +292,6 @@
                           <t-switch v-model="formData.ocrEnabled" size="medium" />
                         </div>
                       </div>
-                      <p class="section-description">{{ $t('knowledgeEditor.ocr.serviceHint') }}</p>
                     </div>
                   </div>
                 </div>

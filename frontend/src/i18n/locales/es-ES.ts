@@ -2196,11 +2196,10 @@ export default {
   knowledgeEditor: {
     // 图片 OCR（原「图像处理」）：默认开启，按知识库控制入库图片是否走 OCR
     ocr: {
-      title: 'OCR de imágenes',
+      title: 'Procesamiento de imágenes',
       description: 'Los escaneos e imágenes incrustadas se reconocen al ingerir; el texto se inserta en el cuerpo y se indexa.',
-      label: 'Aplicar OCR a las imágenes',
+      label: 'Función OCR',
       desc: 'Activado por defecto. Si se desactiva, las imágenes se guardan sin extraer texto.',
-      serviceHint: 'Requiere un servicio OCR en el servidor (OCR_ENDPOINT); el interruptor no surte efecto hasta desplegarlo.'
     },
     activity: {
       title: 'Actividad',
@@ -2347,7 +2346,7 @@ export default {
       advanced: 'Ajustes avanzados',
       faq: 'Ajustes de FAQ',
       graph: 'Grafo de conocimiento',
-      multimodal: 'OCR de imágenes',
+      multimodal: 'Procesamiento de imágenes',
       asr: 'Audio',
       datasource: 'Fuentes de datos',
       share: 'Uso compartido',

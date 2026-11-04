@@ -2196,11 +2196,10 @@ export default {
   knowledgeEditor: {
     // 图片 OCR（原「图像处理」）：默认开启，按知识库控制入库图片是否走 OCR
     ocr: {
-      title: '圖片 OCR',
+      title: '圖片處理',
       description: '掃描件與文件內圖片在入庫時自動識別文字，結果插入正文並參與檢索。',
-      label: '對入庫圖片做文字識別',
+      label: '圖片OCR功能',
       desc: '預設開啟；關閉後該知識庫的圖片只保留原圖，不提取文字。',
-      serviceHint: '需要在服務端部署 OCR 服務（OCR_ENDPOINT）；未部署時此開關不會生效。'
     },
     activity: {
       title: '動態',
@@ -2347,7 +2346,7 @@ export default {
       advanced: '進階設定',
       faq: '常見問題設定',
       graph: '知識圖譜',
-      multimodal: '圖片 OCR',
+      multimodal: '圖片處理',
       asr: '音訊',
       datasource: '資料來源',
       share: '共用',
