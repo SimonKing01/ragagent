@@ -19,8 +19,6 @@ import { renderWorkspaceNotifyContent } from '@/utils/workspaceNotifyContent'
 import enUSConfig from 'tdesign-vue-next/esm/locale/en_US'
 import zhCNConfig from 'tdesign-vue-next/esm/locale/zh_CN'
 import zhTWConfig from 'tdesign-vue-next/esm/locale/zh_TW'
-import koKRConfig from 'tdesign-vue-next/esm/locale/ko_KR'
-import jaJPConfig from 'tdesign-vue-next/esm/locale/ja_JP'
 import ruRUConfig from 'tdesign-vue-next/esm/locale/ru_RU'
 // TDesign 未内置 es / pt-BR / th 语言包：本地只覆盖实际用到的组件文案，其余继承 en_US。
 import esESConfig from '@/i18n/tdesign/es-ES'
@@ -38,8 +36,6 @@ const tdLocaleMap: Record<string, object> = {
   'en-US': enUSConfig,
   'zh-CN': zhCNConfig,
   'zh-HK': zhTWConfig,
-  'ko-KR': koKRConfig,
-  'ja-JP': jaJPConfig,
   'ru-RU': ruRUConfig,
   'es-ES': esESConfig,
   'pt-BR': ptBRConfig,

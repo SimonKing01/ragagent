@@ -87,8 +87,6 @@ export type EmbedLocaleTag =
   | 'zh-CN'
   | 'zh-HK'
   | 'en-US'
-  | 'ko-KR'
-  | 'ja-JP'
   | 'ru-RU'
   | 'es-ES'
   | 'pt-BR'

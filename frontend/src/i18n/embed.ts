@@ -5,8 +5,6 @@ import { createI18n } from 'vue-i18n'
 import zhCN from './locales/embed/zh-CN.ts'
 import zhHK from './locales/embed/zh-HK.ts'
 import enUS from './locales/embed/en-US.ts'
-import koKR from './locales/embed/ko-KR.ts'
-import jaJP from './locales/embed/ja-JP.ts'
 import ruRU from './locales/embed/ru-RU.ts'
 import esES from './locales/embed/es-ES.ts'
 import ptBR from './locales/embed/pt-BR.ts'
@@ -16,8 +14,6 @@ export const SUPPORTED_LOCALES = [
   'zh-CN',
   'zh-HK',
   'en-US',
-  'ko-KR',
-  'ja-JP',
   'ru-RU',
   'es-ES',
   'pt-BR',
@@ -37,8 +33,6 @@ export function matchEmbedLocale(raw: string): EmbedLocale | null {
   const s = raw.trim().toLowerCase()
   if (!s) return null
   if (s.startsWith('en')) return 'en-US'
-  if (s.startsWith('ko')) return 'ko-KR'
-  if (s.startsWith('ja')) return 'ja-JP'
   if (s.startsWith('ru')) return 'ru-RU'
   if (s.startsWith('es')) return 'es-ES'
   if (s.startsWith('pt')) return 'pt-BR'
@@ -117,8 +111,6 @@ export const EMBED_MESSAGES = {
   'zh-CN': zhCN,
   'zh-HK': zhHK,
   'en-US': enUS,
-  'ko-KR': koKR,
-  'ja-JP': jaJP,
   'ru-RU': ruRU,
   'es-ES': esES,
   'pt-BR': ptBR,

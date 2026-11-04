@@ -3,8 +3,6 @@ import zhCN from './locales/zh-CN.ts'
 import zhHK from './locales/zh-HK.ts'
 import ruRU from './locales/ru-RU.ts'
 import enUS from './locales/en-US.ts'
-import koKR from './locales/ko-KR.ts'
-import jaJP from './locales/ja-JP.ts'
 import esES from './locales/es-ES.ts'
 import ptBR from './locales/pt-BR.ts'
 import thTH from './locales/th-TH.ts'
@@ -15,8 +13,6 @@ const messages = {
   'zh-HK': zhHK,
   'en-US': enUS,
   'ru-RU': ruRU,
-  'ko-KR': koKR,
-  'ja-JP': jaJP,
   'es-ES': esES,
   'pt-BR': ptBR,
   'th-TH': thTH

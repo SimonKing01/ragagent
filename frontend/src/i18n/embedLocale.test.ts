@@ -9,8 +9,6 @@ import {
 import zhCNBundle from './locales/embed/zh-CN.ts'
 import zhHK from './locales/embed/zh-HK.ts'
 import enUS from './locales/embed/en-US.ts'
-import koKR from './locales/embed/ko-KR.ts'
-import jaJP from './locales/embed/ja-JP.ts'
 import ruRU from './locales/embed/ru-RU.ts'
 import esES from './locales/embed/es-ES.ts'
 import ptBR from './locales/embed/pt-BR.ts'
@@ -21,8 +19,6 @@ const EMBED_LOCALE_FILES = {
   'zh-CN': zhCNBundle,
   'zh-HK': zhHK,
   'en-US': enUS,
-  'ko-KR': koKR,
-  'ja-JP': jaJP,
   'ru-RU': ruRU,
   'es-ES': esES,
   'pt-BR': ptBR,
@@ -60,7 +56,7 @@ const EXPECTED_REFERENCES_DRAWER_KEYS = [
 test('supported embed locales match the registered bundles', () => {
   assert.deepEqual(
     [...SUPPORTED_LOCALES].sort(),
-    ['en-US', 'es-ES', 'ja-JP', 'ko-KR', 'pt-BR', 'ru-RU', 'th-TH', 'zh-CN', 'zh-HK'].sort(),
+    ['en-US', 'es-ES', 'pt-BR', 'ru-RU', 'th-TH', 'zh-CN', 'zh-HK'].sort(),
   )
 })
 
@@ -158,26 +154,6 @@ test('locale-specific translations match expected strings for missing keys', () 
   assert.equal(enChat.referencesDrawerEmpty, 'No sources available')
   assert.equal(enCommon.close, 'Close')
 
-  // ja-JP
-  const jaChat = EMBED_MESSAGES['ja-JP'].chat as Record<string, any>
-  const jaCommon = EMBED_MESSAGES['ja-JP'].common as Record<string, any>
-  assert.equal(jaChat.conversationTime.today, '今日{time}')
-  assert.equal(jaChat.conversationTime.yesterday, '昨日{time}')
-  assert.equal(jaChat.referencesDrawerTitleDocs, 'ドキュメントの出典')
-  assert.equal(jaChat.referencesDrawerEmpty, '出典はありません')
-  assert.equal(jaCommon.close, '閉じる')
-
-  // ko-KR
-  const koChat = EMBED_MESSAGES['ko-KR'].chat as Record<string, any>
-  const koCommon = EMBED_MESSAGES['ko-KR'].common as Record<string, any>
-  assert.equal(koChat.conversationTime.today, '오늘 {time}')
-  assert.equal(koChat.conversationTime.yesterday, '어제 {time}')
-  assert.equal(koChat.conversationTime.thisYear, '{month}월 {day}일 {time}')
-  assert.equal(koChat.conversationTime.otherYear, '{year}년 {month}월 {day}일 {time}')
-  assert.equal(koChat.referencesDrawerTitleDocs, '문서 출처')
-  assert.equal(koChat.referencesDrawerEmpty, '참고 출처가 없습니다')
-  assert.equal(koCommon.close, '닫기')
-
   // ru-RU
   const ruChat = EMBED_MESSAGES['ru-RU'].chat as Record<string, any>
   const ruCommon = EMBED_MESSAGES['ru-RU'].common as Record<string, any>
@@ -197,10 +173,9 @@ test('normalizeEmbedLocale maps tags accurately with fallback to zh-CN', () => {
   assert.equal(normalizeEmbedLocale('en-US'), 'en-US')
   assert.equal(normalizeEmbedLocale('en'), 'en-US')
   assert.equal(normalizeEmbedLocale('EN-gb'), 'en-US')
-  assert.equal(normalizeEmbedLocale('ja-JP'), 'ja-JP')
-  assert.equal(normalizeEmbedLocale('ja'), 'ja-JP')
-  assert.equal(normalizeEmbedLocale('ko-KR'), 'ko-KR')
-  assert.equal(normalizeEmbedLocale('ko'), 'ko-KR')
+  // 已下线的语言回落到兜底 zh-CN
+  assert.equal(normalizeEmbedLocale('ja-JP'), 'zh-CN')
+  assert.equal(normalizeEmbedLocale('ko'), 'zh-CN')
   assert.equal(normalizeEmbedLocale('ru-RU'), 'ru-RU')
   assert.equal(normalizeEmbedLocale('ru'), 'ru-RU')
   assert.equal(normalizeEmbedLocale('unknown-locale'), 'zh-CN')

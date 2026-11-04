@@ -601,8 +601,6 @@ const defaultLocaleOptions = computed(() => ([
   { label: '简体中文', value: 'zh-CN' },
   { label: '繁體中文', value: 'zh-HK' },
   { label: 'English', value: 'en-US' },
-  { label: '한국어', value: 'ko-KR' },
-  { label: '日本語', value: 'ja-JP' },
   { label: 'Русский', value: 'ru-RU' },
   { label: 'Español', value: 'es-ES' },
   { label: 'Português', value: 'pt-BR' },

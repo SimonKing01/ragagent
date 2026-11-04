@@ -39,18 +39,18 @@ const mod = await import('./embed.ts')
 test('派生语言不落持久值；显式选择才落；跟随模式可清除；<html lang> 跟随', () => {
   store.clear()
   for (const k of Object.keys(htmlAttrs)) delete htmlAttrs[k]
-  installStubs('?locale=en-US', 'ja-JP')
+  installStubs('?locale=en-US', 'ru-RU')
 
   const ref = { value: 'zh-CN' }
 
   // 1) 语言包齐全（模块已按无 DOM 路径完成初始化）
-  assert.ok(mod.EMBED_MESSAGES['ja-JP'], '语言包应含 ja-JP')
+  assert.ok(mod.EMBED_MESSAGES['ru-RU'], '语言包应含 ru-RU')
 
   // 2) 派生：渠道默认语言 —— 生效但不写持久值
-  mod.applyDerivedEmbedLocale('ja-JP', ref)
-  assert.equal(ref.value, 'ja-JP')
+  mod.applyDerivedEmbedLocale('ru-RU', ref)
+  assert.equal(ref.value, 'ru-RU')
   assert.equal(store.get(KEY), undefined, '渠道默认语言不得写持久值')
-  assert.equal(htmlAttrs['lang'], 'ja-JP', '<html lang> 必须跟随当前语言')
+  assert.equal(htmlAttrs['lang'], 'ru-RU', '<html lang> 必须跟随当前语言')
 
   // 3) 显式：宿主 set_locale —— 写持久值（下次打开沿用）
   mod.applyEmbedLocale('en-US', ref)
@@ -63,7 +63,7 @@ test('派生语言不落持久值；显式选择才落；跟随模式可清除�
   assert.equal(store.get(KEY), undefined)
 
   // 5) 浏览器语言解析 + 归一化
-  assert.equal(mod.resolveBrowserEmbedLocale(), 'ja-JP')
+  assert.equal(mod.resolveBrowserEmbedLocale(), 'ru-RU')
   // 繁体中文（港/台/澳）统一归 zh-HK，其余中文归 zh-CN
   assert.equal(mod.normalizeEmbedLocale('zh-TW'), 'zh-HK')
   assert.equal(mod.normalizeEmbedLocale('zh-Hant'), 'zh-HK')
@@ -100,8 +100,8 @@ test('宿主页面语言：严格归一化（认不出返回 null）+ 从 hostLo
 test('URL 无 locale 时 syncEmbedLocaleFromUrl 返回 false 且不改语言', () => {
   store.clear()
   installStubs('', 'zh-CN')
-  const ref = { value: 'ko-KR' }
+  const ref = { value: 'th-TH' }
   assert.equal(mod.syncEmbedLocaleFromUrl(ref), false)
-  assert.equal(ref.value, 'ko-KR')
+  assert.equal(ref.value, 'th-TH')
   assert.equal(store.get(KEY), undefined)
 })

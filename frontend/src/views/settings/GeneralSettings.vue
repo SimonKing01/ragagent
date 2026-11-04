@@ -23,8 +23,6 @@
             <t-option value="zh-HK" :label="$t('language.zhHK')">{{ $t('language.zhHK') }}</t-option>
             <t-option value="en-US" :label="$t('language.enUS')">{{ $t('language.enUS') }}</t-option>
             <t-option value="ru-RU" :label="$t('language.ruRU')">{{ $t('language.ruRU') }}</t-option>
-            <t-option value="ko-KR" :label="$t('language.koKR')">{{ $t('language.koKR') }}</t-option>
-            <t-option value="ja-JP" :label="$t('language.jaJP')">{{ $t('language.jaJP') }}</t-option>
             <t-option value="es-ES" :label="$t('language.esES')">{{ $t('language.esES') }}</t-option>
             <t-option value="pt-BR" :label="$t('language.ptBR')">{{ $t('language.ptBR') }}</t-option>
             <t-option value="th-TH" :label="$t('language.thTH')">{{ $t('language.thTH') }}</t-option>
