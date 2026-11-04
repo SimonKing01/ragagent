@@ -12,6 +12,7 @@ import com.ragagent.knowledge.repository.KnowledgeBaseRepository;
 import com.ragagent.knowledge.service.image.ExtractedImageStore;
 import com.ragagent.knowledge.storage.TenantFileStorage;
 import com.ragagent.knowledge.support.HtmlMainContent;
+import com.ragagent.knowledge.support.ProcessOverridesResolver;
 import com.ragagent.platform.knowledge.ImageRefRewriter;
 import java.util.List;
 import java.util.Map;
@@ -130,6 +131,24 @@ final class KnowledgeTextExtractor {
      * <p>这是该配置的唯一消费点：此前 worker 固定传 {@code null}，UI 上的规则是空操作。</p>
      */
     String resolveParserEngine(Knowledge k) {
+        // 逐文档规则优先（上传/重解析弹窗里按文件类型指定的引擎）
+        JsonNode docRules = ProcessOverridesResolver.parserEngineRules(k);
+        if (docRules != null) {
+            String fileType = ParserEngineRules.normalize(k.getFileType());
+            for (JsonNode rule : docRules) {
+                JsonNode types = rule.path("fileTypes");
+                if (!types.isArray() || !rule.path("engine").isTextual()) {
+                    continue;
+                }
+                for (JsonNode candidate : types) {
+                    if (ParserEngineRules.normalize(candidate.asText("")).equals(fileType)) {
+                        return rule.path("engine").asText().trim();
+                    }
+                }
+            }
+            // 覆盖里没命中：回落到 KB 规则（上传弹窗默认会带一份 KB 快照，
+            // 未命中即视为"这份覆盖没管这个类型"，而不是把引擎清空）
+        }
         String kbId = k.getKnowledgeBaseId();
         if (kbId == null || kbId.isBlank()) {
             return "";

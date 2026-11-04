@@ -99,4 +99,27 @@ class KnowledgeTextExtractorParserRuleTest {
                 "{\"processOverrides\":{\"imageProcessingConfig\":{\"ocrEnabled\":false}}}"));
         assertThat(extractor.resolveOcrEnabled(k)).isFalse();
     }
+
+    // ── 逐文档规则优先于 KB 级规则 ──
+
+    @Test
+    void documentRulesBeatKnowledgeBaseRules() throws Exception {
+        when(kbRepository.findByIdOnly("kb1")).thenReturn(kbWithRule("pdf", "mineru"));
+        Knowledge k = knowledge("kb1", "pdf");
+        k.setMetadata(MAPPER.readTree(
+                "{\"processOverrides\":{\"parserEngineRules\":[{\"fileTypes\":[\"pdf\"],\"engine\":\"docling\"}]}}"));
+
+        assertThat(extractor.resolveParserEngine(k)).isEqualTo("docling");
+    }
+
+    @Test
+    void documentRulesWithoutMatchFallBackToKnowledgeBase() throws Exception {
+        when(kbRepository.findByIdOnly("kb1")).thenReturn(kbWithRule("pdf", "mineru"));
+        Knowledge k = knowledge("kb1", "pdf");
+        k.setMetadata(MAPPER.readTree(
+                "{\"processOverrides\":{\"parserEngineRules\":[{\"fileTypes\":[\"docx\"],\"engine\":\"docling\"}]}}"));
+
+        // 覆盖没命中该类型 → 回落 KB 规则（上传弹窗默认会带 KB 快照，不能因此清空引擎）
+        assertThat(extractor.resolveParserEngine(k)).isEqualTo("mineru");
+    }
 }

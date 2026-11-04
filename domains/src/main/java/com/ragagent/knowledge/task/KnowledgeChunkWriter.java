@@ -10,6 +10,7 @@ import com.ragagent.knowledge.domain.KnowledgeBaseChunkingConfig;
 import com.ragagent.knowledge.domain.KnowledgeProcessingSpan;
 import com.ragagent.knowledge.domain.span.SpanTracker;
 import com.ragagent.knowledge.repository.ChunkRepository;
+import com.ragagent.knowledge.support.ProcessOverridesResolver;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -40,7 +41,9 @@ final class KnowledgeChunkWriter {
                 KnowledgeProcessingSpan.STAGE_CHUNKING,
                 inactiveKeys.isEmpty() ? null
                         : Map.of("inactive_config_keys", String.join(",", inactiveKeys)));
-        SplitterConfig cfg = toSplitterConfig(kb.getChunkingConfig());
+        // 逐文档覆盖优先：上传/重解析弹窗里的分块设置要真正生效
+        SplitterConfig cfg = toSplitterConfig(
+                ProcessOverridesResolver.chunking(k, kb.getChunkingConfig()));
         List<ParsedChunk> parsedChunks = Chunker.split(markdown, cfg);
         List<Chunk> chunks = new ArrayList<>(parsedChunks.size());
         String prevId = null;

@@ -14,6 +14,7 @@ import com.ragagent.knowledge.repository.KnowledgeBaseRepository;
 import com.ragagent.knowledge.repository.KnowledgeRepository;
 import com.ragagent.knowledge.support.GraphChunkSelector;
 import com.ragagent.knowledge.support.KnowledgeProcessedEvent;
+import com.ragagent.knowledge.support.ProcessOverridesResolver;
 import com.ragagent.knowledge.support.QuestionBatchPlanner;
 import com.ragagent.knowledge.support.QuestionGenerationPolicy;
 import com.ragagent.platform.access.TracingContext;
@@ -131,10 +132,11 @@ final class KnowledgeFinalizingStage {
                 && kb.getIndexingStrategy().isWikiEnabled()
                 && !chunks.isEmpty()
                 && hasWikiSynthesisModel(kb);
-        List<Chunk> graphChunks = kb.getIndexingStrategy() != null
-                && kb.getIndexingStrategy().isGraphEnabled()
-                        ? GraphChunkSelector.selectGraphChunks(chunks)
-                        : List.of();
+        boolean kbGraphEnabled = kb.getIndexingStrategy() != null
+                && kb.getIndexingStrategy().isGraphEnabled();
+        List<Chunk> graphChunks = ProcessOverridesResolver.graphEnabled(k, kbGraphEnabled)
+                ? GraphChunkSelector.selectGraphChunks(chunks)
+                : List.of();
         // 逐文档覆盖优先：上传确认弹窗里关掉推荐问题时，不能再用 KB 级开关覆盖它
         boolean questionEnabled = QuestionGenerationPolicy.enabled(k, kb);
         boolean kbNeedsEmbedding = kb.getIndexingStrategy() != null

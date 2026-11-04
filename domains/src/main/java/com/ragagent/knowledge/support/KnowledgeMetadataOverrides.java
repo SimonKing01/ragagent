@@ -26,17 +26,18 @@ public final class KnowledgeMetadataOverrides {
 
     /** 逐文档的推荐问题开关；未覆盖返回 null（调用方回落到 KB 级配置）。 */
     public static Boolean questionGenerationEnabled(JsonNode metadata) {
-        JsonNode node = overrides(metadata).path("questionGenerationConfig").path("enabled");
+        JsonNode node = overridesOf(metadata).path("questionGenerationConfig").path("enabled");
         return node.isBoolean() ? node.booleanValue() : null;
     }
 
     /** 逐文档的推荐问题数量；未覆盖返回 null。 */
     public static Integer questionCount(JsonNode metadata) {
-        JsonNode node = overrides(metadata).path("questionGenerationConfig").path("questionCount");
+        JsonNode node = overridesOf(metadata).path("questionGenerationConfig").path("questionCount");
         return node.isInt() || node.isLong() ? node.asInt() : null;
     }
 
-    private static JsonNode overrides(JsonNode metadata) {
+    /** 取 metadata 里的覆盖对象；没有则空对象（便于链式 path）。 */
+    public static JsonNode overridesOf(JsonNode metadata) {
         if (metadata == null || !metadata.isObject()) {
             return MAPPER.createObjectNode();
         }
