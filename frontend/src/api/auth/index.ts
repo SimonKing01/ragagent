@@ -1,8 +1,8 @@
 import { post, get, put } from '@/utils/request'
 import type { TenantInfo } from '../tenant'
-import i18n from '@/i18n'
+import { tText } from '@/utils/activeI18n'
 
-const t = (key: string) => i18n.global.t(key)
+const t = (key: string) => tText(key)
 
 // 用户登录接口
 export interface LoginRequest {

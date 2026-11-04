@@ -1,10 +1,10 @@
 import { get, post, postUpload, put, del } from '../../utils/request';
-import i18n from '@/i18n'
+import { tText } from '@/utils/activeI18n'
 import { ModelInUseError, modelInUseErrorFromRequest } from './modelUsage'
 
 export * from './modelUsage'
 
-const t = (key: string) => i18n.global.t(key)
+const t = (key: string) => tText(key)
 
 // 模型类型定义（键名 = 后端 JSON 字段名，camelCase）
 export interface ModelConfig {

@@ -4,7 +4,7 @@ import { ref, computed } from 'vue'
 import type { UserInfo, KnowledgeBaseInfo, MembershipInfo } from '@/api/auth'
 import { userInfoFromApi } from '@/api/auth'
 import type { TenantInfo } from '@/api/tenant'
-import i18n from '@/i18n'
+import { tText } from '@/utils/activeI18n'
 import { reloadFontFromStorage } from '@/composables/useFont'
 import { reloadThemeFromStorage } from '@/composables/useTheme'
 import { resetMigrationLatch } from '@/composables/preferenceStorage'
@@ -476,7 +476,7 @@ export const useAuthStore = defineStore('auth', () => {
         // 这是「漏拷 4 处」之外的第 5 个隐藏入口，专门给页面刷新走的。
         user.value = userInfoFromApi(JSON.parse(storedUser))
       } catch (e) {
-        console.error(i18n.global.t('authStore.errors.parseUserFailed'), e)
+        console.error(tText('authStore.errors.parseUserFailed'), e)
       }
     }
 
@@ -484,7 +484,7 @@ export const useAuthStore = defineStore('auth', () => {
       try {
         tenant.value = JSON.parse(storedTenant)
       } catch (e) {
-        console.error(i18n.global.t('authStore.errors.parseTenantFailed'), e)
+        console.error(tText('authStore.errors.parseTenantFailed'), e)
       }
     }
 
@@ -501,7 +501,7 @@ export const useAuthStore = defineStore('auth', () => {
         const parsed = JSON.parse(storedKnowledgeBases)
         knowledgeBases.value = Array.isArray(parsed) ? parsed : []
       } catch (e) {
-        console.error(i18n.global.t('authStore.errors.parseKnowledgeBasesFailed'), e)
+        console.error(tText('authStore.errors.parseKnowledgeBasesFailed'), e)
         knowledgeBases.value = []
       }
     }
@@ -510,7 +510,7 @@ export const useAuthStore = defineStore('auth', () => {
       try {
         currentKnowledgeBase.value = JSON.parse(storedCurrentKb)
       } catch (e) {
-        console.error(i18n.global.t('authStore.errors.parseCurrentKnowledgeBaseFailed'), e)
+        console.error(tText('authStore.errors.parseCurrentKnowledgeBaseFailed'), e)
       }
     }
 

@@ -1,7 +1,7 @@
 import { del, get, post, put } from '@/utils/request'
-import i18n from '@/i18n'
+import { tText } from '@/utils/activeI18n'
 
-const t = (key: string) => i18n.global.t(key)
+const t = (key: string) => tText(key)
 
 // 空间信息接口（**唯一真源**；auth 侧从这里 re-export，不要再另立一份）
 export interface TenantInfo {

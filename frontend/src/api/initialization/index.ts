@@ -1,8 +1,8 @@
 import { get, post, put, unwrapEnvelope } from '../../utils/request';
 import { StorageKeys } from '../../utils/storageKeys'
-import i18n from '@/i18n'
+import { tText } from '@/utils/activeI18n'
 
-const t = (key: string) => i18n.global.t(key)
+const t = (key: string) => tText(key)
 
 // GET /initialization/config/:kbId exposes credential presence, not values.
 export interface ModelCredentialStatus {
