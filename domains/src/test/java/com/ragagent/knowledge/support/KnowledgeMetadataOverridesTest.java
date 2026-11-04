@@ -56,4 +56,21 @@ class KnowledgeMetadataOverridesTest {
         assertThat(KnowledgeMetadataOverrides.merge(metadata, MAPPER.readTree("{}"))).isSameAs(metadata);
         assertThat(KnowledgeMetadataOverrides.merge(metadata, MAPPER.readTree("\"text\""))).isSameAs(metadata);
     }
+
+    @Test
+    void readsQuestionGenerationOverride() throws Exception {
+        JsonNode metadata = MAPPER.readTree(
+                "{\"processOverrides\":{\"questionGenerationConfig\":{\"enabled\":false,\"questionCount\":5}}}");
+
+        assertThat(KnowledgeMetadataOverrides.questionGenerationEnabled(metadata)).isFalse();
+        assertThat(KnowledgeMetadataOverrides.questionCount(metadata)).isEqualTo(5);
+    }
+
+    @Test
+    void questionGenerationOverrideAbsentMeansFallback() throws Exception {
+        assertThat(KnowledgeMetadataOverrides.questionGenerationEnabled(null)).isNull();
+        assertThat(KnowledgeMetadataOverrides.questionGenerationEnabled(MAPPER.readTree("{}"))).isNull();
+        assertThat(KnowledgeMetadataOverrides.questionCount(MAPPER.readTree("{\"processOverrides\":{}}")))
+                .isNull();
+    }
 }

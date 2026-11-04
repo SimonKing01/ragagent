@@ -15,6 +15,7 @@ import com.ragagent.knowledge.repository.KnowledgeRepository;
 import com.ragagent.knowledge.support.GraphChunkSelector;
 import com.ragagent.knowledge.support.KnowledgeProcessedEvent;
 import com.ragagent.knowledge.support.QuestionBatchPlanner;
+import com.ragagent.knowledge.support.QuestionGenerationPolicy;
 import com.ragagent.platform.access.TracingContext;
 import com.ragagent.platform.tracing.langfuse.LangfuseTracing;
 import com.ragagent.wiki.service.DefaultWikiKnowledgeFinalizer;
@@ -86,7 +87,7 @@ final class KnowledgeFinalizingStage {
      */
     void finalizeProcessing(Knowledge k, KnowledgeBase kb, String knowledgeId,
             int attempt, long parseAttempt, List<Chunk> chunks) {
-        FinalizingPlan plan = planFinalizing(kb, chunks);
+        FinalizingPlan plan = planFinalizing(k, kb, chunks);
         if (!plan.wiki() && !plan.graph() && !plan.question()) {
             failOrComplete(knowledgeId, attempt, parseAttempt, null);
             return;
@@ -122,7 +123,7 @@ final class KnowledgeFinalizingStage {
         }
     }
 
-    private FinalizingPlan planFinalizing(KnowledgeBase kb, List<Chunk> chunks) {
+    private FinalizingPlan planFinalizing(Knowledge k, KnowledgeBase kb, List<Chunk> chunks) {
         // wiki 子任务必须能解析出合成模型才入队：缺模型时 ingest 批次必然失败并反复
         // 重试（MaxRetry 次退避），而该子任务槽一直被占住 → 文档永远停在 finalizing。
         // 模型后来补齐时，KB 侧触发（上传/重解析）会重新入队，此处跳过不丢功能。
@@ -134,8 +135,8 @@ final class KnowledgeFinalizingStage {
                 && kb.getIndexingStrategy().isGraphEnabled()
                         ? GraphChunkSelector.selectGraphChunks(chunks)
                         : List.of();
-        boolean questionEnabled = kb.getQuestionGenerationConfig() != null
-                && kb.getQuestionGenerationConfig().path("enabled").asBoolean(false);
+        // 逐文档覆盖优先：上传确认弹窗里关掉推荐问题时，不能再用 KB 级开关覆盖它
+        boolean questionEnabled = QuestionGenerationPolicy.enabled(k, kb);
         boolean kbNeedsEmbedding = kb.getIndexingStrategy() != null
                 && (kb.getIndexingStrategy().isVectorEnabled()
                         || kb.getIndexingStrategy().isKeywordEnabled());
@@ -263,8 +264,7 @@ final class KnowledgeFinalizingStage {
             return;
         }
         TracingContext tracing = LangfuseTracing.inject();
-        int questionCount = kb.getQuestionGenerationConfig() == null ? 0
-                : kb.getQuestionGenerationConfig().path("questionCount").asInt(0);
+        int questionCount = QuestionGenerationPolicy.count(k, kb);
         for (QuestionBatchPlanner.Batch batch : batches) {
             try {
                 queue.enqueue(QuestionBatchPayload.withTracing(k.getTenantId(), kb.getId(), knowledgeId,

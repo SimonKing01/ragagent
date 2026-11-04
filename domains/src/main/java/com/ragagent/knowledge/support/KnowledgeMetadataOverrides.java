@@ -24,6 +24,26 @@ public final class KnowledgeMetadataOverrides {
     private KnowledgeMetadataOverrides() {
     }
 
+    /** 逐文档的推荐问题开关；未覆盖返回 null（调用方回落到 KB 级配置）。 */
+    public static Boolean questionGenerationEnabled(JsonNode metadata) {
+        JsonNode node = overrides(metadata).path("questionGenerationConfig").path("enabled");
+        return node.isBoolean() ? node.booleanValue() : null;
+    }
+
+    /** 逐文档的推荐问题数量；未覆盖返回 null。 */
+    public static Integer questionCount(JsonNode metadata) {
+        JsonNode node = overrides(metadata).path("questionGenerationConfig").path("questionCount");
+        return node.isInt() || node.isLong() ? node.asInt() : null;
+    }
+
+    private static JsonNode overrides(JsonNode metadata) {
+        if (metadata == null || !metadata.isObject()) {
+            return MAPPER.createObjectNode();
+        }
+        JsonNode overrides = metadata.path(OVERRIDES_KEY);
+        return overrides.isObject() ? overrides : MAPPER.createObjectNode();
+    }
+
     /**
      * 把逐文档覆盖合并进 metadata：保留既有键，只替换 {@code processOverrides}。
      *
