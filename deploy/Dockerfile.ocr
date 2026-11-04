@@ -13,8 +13,15 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# 只装推理依赖，不装 opencv 全家桶之外的额外包
-RUN pip install --no-cache-dir rapidocr-onnxruntime
+# opencv / onnxruntime 的运行时依赖：
+# - libgl1/libglib2.0-0/libxcb1/libsm6/libxext6/libxrender1：cv2 的动态库（缺 libxcb.so.1 会 ImportError）
+# - libgomp1：onnxruntime 的 OpenMP 运行时
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libgl1 libglib2.0-0 libxcb1 libsm6 libxext6 libxrender1 libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir --retries 5 --timeout 60 rapidocr-onnxruntime
 
 COPY scripts/ocr-server.py /app/ocr-server.py
 
