@@ -84,7 +84,47 @@ const { t } = useI18n();
 const kbId = computed(() => (route.params as any).kbId as string || '');
 const kbInfo = ref<any>(null);
 const uploadSourceRef = ref<InstanceType<typeof KbUploadSourceDropdown> | null>(null);
-const uploading = ref(false);
+type UploadQueueTask = {
+  kbId: string
+  file: File
+  uploadData: {
+    file: File
+    tagIds?: string[]
+    fileName?: string
+    processConfig?: KnowledgeProcessOverrides
+  }
+  sizeBytes: number
+  settle: (ok: boolean, error?: unknown) => void
+}
+
+// 上传队列：串行执行（并发会放大内存峰值，且后端查重是"先查后插"，
+// file_hash 无唯一索引 —— 同文件并发会各插一条）。
+const uploadQueue: UploadQueueTask[] = []
+const uploadRunning = ref(false);
+const uploadProgress = reactive({
+  visible: false,
+  total: 0,
+  done: 0,
+  failed: 0,
+  currentName: '',
+  percent: 0,
+});
+const uploadBytes = { total: 0, finished: 0, currentLoaded: 0, currentFileSize: 0 };
+let uploadHideTimer: ReturnType<typeof setTimeout> | null = null;
+
+const recalcUploadPercent = () => {
+  if (uploadBytes.total <= 0) {
+    uploadProgress.percent = 0;
+    return;
+  }
+  const inFlight = uploadBytes.currentFileSize > 0
+    ? Math.min(uploadBytes.currentLoaded, uploadBytes.currentFileSize)
+    : 0;
+  uploadProgress.percent = Math.min(
+    100,
+    Math.round(((uploadBytes.finished + inFlight) / uploadBytes.total) * 100),
+  );
+};
 const kbLoading = ref(false);
 const docListLoading = ref(true);
 const isFAQ = computed(() => (kbInfo.value?.type || '') === 'faq');
@@ -1588,6 +1628,73 @@ const showUploadResultMessages = (
   }
 };
 
+const pumpUploadQueue = async () => {
+  if (uploadRunning.value) return;
+  uploadRunning.value = true;
+  if (uploadHideTimer) {
+    clearTimeout(uploadHideTimer);
+    uploadHideTimer = null;
+  }
+  uploadProgress.visible = true;
+  try {
+    while (uploadQueue.length > 0) {
+      const task = uploadQueue.shift()!;
+      uploadProgress.currentName = task.file.name;
+      uploadBytes.currentFileSize = task.sizeBytes;
+      uploadBytes.currentLoaded = 0;
+      recalcUploadPercent();
+      let ok = false;
+      let failure: unknown;
+      try {
+        await uploadKnowledgeFile(task.kbId, task.uploadData, (event: any) => {
+          if (!event || !event.total) return;
+          uploadBytes.currentLoaded = event.loaded;
+          recalcUploadPercent();
+        });
+        ok = true;
+      } catch (error) {
+        failure = error;
+        uploadProgress.failed += 1;
+      } finally {
+        uploadBytes.finished += task.sizeBytes;
+        uploadBytes.currentLoaded = 0;
+        uploadBytes.currentFileSize = 0;
+        uploadProgress.done += 1;
+        recalcUploadPercent();
+        task.settle(ok, failure);
+      }
+    }
+  } finally {
+    uploadRunning.value = false;
+    uploadProgress.percent = 100;
+    uploadHideTimer = setTimeout(() => {
+      if (uploadRunning.value) return;
+      uploadProgress.visible = false;
+      uploadProgress.total = 0;
+      uploadProgress.done = 0;
+      uploadProgress.failed = 0;
+      uploadProgress.currentName = '';
+      uploadProgress.percent = 0;
+      uploadBytes.total = 0;
+      uploadBytes.finished = 0;
+    }, 1500);
+  }
+};
+
+const enqueueUploadTasks = (tasks: UploadQueueTask[]) => {
+  if (tasks.length === 0) return;
+  const ahead = uploadQueue.length + (uploadRunning.value ? 1 : 0);
+  uploadQueue.push(...tasks);
+  uploadProgress.total += tasks.length;
+  uploadBytes.total += tasks.reduce((sum, task) => sum + task.sizeBytes, 0);
+  if (ahead > 0) {
+    // 按钮始终可点：新批次直接入队，告诉用户前面还压着几个
+    MessagePlugin.info(t('knowledgeBase.uploadQueued', { n: ahead }));
+  }
+  recalcUploadPercent();
+  void pumpUploadQueue();
+};
+
 const executeUploadBatch = async (
   files: File[],
   options: {
@@ -1610,40 +1717,55 @@ const executeUploadBatch = async (
   const totalCount = files.length;
   const hasFolderPaths = files.some(isFolderUpload);
 
-  for (const file of files) {
-    try {
-      const uploadData: {
-        file: File
-        tagIds?: string[]
-        fileName?: string
-        processConfig?: KnowledgeProcessOverrides
-      } = { file, tagIds: tagIdsToUpload };
-
-      const fileName = getFolderUploadFileName(file, options.targetFolder || ROOT_FOLDER_PATH);
-      if (fileName) uploadData.fileName = fileName;
-      if (options.processConfig) {
-        uploadData.processConfig = options.processConfig;
-      }
-
-      await uploadKnowledgeFile(targetKbId, uploadData);
-      // 后端 201 + 裸 KnowledgeResponse（无 success/code/status 键，且拦截器已解包掉 code）——
-      // 「上传成功」由 2xx 表达，失败一律 reject ⇒ 走下方 catch（那里的 error.code 才带 duplicate_file）。
-      // 旧的多条件兜底只是恰好有效（靠 `!error && truthy`），返回空体就会误判成失败。
-      successCount++;
-    } catch (error: any) {
-      failCount++;
-      if (totalCount === 1) {
-        // 拦截器把错误摊平到顶层（{status,message,code,data}）⇒ 读 error.message / error.code；
-        // 重复文件的码是**数字 2400**（后端 ErrorCode.KNOWLEDGE_DUPLICATE_FILE），
-        // 旧的字符串比较 'duplicate_file' 恒 false ⇒ 该本地化分支从未生效（B229）。
-        let errorMessage = error?.message || t('knowledgeBase.uploadFailed');
-        if (error?.code === KNOWLEDGE_DUPLICATE_FILE_CODE) {
-          errorMessage = t('knowledgeBase.fileExists');
-        }
-        MessagePlugin.error(errorMessage);
-      }
+  // 单文件时才逐条弹错误：批量上传交给汇总提示，避免刷屏
+  const reportFailure = (error: any) => {
+    if (totalCount !== 1) return;
+    // 拦截器把错误摊平到顶层（{status,message,code,data}）⇒ 读 error.message / error.code；
+    // 重复文件的码是**数字 2400**（后端 ErrorCode.KNOWLEDGE_DUPLICATE_FILE）。
+    let errorMessage = error?.message || t('knowledgeBase.uploadFailed');
+    if (error?.code === KNOWLEDGE_DUPLICATE_FILE_CODE) {
+      errorMessage = t('knowledgeBase.fileExists');
     }
-  }
+    MessagePlugin.error(errorMessage);
+  };
+
+  const tasks: UploadQueueTask[] = files.map((file) => {
+    const uploadData: UploadQueueTask['uploadData'] = { file, tagIds: tagIdsToUpload };
+    const fileName = getFolderUploadFileName(file, options.targetFolder || ROOT_FOLDER_PATH);
+    if (fileName) uploadData.fileName = fileName;
+    if (options.processConfig) {
+      uploadData.processConfig = options.processConfig;
+    }
+    return {
+      kbId: targetKbId,
+      file,
+      uploadData,
+      // 进度按字节加权；0 字节文件给 1 避免除零
+      sizeBytes: Math.max(file.size, 1),
+      settle: (ok: boolean, error?: unknown) => {
+        if (ok) {
+          successCount++;
+        } else {
+          failCount++;
+          reportFailure(error);
+        }
+      },
+    };
+  });
+
+  // 等本批全部落地（队列可能还压着别的批次）
+  await new Promise<void>((resolve) => {
+    let remaining = tasks.length;
+    for (const task of tasks) {
+      const settle = task.settle;
+      task.settle = (ok: boolean, error?: unknown) => {
+        settle(ok, error);
+        remaining--;
+        if (remaining === 0) resolve();
+      };
+    }
+    enqueueUploadTasks(tasks);
+  });
 
   if (successCount > 0) {
     window.dispatchEvent(new CustomEvent('knowledgeFileUploaded', {
@@ -2657,6 +2779,27 @@ const handleKBEditorSuccess = (kbIdValue: string) => {
     :is-faq="isFAQ"
     @changed="onTagManageChanged"
   />
+  <!-- 上传进度（队列口径）：按钮始终可点，新批次自动排队；完成 1.5s 后自动收起 -->
+  <Transition name="upload-progress-fade">
+    <div v-if="uploadProgress.visible" class="upload-progress-card" role="status" aria-live="polite">
+      <div class="upload-progress-card__head">
+        <span class="upload-progress-card__text">
+          {{ t('knowledgeBase.uploadingProgress', {
+            done: uploadProgress.done,
+            total: uploadProgress.total,
+            percent: uploadProgress.percent,
+          }) }}
+        </span>
+        <span v-if="uploadProgress.failed > 0" class="upload-progress-card__failed">
+          {{ t('knowledgeBase.uploadingFailedCount', { n: uploadProgress.failed }) }}
+        </span>
+      </div>
+      <t-progress theme="line" :percentage="uploadProgress.percent" :label="false" size="small" />
+      <p class="upload-progress-card__current">
+        {{ t('knowledgeBase.uploadingCurrent', { name: uploadProgress.currentName }) }}
+      </p>
+    </div>
+  </Transition>
 </template>
 <style>
 /* 下拉菜单容器样式已统一至 @/assets/dropdown-menu.less */
@@ -4502,5 +4645,56 @@ const handleKBEditorSuccess = (kbIdValue: string) => {
 
 .del-card {
   vertical-align: middle;
+}
+/* 上传进度卡片：右下角浮层，不遮挡列表与操作区 */
+.upload-progress-card {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 3000;
+  width: 300px;
+  padding: 12px 14px 10px;
+  border-radius: 10px;
+  background: var(--td-bg-color-container, #fff);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--td-component-border, rgba(0, 0, 0, 0.06));
+}
+
+.upload-progress-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.upload-progress-card__text {
+  font-size: 13px;
+  color: var(--td-text-color-primary, rgba(0, 0, 0, 0.9));
+}
+
+.upload-progress-card__failed {
+  font-size: 12px;
+  color: var(--td-error-color, #d54941);
+}
+
+.upload-progress-card__current {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--td-text-color-placeholder, rgba(0, 0, 0, 0.4));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-progress-fade-enter-active,
+.upload-progress-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.upload-progress-fade-enter-from,
+.upload-progress-fade-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
 }
 </style>

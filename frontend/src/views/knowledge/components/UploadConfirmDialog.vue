@@ -808,9 +808,10 @@ function getSectionNavStatus(
       return { status: parts.join(' · ') }
     }
     case 'multimodal': {
+      // 与分区内开关文案一致：OCR已开启 / OCR未开启
       return uiState.value.imageOcrEnabled
-        ? { status: t('knowledgeEditor.ocr.label') }
-        : { status: t('uploadConfirm.statusOff'), statusTone: 'muted' }
+        ? { status: t('knowledgeEditor.ocr.statusOn') }
+        : { status: t('knowledgeEditor.ocr.statusOff'), statusTone: 'muted' }
     }
     case 'question': {
       const question = uiState.value.questionGenerationConfig
