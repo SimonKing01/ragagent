@@ -102,5 +102,9 @@ export const markdownDomPurifyConfig = {
     'mathvariant', 'encoding', 'aria-hidden',
   ],
   USE_PROFILES: { html: true, svg: true, mathMl: true },
+  // USE_PROFILES 会让 DOMPurify 忽略 ALLOWED_ATTR（改用 profile 内置属性表），
+  // 而 html profile 不含 target —— 回复里的链接会被剥成 rel 但没有 target，
+  // 点击就在 iframe 内跳走了。ADD_ATTR 在 profile 模式下依然生效。
+  ADD_ATTR: ['target'],
   ...domPurifySecurityOptions,
 };
