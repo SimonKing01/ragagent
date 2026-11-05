@@ -27,6 +27,20 @@ test('右上角主题色光晕只在新对话态出现', () => {
     '减少动效偏好下必须停掉漂移')
 })
 
+test('光晕浓度与形状随品牌色自适应（黑色不再是一团灰雾）', () => {
+  assert.match(page, /:style="\[pageStyle, glowStyle\]"/, '光晕变量要写进页面 style')
+  assert.match(page, /glowVars\(config\.value\?\.primaryColor\)/, '浓度必须由品牌色推导，不能写死')
+  assert.match(page, /var\(--embed-glow-alpha, 13%\)/, '背景浓度用变量')
+  assert.match(page, /var\(--embed-glow-arc, 0\)/, '深色补的细弧用变量控制')
+  assert.match(page, /transform: rotate\(-18deg\)/, '形状是斜向椭圆，不再是正圆')
+})
+
+test('推荐问题卡片：13px、紧凑内边距、单行省略', () => {
+  assert.match(core, /padding: 10px 12px/, '内边距要收小')
+  assert.match(core, /white-space: nowrap[\s\S]{0,80}text-overflow: ellipsis/, '单行超长省略')
+  assert.match(core, /font-size: 13px;\s*line-height: 1\.45;\s*color: var\(--td-text-color-primary\)/, '卡片文本 13px')
+})
+
 test('无限动画要在淡出期间停掉，否则 Transition 等不到 animationend', () => {
   assert.match(page, /\.embed-glow-leave-active\s*\{[\s\S]*?animation: none/)
 })

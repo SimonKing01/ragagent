@@ -617,7 +617,7 @@ watch(
     width: 100%;
     // 真实卡片是 button（默认 border-box）；显式声明，避免换成 div 时宽度算法变掉
     box-sizing: border-box;
-    padding: 14px;
+    padding: 10px 12px;
     border: 1px solid var(--td-component-stroke);
     border-radius: 12px;
     background: var(--td-bg-color-container);
@@ -635,11 +635,11 @@ watch(
   }
 
   &__text {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    display: block;
     overflow: hidden;
-    font-size: 14px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 13px;
     line-height: 1.45;
     color: var(--td-text-color-primary);
   }

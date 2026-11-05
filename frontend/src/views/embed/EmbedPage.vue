@@ -1,5 +1,5 @@
 <template>
-  <div class="embed-page" :style="pageStyle">
+  <div class="embed-page" :style="[pageStyle, glowStyle]">
     <div v-if="loadError" class="embed-error">
       <img class="embed-error__icon" :src="errorIcon" alt="" />
       <p class="embed-error__text">{{ loadError }}</p>
@@ -131,6 +131,7 @@ import { computed, onUnmounted, ref, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import EmbedBootSkeleton from '@/views/embed/EmbedBootSkeleton.vue'
+import { glowVars } from '@/utils/embedGlow'
 import EmbedChatView from '@/views/embed/EmbedChatView.vue'
 import EmbedHistoryDrawer from '@/views/embed/EmbedHistoryDrawer.vue'
 import errorIcon from '@/assets/img/error.svg'
@@ -302,6 +303,12 @@ const pageStyle = computed(() => {
   } as Record<string, string>
 })
 
+/**
+ * 右上角光晕的浓度变量：品牌色越深，浓度越低（黑色给到 7% 否则是灰雾），
+ * 深色同时打开细弧线补偿。
+ */
+const glowStyle = computed(() => glowVars(config.value?.primaryColor))
+
 const badgeStyle = computed(() => {
   const color = config.value?.primaryColor
   if (!color) return {}
@@ -375,31 +382,43 @@ watch(headerTitle, (title) => {
     background: var(--embed-primary, var(--td-brand-color));
   }
 
-  /* 右上角主题色光晕（装饰层，不吃事件） */
+  /* 右上角主题色光晕（装饰层，不吃事件）：斜向椭圆，浓度由品牌色亮度决定 */
   &__glow {
     position: absolute;
-    top: -96px;
-    right: -72px;
-    width: 320px;
-    height: 320px;
+    top: -110px;
+    right: -96px;
+    width: 360px;
+    height: 260px;
     pointer-events: none;
     z-index: 0;
     border-radius: 50%;
+    transform: rotate(-18deg);
     background: radial-gradient(closest-side,
-      color-mix(in srgb, var(--td-brand-color, #0052d9) 20%, transparent),
-      transparent 72%);
-    filter: blur(8px);
+      color-mix(in srgb, var(--td-brand-color, #0052d9) var(--embed-glow-alpha, 13%), transparent),
+      transparent 78%);
+    filter: blur(10px);
     animation: embed-glow-drift 14s ease-in-out infinite alternate;
+
+    /* 深色品牌色时补一条细弧：避免整块只剩模糊的灰 */
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 26%;
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--td-brand-color, #0052d9) 16%, transparent);
+      opacity: var(--embed-glow-arc, 0);
+      transition: opacity 0.24s ease;
+    }
   }
 }
 
 /* 光晕缓慢漂移：幅度很小，只做「活着」的感觉 */
 @keyframes embed-glow-drift {
   from {
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: rotate(-18deg) translate3d(0, 0, 0) scale(1);
   }
   to {
-    transform: translate3d(-18px, 14px, 0) scale(1.12);
+    transform: rotate(-18deg) translate3d(-12px, 10px, 0) scale(1.1);
   }
 }
 
