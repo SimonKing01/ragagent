@@ -203,6 +203,8 @@ const emit = defineEmits<{
   (e: 'session-title', title: string): void
   (e: 'messages-state', hasMessages: boolean): void
   (e: 'streaming-state', streaming: boolean): void
+  /** 历史消息加载中（含从历史抽屉切换会话）：外框据此隐藏光晕 */
+  (e: 'history-loading', loading: boolean): void
   /** 首屏是否就绪（true = 形态已定且骨架撤下）。 */
   (e: 'boot-ready', ready: boolean): void
 }>()
@@ -375,6 +377,9 @@ const introBooting = computed(() =>
   && !historyLoading.value
   && !props.sessionRestoring,
 )
+
+// 会话切换 / 历史消息加载期间要让外框收起光晕
+watch(historyLoading, (loading) => emit('history-loading', loading), { immediate: true })
 
 const bootPending = computed(() =>
   historyLoading.value || Boolean(props.sessionRestoring) || introBooting.value,

@@ -10,7 +10,7 @@
     <template v-else-if="config">
       <!-- 右上角主题色光晕：只在新对话态出现，进入会话后淡出 -->
       <Transition name="embed-glow">
-        <span v-if="chatBooted && !chatHasMessages" class="embed-page__glow" aria-hidden="true" />
+        <span v-if="chatBooted && !chatHasMessages && !chatLoadingHistory" class="embed-page__glow" aria-hidden="true" />
       </Transition>
 
       <header
@@ -19,7 +19,10 @@
       >
         <!-- 首屏骨架：与真实头部同尺寸（头像 36 / 昵称 108×14 / 按钮 24），
              结构一致才不会在真实头部出现时跳一下 -->
-        <EmbedHeaderSkeleton v-if="!chatBooted" :variant="bootVariant" />
+        <EmbedHeaderSkeleton
+          v-if="!chatBooted || chatLoadingHistory"
+          :variant="chatLoadingHistory ? 'conversation' : bootVariant"
+        />
         <template v-else>
         <!-- 头像与标题淡入淡出：hero 态（欢迎屏）不需要它们，但切换不能瞬变 -->
         <Transition name="header-fade">
@@ -91,6 +94,7 @@
           @session-title="sessionTitle = $event"
           @messages-state="chatHasMessages = $event"
           @boot-ready="markBooted($event)"
+          @history-loading="chatLoadingHistory = $event"
           @streaming-state="streaming = $event"
         />
       </Suspense>
@@ -174,6 +178,8 @@ const route = useRoute()
 const channelId = ref(String(route.params.channelId || ''))
 const sessionTitle = ref('')
 const chatHasMessages = ref(false)
+/** 历史消息加载中（切换会话）：骨架期不显示光晕 */
+const chatLoadingHistory = ref(false)
 /**
  * 首屏骨架形态：同步看该渠道有没有存量会话。
  * 只有「存在性」可以提前知道；有效性由服务端校验，失效时回落欢迎骨架。
@@ -183,9 +189,11 @@ const bootVariant = ref<'conversation' | 'welcome'>(
 )
 /** 首屏形态已定（历史/新建确定、骨架撤下）——光晕与头部图标此后才出现。 */
 /** 头部是否为 hero 态（欢迎屏）：就绪后看有没有消息，未就绪看预判形态。 */
-const heroHeader = computed(() =>
-  chatBooted.value ? !chatHasMessages.value : bootVariant.value === 'welcome',
-)
+const heroHeader = computed(() => {
+  if (!chatBooted.value) return bootVariant.value === 'welcome'
+  // 切换会话的骨架期：头部按会话形态（头像 / 名称 / 分隔线）展示
+  return !chatHasMessages.value && !chatLoadingHistory.value
+})
 
 const chatBooted = ref(false)
 
@@ -292,6 +300,8 @@ const applySelectSession = (item: EmbedVisitorSessionSummary) => {
   historyOpen.value = false
   switchConfirmVisible.value = false
   pendingSession = null
+  // 立刻收起光晕：等 core 上报 historyLoading 会有 1~2 帧的空窗
+  chatLoadingHistory.value = true
   selectSession(item.id, item.sig)
 }
 
@@ -475,7 +485,8 @@ watch(headerTitle, (title) => {
 
 .embed-glow-enter-active,
 .embed-glow-leave-active {
-  transition: opacity 0.24s ease;
+  /* 退场要快：切会话的骨架期里光晕不能还挂着 */
+  transition: opacity 0.12s ease;
   /* 常驻的漂移动画是 infinite，Vue 会据此等 animationend 而永远不结束，
      淡出期间必须停掉它，让过渡按 transitionend 收尾 */
   animation: none;

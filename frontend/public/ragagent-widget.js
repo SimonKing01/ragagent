@@ -74,7 +74,7 @@
       // 首屏只画一个转圈：面板形态（欢迎 / 会话）由嵌入页自己决定，
       // 宿主猜错反而多一次骨架形态切换，所以这里不画任何骨架块。
       '.weknora-shield-spinner{width:24px;height:24px;border-radius:50%;' +
-      'border:2px solid rgba(0,0,0,.12);border-top-color:#0052d9;' +
+      'border:2px solid rgba(0,0,0,.12);' +
       'animation:weknora-shield-spin .8s linear infinite;display:block}' +
       '@keyframes weknora-shield-spin{to{transform:rotate(360deg)}}' +
       '@media (prefers-reduced-motion: reduce){.weknora-shield-spinner{animation-duration:2.4s}}';
@@ -83,7 +83,7 @@
 
   // 面板内的加载遮罩：只画一个居中转圈。面板形态（欢迎 / 会话）由嵌入页按自己的
   // localStorage 决定，宿主跨域读不到，画骨架只会猜错并多一次形态切换。
-  function buildBootShield() {
+  function buildBootShield(color) {
     ensureShieldStyle();
     var shield = document.createElement('div');
     shield.style.cssText = [
@@ -100,7 +100,9 @@
     ].join(';');
     shield.style.alignItems = 'center';
     shield.style.justifyContent = 'center';
-    shield.innerHTML = '<span class="weknora-shield-spinner" aria-hidden="true"></span>';
+    // 转圈用渠道主色（config.primaryColor → data-primary-color → 默认蓝）
+    shield.innerHTML = '<span class="weknora-shield-spinner" aria-hidden="true" style="border-top-color:'
+      + (color || '#0052d9') + '"></span>';
     return shield;
   }
 
@@ -364,7 +366,7 @@
     panel.appendChild(iframe);
 
     // 盖在 iframe 上的骨架：iframe 自身白屏期间也有结构；就绪后淡出。
-    var bootShield = buildBootShield();
+    var bootShield = buildBootShield(primaryColor);
     panel.appendChild(bootShield);
     var shieldVisible = true;
     var shieldTimer = setTimeout(hideBootShield, 15000);
@@ -593,6 +595,11 @@
         if (typeof cfg.primaryColor === 'string' && cfg.primaryColor) {
           primaryColor = cfg.primaryColor;
           launcher.style.background = primaryColor;
+          // 遮罩可能已经用 data-primary-color 建好了，拿到渠道色后补正
+          var shieldRing = document.querySelector('.weknora-shield-spinner');
+          if (shieldRing) {
+            shieldRing.style.borderTopColor = primaryColor;
+          }
         }
         if (typeof cfg.launcherIcon === 'string' && cfg.launcherIcon) {
           launcherIconUrl = cfg.launcherIcon;

@@ -143,7 +143,8 @@
   flex: 1 1 auto;
   overflow: hidden;
   gap: 16px;
-  padding: 36px 16px 0;
+  /* 与真实消息区一致（header 下 12px）：切换会话的骨架也在这个位置，交接时不跳 */
+  padding: 12px 16px 0;
 }
 
 .boot-has-session .eb-boot-welcome,

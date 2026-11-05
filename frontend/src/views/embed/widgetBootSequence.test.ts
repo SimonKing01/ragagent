@@ -67,6 +67,20 @@ test('存量会话失效时回落迎宾骨架', () => {
   assert.match(page, /watch\(restoringSession,[\s\S]{0,160}bootVariant\.value = 'welcome'/)
 })
 
+test('宿主遮罩转圈用渠道主色，切会话骨架期不显示光晕', () => {
+  assert.match(widget, /function buildBootShield\(color\)/)
+  assert.match(widget, /style="border-top-color:'[\s\S]{0,80}color \|\| '#0052d9'/)
+  assert.match(widget, /buildBootShield\(primaryColor\)/)
+  assert.doesNotMatch(widget, /border-top-color:#0052d9/, '颜色不能再写死在样式表里')
+
+  assert.match(page, /v-if="chatBooted && !chatHasMessages && !chatLoadingHistory" class="embed-page__glow"/)
+  assert.match(core, /emit\('history-loading', loading\)/)
+  assert.match(view, /@history-loading="\(loading: boolean\) => emit\('history-loading', loading\)"/)
+  assert.match(page, /@history-loading="chatLoadingHistory = \$event"/)
+  // 点击切换的瞬间就要收起光晕，不等 core 回报
+  assert.match(page, /chatLoadingHistory\.value = true\s*\n\s*selectSession\(item\.id, item\.sig\)/)
+})
+
 test('欢迎骨架的头部不画头像/名称（判断在组件内，不依赖父级隐藏）', () => {
   assert.match(headerSkeleton, /<span v-if="variant === 'conversation'" class="embed-header__badge">/)
   assert.match(headerSkeleton, /<div v-if="variant === 'conversation'" class="embed-header__text">/)
@@ -76,9 +90,11 @@ test('欢迎骨架的头部不画头像/名称（判断在组件内，不依赖�
 })
 
 test('骨架期：光晕不出现，头部用同尺寸骨架占位（高度恒定，避免抖动）', () => {
-  assert.match(page, /v-if="chatBooted && !chatHasMessages" class="embed-page__glow"/)
+  assert.match(page, /v-if="chatBooted && !chatHasMessages && !chatLoadingHistory" class="embed-page__glow"/)
   // 头部在未就绪时渲染骨架（头像 36 / 昵称 / 按钮 32），与真实头部同高 60px
-  assert.match(page, /<EmbedHeaderSkeleton v-if="!chatBooted" :variant="bootVariant" \/>/)
+  // 首屏与「切换会话」两种情形都用骨架：形态分别是 bootVariant / conversation
+  assert.match(page, /<EmbedHeaderSkeleton[\s\S]{0,120}v-if="!chatBooted \|\| chatLoadingHistory"/)
+  assert.match(page, /:variant="chatLoadingHistory \? 'conversation' : bootVariant"/)
   assert.match(page, /min-height: 60px/, 'header 高度必须固定，否则骨架与真实头部之间会跳')
   assert.match(core, /bootPending = computed\(\(\) =>\s*historyLoading\.value \|\| Boolean\(props\.sessionRestoring\) \|\| introBooting\.value/)
   assert.match(core, /emit\('boot-ready', !pending\)/)

@@ -20,7 +20,7 @@ test('新对话态头部退成悬浮图标，会话态恢复完整头部', () =>
 })
 
 test('右上角主题色光晕只在新对话态出现', () => {
-  assert.match(page, /v-if="chatBooted && !chatHasMessages" class="embed-page__glow"/)
+  assert.match(page, /v-if="chatBooted && !chatHasMessages && !chatLoadingHistory" class="embed-page__glow"/)
   assert.match(page, /radial-gradient\([\s\S]*?var\(--td-brand-color/, '光晕颜色跟随渠道主题色')
   assert.match(page, /animation: embed-glow-drift/, '光晕需要缓慢动效')
   assert.match(page, /prefers-reduced-motion: reduce[\s\S]*?embed-page__glow[\s\S]*?animation: none/,

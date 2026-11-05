@@ -25,6 +25,7 @@
     @session-title="(title: string) => emit('session-title', title)"
     @messages-state="(has: boolean) => emit('messages-state', has)"
     @streaming-state="(streaming: boolean) => emit('streaming-state', streaming)"
+    @history-loading="(loading: boolean) => emit('history-loading', loading)"
     @boot-ready="(ready: boolean) => emit('boot-ready', ready)"
   />
 </template>
@@ -65,6 +66,8 @@ const emit = defineEmits<{
   (e: 'session-title', title: string): void
   (e: 'messages-state', hasMessages: boolean): void
   (e: 'streaming-state', streaming: boolean): void
+  /** 历史消息加载中：外框据此隐藏光晕 */
+  (e: 'history-loading', loading: boolean): void
   /** 首屏是否就绪（true = 形态已定且骨架撤下）。 */
   (e: 'boot-ready', ready: boolean): void
 }>()
