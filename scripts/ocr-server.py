@@ -16,12 +16,15 @@
 import json
 import sys
 import tempfile
+import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from rapidocr_onnxruntime import RapidOCR
 
 ENGINE = RapidOCR()
+# 推理串行化：onnxruntime 并发推理会成倍放大内存（曾把 700m 上限打爆导致容器重启）
+INFER_LOCK = threading.Lock()
 
 
 def _boxes(result) -> list[dict]:
@@ -146,7 +149,8 @@ def recognize(data: bytes) -> str:
     with tempfile.NamedTemporaryFile(suffix=".jpg") as tmp:
         tmp.write(data)
         tmp.flush()
-        result, _ = ENGINE(tmp.name)
+        with INFER_LOCK:
+            result, _ = ENGINE(tmp.name)
     boxes = _boxes(result)
     if not boxes:
         return ""

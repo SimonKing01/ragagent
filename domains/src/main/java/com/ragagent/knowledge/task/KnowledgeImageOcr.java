@@ -7,6 +7,7 @@ import com.ragagent.knowledge.domain.Knowledge;
 import com.ragagent.knowledge.domain.KnowledgeProcessingSpan;
 import com.ragagent.knowledge.domain.span.SpanTracker;
 import com.ragagent.knowledge.storage.TenantFileStorage;
+import com.ragagent.knowledge.support.ImageOcrImage;
 import com.ragagent.platform.knowledge.ChunkSearchUtil;
 import com.ragagent.platform.text.ContentTypeByFilename;
 import com.ragagent.platform.web.JsonMappers;
@@ -24,6 +25,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,12 +54,16 @@ final class KnowledgeImageOcr {
     private final SpanTracker spanTracker;
     private final ObjectMapper mapper = JsonMappers.lenient();
     private final HttpClient http;
+    /** 全局并发门：跨文档共享，避免批量上传时 N 篇文档同时打爆 OCR 服务。 */
+    private final Semaphore ocrGate;
 
     KnowledgeImageOcr(TenantFileStorage fileStorage, KnowledgeOcrProperties properties,
             SpanTracker spanTracker) {
         this.fileStorage = fileStorage;
         this.properties = properties;
         this.spanTracker = spanTracker;
+        this.ocrGate = new Semaphore(
+                Math.max(1, properties.concurrencyOrDefault()), true);
         this.http = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
@@ -171,11 +177,20 @@ final class KnowledgeImageOcr {
 
     /** 单张图：读字节 → POST /ocr → 取 text；异常一律折成 null。 */
     private String recognizeOne(long tenantId, String ref, String knowledgeId) {
+        boolean acquired = false;
         try {
+            // 全局排队：并发上限由 knowledge.ocr.concurrency 控制（跨文档）
+            acquired = ocrGate.tryAcquire(properties.timeoutSecondsOrDefault(), TimeUnit.SECONDS);
+            if (!acquired) {
+                log.warn("[ImageOcr] knowledge={} image={} queue timeout", knowledgeId, ref);
+                return null;
+            }
             byte[] bytes = fileStorage.read(tenantId, ref);
             if (bytes == null || bytes.length == 0) {
                 return null;
             }
+            // 大图先等比缩小：控制 OCR 服务的单次推理内存与耗时
+            bytes = ImageOcrImage.limitMaxSide(bytes, properties.maxImageSideOrDefault());
             HttpRequest request = HttpRequest.newBuilder(
                             URI.create(properties.baseUrl() + OCR_PATH))
                     .timeout(Duration.ofSeconds(properties.timeoutSecondsOrDefault()))
@@ -197,6 +212,10 @@ final class KnowledgeImageOcr {
         } catch (Exception e) {
             log.warn("[ImageOcr] knowledge={} image={} failed", knowledgeId, ref, e);
             return null;
+        } finally {
+            if (acquired) {
+                ocrGate.release();
+            }
         }
     }
 

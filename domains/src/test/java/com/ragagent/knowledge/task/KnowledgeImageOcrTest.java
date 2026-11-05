@@ -107,7 +107,7 @@ class KnowledgeImageOcrTest {
     }
 
     private static KnowledgeOcrProperties properties(String endpoint) {
-        return new KnowledgeOcrProperties(endpoint, 30, 5, 1);
+        return new KnowledgeOcrProperties(endpoint, 30, 5, 1, null);
     }
 
     private static Knowledge knowledge() {

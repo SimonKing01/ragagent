@@ -59,7 +59,7 @@ class KnowledgeProcessWorkerTenantScopeTest {
             mock(TenantFileStorage.class),
             mock(ExtractedImageStore.class),
             mock(DocReaderClient.class),
-            new KnowledgeOcrProperties("", 30, 60, 1),
+            new KnowledgeOcrProperties("", 30, 60, 1, null),
             mock(VectorIndexStore.class),
             mock(ModelCatalogPort.class),
             mock(KnowledgeVectorWrites.class),

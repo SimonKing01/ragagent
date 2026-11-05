@@ -67,7 +67,7 @@ class KnowledgeProcessWorkerImageWiringTest {
             fileStorage,
             extractedImageStore,
             docReader,
-            new KnowledgeOcrProperties("", 30, 60, 1),
+            new KnowledgeOcrProperties("", 30, 60, 1, null),
             mock(VectorIndexStore.class),
             mock(ModelCatalogPort.class),
             mock(KnowledgeVectorWrites.class),

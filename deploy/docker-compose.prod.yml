@@ -37,6 +37,9 @@ services:
     # RapidOCR 是 CPU 推理：2 核机器上给 1 核 + 700M，避免和 app 抢资源
     cpus: "1.0"
     mem_limit: 700m
+    environment:
+      # glibc 每线程 arena 会让多线程服务的 RSS 虚高（实测 12 线程并发把 700m 打爆）
+      MALLOC_ARENA_MAX: "2"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:18092/health').read()"]
       interval: 30s
@@ -65,7 +68,8 @@ services:
       # 入库图片 OCR：指向同网络下的 ocr 服务；置空即关闭整条 OCR 链路
       OCR_ENDPOINT: ${OCR_ENDPOINT:-http://ocr:18092}
       OCR_MAX_PAGES: ${OCR_MAX_PAGES:-30}
-      OCR_CONCURRENCY: ${OCR_CONCURRENCY:-1}
+      OCR_CONCURRENCY: ${OCR_CONCURRENCY:-2}
+      OCR_MAX_IMAGE_SIDE: ${OCR_MAX_IMAGE_SIDE:-1600}
       RETRIEVE_DRIVER: postgres
       SERVER_PORT: "8080"
       LOCAL_STORAGE_BASE_DIR: /app/data/files
