@@ -170,6 +170,44 @@ class ExtractedImageStoreTest {
         return k;
     }
 
+
+    @Test
+    void imageSourceWithoutRefsRewritesRelativeLinkWithSourceBytes() {
+        Knowledge k = knowledge("k5", "jpg");
+        k.setFileName("埃安(AION)i60图片卖点08.jpg");
+        k.setFilePath("1/k5/埃安(AION)i60图片卖点08.jpg");
+        when(fileStorage.read(1L, k.getFilePath())).thenReturn(pngBytes(200, 150));
+
+        String markdown = store.storeAndRewrite(k, List.of(),
+                "![埃安(AION)i60图片卖点08.jpg](images/埃安(AION)i60图片卖点08.jpg)");
+
+        // 解析器没给 imageRefs，也要把相对引用换成可服务的 exports 引用
+        assertThat(markdown).isEqualTo("![埃安(AION)i60图片卖点08.jpg](local://1/exports/img1.jpg)");
+        assertThat(bound).containsExactly("knowledge:k5:attachment:resource://h1");
+    }
+
+    @Test
+    void servedRefsAreNotRewrittenTwice() {
+        Knowledge k = knowledge("k6", "jpg");
+        k.setFilePath("1/k6/a.jpg");
+
+        String markdown = store.storeAndRewrite(k, List.of(), "![a](local://1/exports/a.jpg)");
+
+        assertThat(markdown).isEqualTo("![a](local://1/exports/a.jpg)");
+        assertThat(registered).isEmpty();
+    }
+
+    @Test
+    void unreadableSourceKeepsRelativeLink() {
+        Knowledge k = knowledge("k7", "jpg");
+        k.setFilePath("1/k7/a.jpg");
+        when(fileStorage.read(1L, k.getFilePath())).thenThrow(new IllegalStateException("missing"));
+
+        String markdown = store.storeAndRewrite(k, List.of(), "![a](images/a.jpg)");
+
+        assertThat(markdown).isEqualTo("![a](images/a.jpg)");
+    }
+
     /** 生成可解码的 PNG（图标过滤需要真实尺寸）。 */
     private static byte[] pngBytes(int width, int height) {
         java.awt.image.BufferedImage image =

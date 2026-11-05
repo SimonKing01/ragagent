@@ -2,6 +2,7 @@ package com.ragagent.knowledge.client;
 
 import com.google.protobuf.ByteString;
 import com.ragagent.knowledge.config.DocReaderProperties;
+import com.ragagent.platform.text.ParserFileNameSanitizer;
 import docreader.DocReaderGrpc;
 import docreader.Docreader;
 import io.grpc.ManagedChannel;
@@ -112,7 +113,8 @@ public class DocReaderClient {
         }
         Docreader.ReadRequest request = Docreader.ReadRequest.newBuilder()
                 .setFileContent(ByteString.copyFrom(fileContent))
-                .setFileName(fileName == null ? "" : fileName)
+                // 括号等字符会截断解析器生成的图片引用，只对送解析器的名字做替换
+                .setFileName(ParserFileNameSanitizer.sanitize(fileName))
                 .setFileType(fileType == null ? "" : fileType)
                 .setTitle(title == null ? "" : title)
                 .setConfig(config)

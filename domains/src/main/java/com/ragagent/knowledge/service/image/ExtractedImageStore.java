@@ -14,6 +14,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -29,6 +31,17 @@ import org.springframework.stereotype.Component;
 public class ExtractedImageStore {
 
     private static final Logger log = LoggerFactory.getLogger(ExtractedImageStore.class);
+
+    /**
+     * 整行图片引用：目标部分用贪心 {@code .+} 取到行末最后一个 {@code )}，
+     * 因此文件名里的半角括号（{@code 埃安(AION)x.jpg}）不会把链接截断。
+     */
+    private static final Pattern IMAGE_LINE = Pattern.compile(
+            "(?m)^(\\s*!\\[[^\\]]*\\]\\()(.+)(\\)\\s*)$");
+
+    /** 是否为相对引用（既无 {@code scheme://} 也不以 {@code /} 开头）。 */
+    private static final Pattern ABSOLUTE_REF =
+            Pattern.compile("^[A-Za-z][A-Za-z0-9+.-]*://.*");
 
     /** 抽取图片的落点标记：只处理 exports 区的引用（用户手写的外链不搬运、不回收）。 */
     private static final String EXPORTS_SEGMENT = "/exports/";
@@ -52,13 +65,14 @@ public class ExtractedImageStore {
         List<ImageRefRewriter.RefRow> merged = new ArrayList<>(
                 rows == null ? List.of() : rows);
         merged.addAll(remoteImageRefs.collect(markdown, k.getSource()));
-        if (merged.isEmpty()) {
-            return markdown;
-        }
         long tenantId = k.getTenantId() == null ? 0L : k.getTenantId();
         if (tenantId == 0) {
             log.debug("skip storing extracted images: knowledge {} has no tenant", k.getId());
             return markdown;
+        }
+        if (merged.isEmpty()) {
+            // 解析器没给 imageRefs：图片类型文档仍要用源文件兜底改写相对引用
+            return rewriteSelfImageRefs(k, tenantId, markdown);
         }
         // 来源文件本身是图片格式时保留原图（不做小图标过滤）
         boolean filterIcons = !ContentTypeByFilename.isImageExt(k.getFileType());
@@ -69,7 +83,43 @@ public class ExtractedImageStore {
             log.info("[ImageStore] stored {} extracted images for knowledge {}",
                     result.stored().size(), k.getId());
         }
-        return result.markdown();
+        // 直接上传的图片：解析器可能只给相对引用（名字含括号时链接还会被截断），
+        // 这里用源文件本身兜底——落 exports 并换成可服务引用，保证前端能显示、OCR 能识别。
+        return rewriteSelfImageRefs(k, tenantId, result.markdown());
+    }
+
+    /** 把图片类型文档正文里的相对图片引用换成「源文件落 exports 后」的引用。 */
+    private String rewriteSelfImageRefs(Knowledge k, long tenantId, String markdown) {
+        if (markdown == null || markdown.isEmpty()
+                || !ContentTypeByFilename.isImageExt(k.getFileType())) {
+            return markdown;
+        }
+        Matcher m = IMAGE_LINE.matcher(markdown);
+        StringBuilder out = new StringBuilder();
+        String servingRef = null;
+        while (m.find()) {
+            String target = m.group(2).trim();
+            if (target.isEmpty() || target.startsWith("/") || ABSOLUTE_REF.matcher(target).matches()) {
+                continue;
+            }
+            if (servingRef == null) {
+                try {
+                    byte[] self = fileStorage.read(tenantId, k.getFilePath());
+                    servingRef = storeOne(tenantId, k.getId(), self, k.getFileName(),
+                            mimeTypeOf(k.getFileName()));
+                } catch (RuntimeException e) {
+                    log.warn("failed to store source image for knowledge {}", k.getId(), e);
+                }
+                if (servingRef == null || servingRef.isEmpty()) {
+                    return markdown;
+                }
+                log.info("[ImageStore] rewrote source image ref for knowledge {}", k.getId());
+            }
+            m.appendReplacement(out, Matcher.quoteReplacement(
+                    m.group(1) + servingRef + ")"));
+        }
+        m.appendTail(out);
+        return out.toString();
     }
 
     /**
