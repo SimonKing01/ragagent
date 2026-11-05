@@ -536,7 +536,7 @@ watch(
     justify-content: center;
     background: var(--td-bg-color-container);
     box-shadow:
-      0 0 0 2px var(--td-bg-color-container),
+      0 0 0 3px var(--td-bg-color-container),
       0 0 0 3px color-mix(in srgb, var(--td-brand-color, #0052d9) 18%, transparent),
       0 6px 16px color-mix(in srgb, var(--td-brand-color, #0052d9) 16%, transparent);
 
@@ -618,8 +618,8 @@ watch(
     // 真实卡片是 button（默认 border-box）；显式声明，避免换成 div 时宽度算法变掉
     box-sizing: border-box;
     padding: 10px 12px;
-    border: 1px solid var(--td-component-stroke);
-    border-radius: 12px;
+    border: .5px solid var(--td-component-stroke);
+    border-radius: 8px;
     background: var(--td-bg-color-container);
     text-align: left;
     cursor: pointer;

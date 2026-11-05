@@ -185,7 +185,7 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 8px;
   padding: 12px 8px 12px 16px;
-  border-bottom: 1px solid var(--td-component-stroke);
+  border-bottom: .5px solid var(--td-component-stroke);
   flex-shrink: 0;
 }
 
