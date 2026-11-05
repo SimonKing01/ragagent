@@ -1,53 +1,42 @@
 /**
- * embed iframe 的骨架样式（唯一来源）。
+ * embed iframe 的首屏加载样式（唯一来源）。
  *
- * 三层骨架共用同一套基础块（`.eb-skel` + `.eb-bubble` / `.eb-row`），形态一致才不会跳动：
- *   1. embed.html 里静态写在 #embed-app 内 —— JS 还没下载完时就有结构，不再白屏；
- *   2. EmbedBootSkeleton.vue —— Vue 挂载后、渠道配置返回前；
- *   3. EmbedChatCore.vue 的推荐问题骨架 —— 聊天已挂载、推荐问题还没返回时。
- * 头部/输入框这类只在 1、2 出现的块才用 `.embed-boot__*` 前缀。
+ * 加载分三段，只有「形态已定」之后才画骨架：
+ *   1. 未知（embed.html 静态段 / Vue 等配置与分块）→ 居中转圈 `.eb-boot-spinner`；
+ *   2. 已定形态 → 会话骨架（`.eb-bubble`）或迎宾骨架（`.eb-intro-*` + `.eb-row`）；
+ *   3. 就绪 → 真实内容接管。
+ * 所有形态共用 `.eb-skel` 底块与尺寸，骨架切真实内容时不跳。
  */
-.embed-boot {
+/* 未知阶段：embed.html 静态段（Vue 起来前的唯一一帧）——居中转圈，无骨架 */
+.eb-boot-spinner {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
   height: 100%;
+  min-height: 240px;
   background: #fff;
 }
 
-/* 读屏文案：样式加载正常时不可见，CSS 缺失时退化成一行可读文本 */
-.embed-boot__sr {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-  border: 0;
+.eb-boot-spinner__ring {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  border-top-color: #0052d9;
+  animation: eb-boot-spin 0.8s linear infinite;
 }
 
-.embed-boot__header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 0 0 auto;
-  padding: 12px 16px;
-  border-bottom: .5px solid #e7e7e7;
+@keyframes eb-boot-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.embed-boot__body {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  flex: 1 1 auto;
-  padding: 12px 16px 0;
-  overflow: hidden;
-}
-
-.embed-boot__footer {
-  flex: 0 0 auto;
-  padding: 8px 16px 16px;
+@media (prefers-reduced-motion: reduce) {
+  .eb-boot-spinner__ring {
+    animation-duration: 2.4s;
+  }
 }
 
 .eb-skel {
@@ -57,59 +46,20 @@
   animation: eb-shimmer 1.2s ease-in-out infinite;
 }
 
-.embed-boot__avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  flex: 0 0 auto;
-}
-
-.embed-boot__title {
-  width: 108px;
-  height: 14px;
-  border-radius: 4px;
-  margin-right: auto;
-}
-
-.embed-boot__action {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  flex: 0 0 auto;
-}
-
-/* 两种骨架形态：默认「问候屏」，有存量会话时切「对话气泡」。
-   切换由 embed.html 的内联脚本 / EmbedBootSkeleton 依据 localStorage 会话键决定。 */
-[data-boot-variant="conversation"] {
-  display: none;
-}
-
-.embed-boot--conversation [data-boot-variant="greeting"] {
-  display: none;
-}
-
-.embed-boot--conversation [data-boot-variant="conversation"] {
-  display: block;
-}
-
 /* 欢迎屏形态：问候语居中偏上、「为您推荐」标签、卡片行（与 EmbedChatCore 的
    .embed-intro 对齐；顶部留白 = 消息区的 12px + 问候语的 clamp 偏移）。
    左右 26px = 消息区 16px 内边距 + .embed-intro 的 10px 外边距。 */
-.embed-boot__body--intro {
+.eb-intro-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   padding-top: calc(12px + clamp(16px, 8vh, 56px));
   padding-left: 26px;
   padding-right: 26px;
   gap: 8px;
-  align-items: flex-start;
+  overflow: hidden;
 }
 
-/* 对话骨架沿用消息区原本的间距（无外边距，左右回到 16px） */
-.embed-boot--conversation .embed-boot__body--intro {
-  padding: 12px 16px 0;
-  gap: 16px;
-}
-
-/* 高度 = 问候语 20px 字号 × 1.5 行高；下外边距 20px 对齐 .embed-intro__greeting */
 /* 头像 + 名称：与 .embed-hero 同尺寸（64px 圆 / 16px 名称条） */
 .eb-intro-avatar {
   width: 64px;
@@ -163,7 +113,7 @@
   border-radius: 8px;
 }
 
-.embed-boot__input {
+.eb-input-skel {
   width: 100%;
   max-width: 800px;
   height: 88px;

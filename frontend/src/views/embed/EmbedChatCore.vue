@@ -11,7 +11,18 @@
         </div>
 
         <!-- 欢迎屏：问候语居中偏上，下面是「为您推荐」+ 问题列表；两者都关闭时只留问候语 -->
-        <Transition name="embed-intro" appear>
+        <!-- 形态已知（新建会话）但推荐问题还没回来：迎宾骨架，形态与真实首屏同构 -->
+        <div v-if="introBooting" class="eb-intro-body" aria-hidden="true">
+          <span class="eb-skel eb-intro-avatar" />
+          <span class="eb-skel eb-intro-name" />
+          <span class="eb-skel eb-intro-greeting" />
+          <span class="eb-skel eb-intro-label" />
+          <span class="eb-skel eb-row" />
+          <span class="eb-skel eb-row" />
+          <span class="eb-skel eb-row" />
+        </div>
+
+        <Transition v-else name="embed-intro" appear>
         <div
           v-if="showGreeting || showSuggestedBlock"
           class="embed-intro"
@@ -199,8 +210,8 @@ const emit = defineEmits<{
   (e: 'session-title', title: string): void
   (e: 'messages-state', hasMessages: boolean): void
   (e: 'streaming-state', streaming: boolean): void
-  /** 首屏形态已定（历史/新建确定），骨架可以撤下。 */
-  (e: 'boot-ready'): void
+  /** 首屏是否就绪（true = 形态已定且骨架撤下）。 */
+  (e: 'boot-ready', ready: boolean): void
 }>()
 
 const { t } = useI18n()
@@ -363,12 +374,23 @@ const showGlobalTypingIndicator = computed(() =>
  * 首屏骨架期：历史会话加载 / 存量会话校验期间仍不确定该画什么，
  * 由外框（EmbedBootSkeleton）承接；这里一旦确定就通知外框撤骨架、放光晕。
  */
-const bootPending = computed(() => historyLoading.value || Boolean(props.sessionRestoring))
+const introBooting = computed(() =>
+  starterQuestionsEnabled.value
+  && suggestedLoading.value
+  && suggestedQuestions.value.length === 0
+  && !hasUserMessage.value
+  && !historyLoading.value
+  && !props.sessionRestoring,
+)
+
+const bootPending = computed(() =>
+  historyLoading.value || Boolean(props.sessionRestoring) || introBooting.value,
+)
 
 watch(
   bootPending,
   (pending) => {
-    if (!pending) emit('boot-ready')
+    emit('boot-ready', !pending)
   },
   { immediate: true },
 )

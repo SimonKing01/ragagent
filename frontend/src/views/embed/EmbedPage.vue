@@ -76,15 +76,12 @@
           :session-restoring="restoringSession"
           @session-title="sessionTitle = $event"
           @messages-state="chatHasMessages = $event"
-          @boot-ready="chatBooted = true"
+          @boot-ready="chatBooted = $event"
           @streaming-state="streaming = $event"
         />
         <template #fallback>
           <div class="embed-chat-fallback">
-            <EmbedBootSkeleton
-              :variant="restoringSession ? 'conversation' : 'welcome'"
-              :show-header="false"
-            />
+            <EmbedBootSpinner />
           </div>
         </template>
       </Suspense>
@@ -134,7 +131,6 @@
 import { computed, onUnmounted, ref, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import EmbedBootSkeleton from '@/views/embed/EmbedBootSkeleton.vue'
 import EmbedBootSpinner from '@/views/embed/EmbedBootSpinner.vue'
 import { glowVars } from '@/utils/embedGlow'
 import EmbedChatView from '@/views/embed/EmbedChatView.vue'

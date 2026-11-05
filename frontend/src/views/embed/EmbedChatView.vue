@@ -25,7 +25,7 @@
     @session-title="(title: string) => emit('session-title', title)"
     @messages-state="(has: boolean) => emit('messages-state', has)"
     @streaming-state="(streaming: boolean) => emit('streaming-state', streaming)"
-    @boot-ready="emit('boot-ready')"
+    @boot-ready="(ready: boolean) => emit('boot-ready', ready)"
   />
 </template>
 
@@ -65,7 +65,7 @@ const emit = defineEmits<{
   (e: 'session-title', title: string): void
   (e: 'messages-state', hasMessages: boolean): void
   (e: 'streaming-state', streaming: boolean): void
-  /** 首屏形态已定（历史/新建确定），骨架可以撤下。 */
-  (e: 'boot-ready'): void
+  /** 首屏是否就绪（true = 形态已定且骨架撤下）。 */
+  (e: 'boot-ready', ready: boolean): void
 }>()
 </script>
