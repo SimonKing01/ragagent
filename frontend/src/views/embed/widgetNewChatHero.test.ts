@@ -30,8 +30,7 @@ test('右上角主题色光晕只在新对话态出现', () => {
 test('光晕浓度与形状随品牌色自适应（黑色不再是一团灰雾）', () => {
   assert.match(page, /:style="\[pageStyle, glowStyle\]"/, '光晕变量要写进页面 style')
   assert.match(page, /glowVars\(config\.value\?\.primaryColor\)/, '浓度必须由品牌色推导，不能写死')
-  assert.match(page, /var\(--embed-glow-alpha, 13%\)/, '背景浓度用变量')
-  assert.match(page, /var\(--embed-glow-arc, 0\)/, '深色补的细弧用变量控制')
+  assert.match(page, /var\(--embed-glow-alpha, 18%\)/, '背景浓度用变量')
   assert.match(page, /transform: rotate\(-18deg\)/, '形状是斜向椭圆，不再是正圆')
 })
 

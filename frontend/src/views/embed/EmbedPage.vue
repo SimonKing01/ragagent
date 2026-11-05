@@ -393,22 +393,12 @@ watch(headerTitle, (title) => {
     z-index: 0;
     border-radius: 50%;
     transform: rotate(-18deg);
+    // 不用 filter: blur —— 它会把下面那圈 1px 细弧一起糊掉；
+    // 靠更长的渐变尾巴（85%）自己软下来
     background: radial-gradient(closest-side,
-      color-mix(in srgb, var(--td-brand-color, #0052d9) var(--embed-glow-alpha, 13%), transparent),
-      transparent 78%);
-    filter: blur(10px);
+      color-mix(in srgb, var(--td-brand-color, #0052d9) var(--embed-glow-alpha, 18%), transparent),
+      transparent 85%);
     animation: embed-glow-drift 14s ease-in-out infinite alternate;
-
-    /* 深色品牌色时补一条细弧：避免整块只剩模糊的灰 */
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 26%;
-      border-radius: 50%;
-      border: 1px solid color-mix(in srgb, var(--td-brand-color, #0052d9) 16%, transparent);
-      opacity: var(--embed-glow-arc, 0);
-      transition: opacity 0.24s ease;
-    }
   }
 }
 
