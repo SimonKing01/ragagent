@@ -20,11 +20,52 @@
   document.body.style.background = '#fff';
 })();
 </script>
+<script>
+(function(){
+  // 同步决定首帧形态，且**先于骨架标记**执行：该渠道存在会话键 ⇒ 对话骨架，
+  // 否则（含刚点过「新建会话」）⇒ 欢迎骨架。storage 不可用时同样回落欢迎骨架。
+  try {
+    var seg = location.pathname.split('/').filter(Boolean);
+    var idx = seg.indexOf('embed');
+    var channel = idx >= 0 ? seg[idx + 1] : '';
+    if (channel && localStorage.getItem('ragagent-embed-session:' + channel)) {
+      document.documentElement.className += ' boot-has-session';
+    }
+    // 静态骨架已经进 DOM：立刻让宿主撤掉它那层占位（等 load 会多盖几百毫秒）
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ source: 'weknora-embed', type: 'shell_ready' }, '*');
+    }
+  } catch (e) {
+    // 隐私模式等读不到 storage：保持欢迎骨架
+  }
+})();
+</script>
 <!-- 骨架必须排在下面两个脚本之前：脚本是解析阻塞的，排在它们之后就要等下载执行完才有 DOM。 -->
 <div id="embed-app">
-  <!-- 首屏只有转圈：此时还不知道要加载历史会话还是新会话，骨架留给「形态已定」之后 -->
-  <div class="eb-boot-spinner" aria-hidden="true">
-    <span class="eb-boot-spinner__ring"></span>
+  <!-- 首屏骨架：形态由下面内联脚本按 localStorage 同步决定，Vue 挂载时接替 -->
+  <div class="embed-boot" id="embed-boot-skeleton" aria-hidden="true">
+    <div class="embed-boot__header">
+      <span class="eb-skel eb-boot-header-avatar"></span>
+      <span class="eb-skel eb-boot-header-title"></span>
+      <span class="eb-skel eb-boot-header-action"></span>
+      <span class="eb-skel eb-boot-header-action eb-boot-header-action--new"></span>
+    </div>
+    <div class="eb-boot-welcome">
+      <span class="eb-skel eb-intro-avatar"></span>
+      <span class="eb-skel eb-intro-name"></span>
+      <span class="eb-skel eb-intro-greeting"></span>
+      <span class="eb-skel eb-intro-label"></span>
+      <span class="eb-skel eb-row"></span>
+      <span class="eb-skel eb-row"></span>
+    </div>
+    <div class="eb-boot-conversation">
+      <span class="eb-skel eb-bubble eb-bubble--user"></span>
+      <span class="eb-skel eb-bubble"></span>
+      <span class="eb-skel eb-bubble"></span>
+    </div>
+    <div class="embed-boot__footer">
+      <span class="eb-skel eb-input-skel"></span>
+    </div>
   </div>
 
 <script src="/config.js"></script>

@@ -11,18 +11,7 @@
         </div>
 
         <!-- 欢迎屏：问候语居中偏上，下面是「为您推荐」+ 问题列表；两者都关闭时只留问候语 -->
-        <!-- 形态已知（新建会话）但推荐问题还没回来：迎宾骨架，形态与真实首屏同构 -->
-        <div v-if="introBooting" class="eb-intro-body" aria-hidden="true">
-          <span class="eb-skel eb-intro-avatar" />
-          <span class="eb-skel eb-intro-name" />
-          <span class="eb-skel eb-intro-greeting" />
-          <span class="eb-skel eb-intro-label" />
-          <span class="eb-skel eb-row" />
-          <span class="eb-skel eb-row" />
-          <span class="eb-skel eb-row" />
-        </div>
-
-        <Transition v-else name="embed-intro" appear>
+        <Transition name="embed-intro" appear>
         <div
           v-if="showGreeting || showSuggestedBlock"
           class="embed-intro"
@@ -65,6 +54,10 @@
                 :key="item.question"
                 type="button"
                 class="embed-suggested__card"
+                :class="{
+                  'embed-suggested__card--pressed': pressedQuestion === item.question,
+                  'embed-suggested__card--dimmed': pressedQuestion && pressedQuestion !== item.question,
+                }"
                 @click="handleSuggestedClick(item.question)"
               >
                 <span class="embed-suggested__text">{{ item.question }}</span>
@@ -439,10 +432,17 @@ const onSendMsg = (query: string, imageFiles: File[] = [], attachmentFiles: File
   })
 }
 
+const pressedQuestion = ref('')
+
 const handleSuggestedClick = (question: string) => {
   const text = question.trim()
   if (!text || isReplying.value) return
-  void sendMsg(text, { webSearchEnabled: webSearchEnabled.value })
+  // 先给"按下"的反馈，再发消息：避免点了没反应的错觉
+  pressedQuestion.value = text
+  window.setTimeout(() => {
+    pressedQuestion.value = ''
+    void sendMsg(text, { webSearchEnabled: webSearchEnabled.value })
+  }, 140)
 }
 
 const recordFollowUpEvent = (
@@ -595,6 +595,10 @@ watch(
 }
 
 // 欢迎屏：问候语在头像下方左对齐，推荐问题紧随其后
+.embed-chat__messages {
+  position: relative;
+}
+
 .embed-intro {
   display: flex;
   flex-direction: column;
@@ -617,7 +621,15 @@ watch(
 
 // 欢迎屏退场：消息发出后轻轻上移淡出，不打断气泡入场
 .embed-intro-leave-active {
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  /* 快一点退场（120ms），消息稍后入场，减少"两层内容同屏"的观感 */
+  transition: opacity 0.12s ease-out, transform 0.12s ease-out;
+  /* 退场时脱离文档流：消息列表立刻占据顶部，避免"先出现在下方再跳上去" */
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .embed-intro-leave-to {
@@ -662,7 +674,8 @@ watch(
     text-align: left;
     cursor: pointer;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease,
+      transform 0.12s ease, opacity 0.15s ease;
 
     &:hover {
       border-color: color-mix(in srgb, var(--td-text-color-primary) 10%, var(--td-component-stroke));
@@ -670,6 +683,16 @@ watch(
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     }
 
+  }
+
+  &__card--pressed {
+    transform: scale(0.97);
+    border-color: var(--td-brand-color, #0052d9);
+    background: color-mix(in srgb, var(--td-brand-color, #0052d9) 8%, var(--td-bg-color-container));
+  }
+
+  &__card--dimmed {
+    opacity: 0.35;
   }
 
   &__text {

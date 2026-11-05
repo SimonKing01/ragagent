@@ -2,41 +2,158 @@
  * embed iframe 的首屏加载样式（唯一来源）。
  *
  * 加载分三段，只有「形态已定」之后才画骨架：
- *   1. 未知（embed.html 静态段 / Vue 等配置与分块）→ 居中转圈 `.eb-boot-spinner`；
- *   2. 已定形态 → 会话骨架（`.eb-bubble`）或迎宾骨架（`.eb-intro-*` + `.eb-row`）；
- *   3. 就绪 → 真实内容接管。
+ *   1. 首帧（embed.html 静态段 / Vue 等配置与分块）→ 直接按「有没有存量会话」画骨架；
+ *   2. 会话骨架（`.eb-bubble`）或迎宾骨架（`.eb-intro-*` + `.eb-row`）；
+ *   3. 就绪 → 真实内容接管；存量会话被判定失效时回落迎宾骨架。
  * 所有形态共用 `.eb-skel` 底块与尺寸，骨架切真实内容时不跳。
  */
-/* 未知阶段：embed.html 静态段（Vue 起来前的唯一一帧）——居中转圈，无骨架 */
-.eb-boot-spinner {
+/* 骨架宿主：形态由调用方（embed.html 内联脚本 / EmbedBootSkeleton 的 variant）决定 */
+.embed-boot {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   width: 100%;
   height: 100%;
-  min-height: 240px;
   background: #fff;
 }
 
-.eb-boot-spinner__ring {
+/* 头部占位：尺寸与真实头部一致（12×2 内边距 + 36 按钮 - 1px 边框 = 57px），
+   欢迎形态只画历史按钮，对话形态再画头像、昵称与新建按钮 */
+.embed-boot__header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex: 0 0 auto;
+  padding: 12px 16px;
+  min-height: 60px;
+  box-sizing: border-box;
+  /* 默认无分隔线（欢迎形态与真实 hero 态头部一致）；有会话时才画 */
+  border-bottom: .5px solid transparent;
+}
+
+.boot-has-session .embed-boot__header {
+  border-bottom-color: #e7e7e7;
+}
+
+.eb-boot-header-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.eb-boot-header-title {
+  width: 108px;
+  height: 14px;
+  border-radius: 4px;
+  margin-right: auto;
+}
+
+.eb-boot-header-action {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  flex: 0 0 auto;
+}
+
+/* 新建按钮只在"上次停在会话里"时出现（选择器要压过 .eb-skel{display:block}） */
+.embed-boot .eb-boot-header-action--new {
+  display: none;
+}
+
+.embed-boot.boot-has-session .eb-boot-header-action--new,
+.boot-has-session .eb-boot-header-action--new {
+  display: block;
+}
+
+/* 欢迎形态：头部不显示头像与昵称（与页面 hero 态一致）；有会话时才出现。
+   选择器要压过后面 .eb-skel{display:block}，否则首帧会闪一下头像/昵称。 */
+.embed-boot .eb-boot-header-avatar,
+.embed-boot .eb-boot-header-title {
+  display: none;
+}
+
+.embed-boot.boot-has-session .eb-boot-header-avatar,
+.embed-boot.boot-has-session .eb-boot-header-title,
+.boot-has-session .eb-boot-header-avatar,
+.boot-has-session .eb-boot-header-title {
+  display: block;
+}
+
+.embed-boot__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.embed-boot__footer {
+  flex: 0 0 auto;
+  padding: 8px 16px 16px;
+}
+
+.embed-boot__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.embed-boot__title {
+  width: 108px;
+  height: 14px;
+  border-radius: 4px;
+  margin-right: auto;
+}
+
+.embed-boot__action {
   width: 24px;
   height: 24px;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 0, 0, 0.12);
-  border-top-color: #0052d9;
-  animation: eb-boot-spin 0.8s linear infinite;
+  border-radius: 6px;
+  flex: 0 0 auto;
 }
 
-@keyframes eb-boot-spin {
-  to {
-    transform: rotate(360deg);
-  }
+.eb-input-skel {
+  width: 100%;
+  height: 56px;
+  border-radius: 12px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .eb-boot-spinner__ring {
-    animation-duration: 2.4s;
-  }
+/* 两种形态互斥：默认迎宾，宿主加标记后切对话。
+   - .boot-has-session 由 embed.html 的内联脚本在**骨架之前**打上（首帧即正确）；
+   - .embed-boot--conversation 由 Vue 骨架组件按 variant 打上（接管后保持）。 */
+.eb-boot-welcome {
+  display: flex;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  flex: 1 1 auto;
+  overflow: hidden;
+  gap: 8px;
+  padding: calc(12px + clamp(16px, 8vh, 56px)) 26px 0;
+}
+
+.eb-boot-conversation {
+  display: none;
+  box-sizing: border-box;
+  flex-direction: column;
+  width: 100%;
+  flex: 1 1 auto;
+  overflow: hidden;
+  gap: 16px;
+  padding: 36px 16px 0;
+}
+
+.boot-has-session .eb-boot-welcome,
+.embed-boot--conversation .eb-boot-welcome {
+  display: none;
+}
+
+.boot-has-session .eb-boot-conversation,
+.embed-boot--conversation .eb-boot-conversation {
+  display: flex;
 }
 
 .eb-skel {
@@ -50,12 +167,10 @@
    .embed-intro 对齐；顶部留白 = 消息区的 12px + 问候语的 clamp 偏移）。
    左右 26px = 消息区 16px 内边距 + .embed-intro 的 10px 外边距。 */
 .eb-intro-body {
+  /* 兼容位：新结构里内边距已挪到 .eb-boot-welcome，这里不再重复设置 */
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding-top: calc(12px + clamp(16px, 8vh, 56px));
-  padding-left: 26px;
-  padding-right: 26px;
   gap: 8px;
   overflow: hidden;
 }

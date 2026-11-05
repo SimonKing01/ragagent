@@ -71,19 +71,18 @@
     var style = document.createElement('style');
     style.id = SHIELD_STYLE_ID;
     style.textContent =
-      '@keyframes weknora-shield-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}' +
-      '.weknora-shield-skel{background:linear-gradient(90deg,#f0f0f0 25%,#e6e6e6 50%,#f0f0f0 75%);' +
-      'background-size:200% 100%;animation:weknora-shield-shimmer 1.2s ease-in-out infinite;display:block}' +
-      '@media (prefers-reduced-motion: reduce){.weknora-shield-skel{animation:none}}';
+      // 首屏只画一个转圈：面板形态（欢迎 / 会话）由嵌入页自己决定，
+      // 宿主猜错反而多一次骨架形态切换，所以这里不画任何骨架块。
+      '.weknora-shield-spinner{width:24px;height:24px;border-radius:50%;' +
+      'border:2px solid rgba(0,0,0,.12);border-top-color:#0052d9;' +
+      'animation:weknora-shield-spin .8s linear infinite;display:block}' +
+      '@keyframes weknora-shield-spin{to{transform:rotate(360deg)}}' +
+      '@media (prefers-reduced-motion: reduce){.weknora-shield-spinner{animation-duration:2.4s}}';
     document.head.appendChild(style);
   }
 
-  function shieldBlock(extraStyle) {
-    return '<span class="weknora-shield-skel" style="' + extraStyle + '"></span>';
-  }
-
-  // 面板内骨架：只画「一定存在」的头部与输入框。正文区不放任何猜测块——iframe 那边会按
-  // 有无存量会话画问候屏或对话骨架，宿主这里猜错反而会多一次形态切换；留白交给 iframe。
+  // 面板内的加载遮罩：只画一个居中转圈。面板形态（欢迎 / 会话）由嵌入页按自己的
+  // localStorage 决定，宿主跨域读不到，画骨架只会猜错并多一次形态切换。
   function buildBootShield() {
     ensureShieldStyle();
     var shield = document.createElement('div');
@@ -99,17 +98,9 @@
       'background:#fff',
       'transition:opacity .2s ease',
     ].join(';');
-    shield.innerHTML =
-      '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:.5px solid #e7e7e7">' +
-      shieldBlock('width:36px;height:36px;border-radius:50%;flex:0 0 auto') +
-      shieldBlock('width:108px;height:14px;border-radius:4px;margin-right:auto') +
-      shieldBlock('width:24px;height:24px;border-radius:6px;flex:0 0 auto') +
-      shieldBlock('width:24px;height:24px;border-radius:6px;flex:0 0 auto') +
-      '</div>' +
-      '<div style="flex:1 1 auto"></div>' +
-      '<div style="padding:8px 16px 16px;flex:0 0 auto">' +
-      shieldBlock('width:100%;height:88px;border-radius:12px') +
-      '</div>';
+    shield.style.alignItems = 'center';
+    shield.style.justifyContent = 'center';
+    shield.innerHTML = '<span class="weknora-shield-spinner" aria-hidden="true"></span>';
     return shield;
   }
 
@@ -494,6 +485,10 @@
           if (panelOpen) {
             postToIframe({ source: HOST_SOURCE, type: 'panel_open', payload: {} });
           }
+          break;
+        case 'shell_ready':
+          // 嵌入页的静态骨架已经进 DOM（比 load 早几百毫秒），可以交接了
+          hideBootShield();
           break;
         case 'ready':
           iframeReady = true;

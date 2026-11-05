@@ -13,17 +13,28 @@
         <span v-if="chatBooted && !chatHasMessages" class="embed-page__glow" aria-hidden="true" />
       </Transition>
 
-      <header class="embed-header" :class="{ 'embed-header--hero': !chatHasMessages }">
-        <span class="embed-header__badge" :style="badgeStyle">
-          <img v-if="headerAvatarImage" class="embed-header__avatar-img" :src="headerAvatarImage" alt="" />
-          <span v-else-if="config.agentAvatar" class="embed-header__avatar">{{ config.agentAvatar }}</span>
-          <t-icon v-else :name="headerIcon" size="18px" />
-        </span>
-        <div class="embed-header__text">
-          <h1 class="embed-header__title">{{ headerTitle }}</h1>
-        </div>
+      <header
+        class="embed-header"
+        :class="{ 'embed-header--hero': heroHeader }"
+      >
+        <!-- 首屏骨架：与真实头部同尺寸（头像 36 / 昵称 108×14 / 按钮 24），
+             结构一致才不会在真实头部出现时跳一下 -->
+        <EmbedHeaderSkeleton v-if="!chatBooted" :variant="bootVariant" />
+        <template v-else>
+        <!-- 头像与标题淡入淡出：hero 态（欢迎屏）不需要它们，但切换不能瞬变 -->
+        <Transition name="header-fade">
+          <span v-if="!heroHeader" class="embed-header__badge" :style="badgeStyle">
+            <img v-if="headerAvatarImage" class="embed-header__avatar-img" :src="headerAvatarImage" alt="" />
+            <span v-else-if="config.agentAvatar" class="embed-header__avatar">{{ config.agentAvatar }}</span>
+            <t-icon v-else :name="headerIcon" size="18px" />
+          </span>
+        </Transition>
+        <Transition name="header-fade">
+          <div v-if="!heroHeader" class="embed-header__text">
+            <h1 class="embed-header__title">{{ headerTitle }}</h1>
+          </div>
+        </Transition>
         <t-button
-          v-if="chatBooted"
           variant="text"
           shape="square"
           size="medium"
@@ -46,9 +57,12 @@
         >
           <template #icon><t-icon name="add" size="18px"/></template>
         </t-button>
+        </template>
       </header>
 
-      <!-- 聊天主体是异步分块：加载期间继续用首屏骨架占位，避免头部以下整片空白 -->
+      <!-- 聊天主体是异步分块：骨架做成覆盖层，等核心报告就绪后才淡出，
+           避免「骨架卸载 → 内容挂载」之间出现白屏帧 -->
+      <div class="embed-chat-wrap">
       <Suspense>
         <EmbedChatView
           :session-id="sessionId"
@@ -76,19 +90,27 @@
           :session-restoring="restoringSession"
           @session-title="sessionTitle = $event"
           @messages-state="chatHasMessages = $event"
-          @boot-ready="chatBooted = $event"
+          @boot-ready="markBooted($event)"
           @streaming-state="streaming = $event"
         />
-        <template #fallback>
-          <div class="embed-chat-fallback">
-            <EmbedBootSpinner />
-          </div>
-        </template>
       </Suspense>
+        <Transition name="embed-boot-fade">
+          <EmbedBootSkeleton
+            v-if="!chatBooted"
+            class="embed-boot-overlay"
+            :variant="bootVariant"
+          />
+        </Transition>
+      </div>
     </template>
-    <div v-else class="embed-boot-fallback">
-      <EmbedBootSpinner />
-    </div>
+    <template v-else>
+      <header class="embed-header" :class="{ 'embed-header--hero': bootVariant === 'welcome' }">
+        <EmbedHeaderSkeleton :variant="bootVariant" />
+      </header>
+      <div class="embed-boot-fallback">
+        <EmbedBootSkeleton :variant="bootVariant" />
+      </div>
+    </template>
 
     <EmbedHistoryDrawer
       :open="historyOpen"
@@ -128,16 +150,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch, watchEffect } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import EmbedBootSpinner from '@/views/embed/EmbedBootSpinner.vue'
+import EmbedBootSkeleton from '@/views/embed/EmbedBootSkeleton.vue'
+import EmbedHeaderSkeleton from '@/views/embed/EmbedHeaderSkeleton.vue'
 import { glowVars } from '@/utils/embedGlow'
 import EmbedChatView from '@/views/embed/EmbedChatView.vue'
 import EmbedHistoryDrawer from '@/views/embed/EmbedHistoryDrawer.vue'
 import errorIcon from '@/assets/img/error.svg'
 import {
   deleteEmbedVisitorSession,
+  hasStoredEmbedSession,
   listEmbedVisitorSessions,
   type EmbedVisitorSessionSummary,
 } from '@/api/embed'
@@ -150,8 +174,32 @@ const route = useRoute()
 const channelId = ref(String(route.params.channelId || ''))
 const sessionTitle = ref('')
 const chatHasMessages = ref(false)
+/**
+ * 首屏骨架形态：同步看该渠道有没有存量会话。
+ * 只有「存在性」可以提前知道；有效性由服务端校验，失效时回落欢迎骨架。
+ */
+const bootVariant = ref<'conversation' | 'welcome'>(
+  hasStoredEmbedSession(channelId.value) ? 'conversation' : 'welcome',
+)
 /** 首屏形态已定（历史/新建确定、骨架撤下）——光晕与头部图标此后才出现。 */
+/** 头部是否为 hero 态（欢迎屏）：就绪后看有没有消息，未就绪看预判形态。 */
+const heroHeader = computed(() =>
+  chatBooted.value ? !chatHasMessages.value : bootVariant.value === 'welcome',
+)
+
 const chatBooted = ref(false)
+
+// 一旦撤过骨架就不再回退：推荐问题/历史加载的 pending 会短暂反复，
+// 直接跟随会看到骨架「淡出→又出现」的抖动。
+const markBooted = (ready: boolean) => {
+  if (ready) chatBooted.value = true
+}
+
+// 静态段用 <html class="boot-has-session"> 决定首帧形态；Vue 接管后由 bootVariant 决定，
+// 这个标记必须摘掉，否则「会话失效回落欢迎」时欢迎骨架会被 CSS 藏起来。
+onMounted(() => {
+  document.documentElement.classList.remove('boot-has-session')
+})
 
 const {
   token,
@@ -170,6 +218,16 @@ const {
   selectSession,
   startNewSession,
 } = useEmbedBridge(channelId)
+
+// 存量会话被服务端判定失效（或换绑 agent）时，骨架形态回落欢迎页
+// 只在「校验过 → 结束」且确实没有可用会话时回落欢迎骨架。
+// 不能 immediate：setup 瞬间 restoringSession 还是 false、sessionId 还是空，
+// 会把刚按 localStorage 判好的 conversation 形态误改成 welcome。
+watch(restoringSession, (restoring, previous) => {
+  if (previous && !restoring && !sessionId.value) {
+    bootVariant.value = 'welcome'
+  }
+})
 
 // An embed visitor has no Bearer/tenant credentials, so every protected file in
 // this document must go through the channel-scoped proxy. Registering the plane
@@ -449,13 +507,61 @@ watch(headerTitle, (title) => {
   z-index: 1;
 }
 
-/* 未知阶段：转圈占满头部以下区域并居中 */
+/* 头部头像 / 标题：淡入时从左侧滑入，退场时反向 */
+.header-fade-enter-active,
+.header-fade-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.header-fade-enter-from,
+.header-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-fade-enter-active,
+  .header-fade-leave-active {
+    transition: none;
+  }
+}
+
+/* 聊天区容器：骨架覆盖层以它为定位基准 */
+.embed-chat-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.embed-boot-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--td-bg-color-container, #fff);
+}
+
+/* 骨架淡出：核心已渲染出内容，只做 160ms 交叉避免闪 */
+.embed-boot-fade-leave-active {
+  transition: opacity 0.16s ease;
+}
+
+.embed-boot-fade-leave-to {
+  opacity: 0;
+}
+
 .embed-boot-fallback {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+}
+
+/* 骨架根节点在子组件里：必须显式撑满，否则 height:100% 解析成 auto、内容塌成 0 */
+.embed-boot-fallback :deep(.embed-boot) {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .embed-header {
@@ -463,6 +569,9 @@ watch(headerTitle, (title) => {
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
+  /* 固定高度：图标 32 / 徽标 36 两种内容都落在同一高度，骨架与真实头部之间不跳 */
+  min-height: 60px;
+  box-sizing: border-box;
   border-bottom: .5px solid var(--td-component-stroke);
   background: var(--td-bg-color-container);
   flex-shrink: 0;
@@ -474,10 +583,7 @@ watch(headerTitle, (title) => {
     background: transparent;
     border-bottom-color: transparent;
 
-    .embed-header__badge,
-    .embed-header__text {
-      display: none;
-    }
+    /* 头像与标题由 v-if + header-fade 过渡控制，这里只管排版 */
   }
 
   &__badge {

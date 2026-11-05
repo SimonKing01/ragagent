@@ -175,6 +175,21 @@ export function embedChatSessionStorageKey(channelId: string): string {
   return `${EMBED_CHAT_SESSION_STORAGE_PREFIX}${channelId}`
 }
 
+/**
+ * 同步判断该渠道是否存有会话（首屏形态用）。
+ *
+ * <p>只有"存在性"是本地可知的：会话是否仍有效要靠服务端校验，这里不做。
+ * storage 不可用（隐私模式）或没有该键时一律按"无会话"处理 → 欢迎页。</p>
+ */
+export function hasStoredEmbedSession(channelId: string): boolean {
+  if (typeof localStorage === 'undefined' || !channelId) return false
+  try {
+    return Boolean(localStorage.getItem(embedChatSessionStorageKey(channelId)))
+  } catch {
+    return false
+  }
+}
+
 /** Drop a persisted embed chat session so the next load starts fresh. */
 export function clearEmbedStoredChatSession(channelId: string): void {
   if (typeof localStorage === 'undefined') return

@@ -24,7 +24,7 @@
       class="embed-input-box__textarea"
       :class="{ 'has-images': uploadedImages.length > 0 }"
       :placeholder="t('input.placeholder')"
-      :autosize="{ minRows: 2, maxRows: 6 }"
+      :autosize="{ minRows: 1, maxRows: 6 }"
       @keydown="onKeydown"
       @compositionstart="isComposing = true"
       @compositionend="isComposing = false"
@@ -301,7 +301,7 @@ onUnmounted(() => {
       padding: 14px 16px 52px;
       font-size: 14px;
       line-height: 1.5;
-      min-height: 90px;
+      min-height: 90px !important;
       resize: none;
     }
 

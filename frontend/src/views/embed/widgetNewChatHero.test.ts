@@ -13,10 +13,10 @@ const core = readFileSync(new URL('./EmbedChatCore.vue', import.meta.url), 'utf8
 const view = readFileSync(new URL('./EmbedChatView.vue', import.meta.url), 'utf8')
 
 test('新对话态头部退成悬浮图标，会话态恢复完整头部', () => {
-  assert.match(page, /'embed-header--hero': !chatHasMessages/,
-    '头部形态必须跟随「是否已有消息」切换')
-  assert.match(page, /&--hero\s*\{[\s\S]*?\.embed-header__badge,[\s\S]*?display: none/,
-    'hero 态要隐藏头像与标题，让它们下沉到欢迎屏')
+  assert.match(page, /:class="\{ 'embed-header--hero': heroHeader \}"/,
+    'hero 态由 computed 驱动')
+  assert.match(page, /<Transition name="header-fade">[\s\S]{0,200}v-if="!heroHeader"/,
+    '头像与标题要走淡入淡出，不能 display:none 瞬切')
 })
 
 test('右上角主题色光晕只在新对话态出现', () => {
