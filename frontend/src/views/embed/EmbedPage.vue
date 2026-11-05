@@ -385,10 +385,10 @@ watch(headerTitle, (title) => {
   /* 右上角主题色光晕（装饰层，不吃事件）：斜向椭圆，浓度由品牌色亮度决定 */
   &__glow {
     position: absolute;
-    top: -110px;
-    right: -96px;
-    width: 360px;
-    height: 260px;
+    top: -130px;
+    right: -120px;
+    width: 440px;
+    height: 320px;
     pointer-events: none;
     z-index: 0;
     border-radius: 50%;
