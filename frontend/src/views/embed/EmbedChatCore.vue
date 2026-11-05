@@ -199,6 +199,8 @@ const emit = defineEmits<{
   (e: 'session-title', title: string): void
   (e: 'messages-state', hasMessages: boolean): void
   (e: 'streaming-state', streaming: boolean): void
+  /** 首屏形态已定（历史/新建确定），骨架可以撤下。 */
+  (e: 'boot-ready'): void
 }>()
 
 const { t } = useI18n()
@@ -357,6 +359,20 @@ const showGlobalTypingIndicator = computed(() =>
  * 不挂在 showSuggestedBlock 上——推荐问题关掉时也要有问候语，
  * 否则「无欢迎语 + 未开推荐问题」会是一整片空白。
  */
+/**
+ * 首屏骨架期：历史会话加载 / 存量会话校验期间仍不确定该画什么，
+ * 由外框（EmbedBootSkeleton）承接；这里一旦确定就通知外框撤骨架、放光晕。
+ */
+const bootPending = computed(() => historyLoading.value || Boolean(props.sessionRestoring))
+
+watch(
+  bootPending,
+  (pending) => {
+    if (!pending) emit('boot-ready')
+  },
+  { immediate: true },
+)
+
 const showGreeting = computed(() =>
   !hasUserMessage.value
   && !loading.value

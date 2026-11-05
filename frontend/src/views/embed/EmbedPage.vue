@@ -10,7 +10,7 @@
     <template v-else-if="config">
       <!-- 右上角主题色光晕：只在新对话态出现，进入会话后淡出 -->
       <Transition name="embed-glow">
-        <span v-if="!chatHasMessages" class="embed-page__glow" aria-hidden="true" />
+        <span v-if="chatBooted && !chatHasMessages" class="embed-page__glow" aria-hidden="true" />
       </Transition>
 
       <header class="embed-header" :class="{ 'embed-header--hero': !chatHasMessages }">
@@ -23,6 +23,7 @@
           <h1 class="embed-header__title">{{ headerTitle }}</h1>
         </div>
         <t-button
+          v-if="chatBooted"
           variant="text"
           shape="square"
           size="medium"
@@ -75,19 +76,22 @@
           :session-restoring="restoringSession"
           @session-title="sessionTitle = $event"
           @messages-state="chatHasMessages = $event"
+          @boot-ready="chatBooted = true"
           @streaming-state="streaming = $event"
         />
         <template #fallback>
           <div class="embed-chat-fallback">
-            <EmbedBootSkeleton :text="$t('embedPublish.loading')" :show-header="false" />
+            <EmbedBootSkeleton
+              :variant="restoringSession ? 'conversation' : 'welcome'"
+              :show-header="false"
+            />
           </div>
         </template>
       </Suspense>
     </template>
-    <EmbedBootSkeleton
-      v-else
-      :text="awaitingToken ? $t('embedPublish.awaitingToken') : $t('embedPublish.loading')"
-    />
+    <div v-else class="embed-boot-fallback">
+      <EmbedBootSpinner />
+    </div>
 
     <EmbedHistoryDrawer
       :open="historyOpen"
@@ -131,6 +135,7 @@ import { computed, onUnmounted, ref, watch, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import EmbedBootSkeleton from '@/views/embed/EmbedBootSkeleton.vue'
+import EmbedBootSpinner from '@/views/embed/EmbedBootSpinner.vue'
 import { glowVars } from '@/utils/embedGlow'
 import EmbedChatView from '@/views/embed/EmbedChatView.vue'
 import EmbedHistoryDrawer from '@/views/embed/EmbedHistoryDrawer.vue'
@@ -149,6 +154,8 @@ const route = useRoute()
 const channelId = ref(String(route.params.channelId || ''))
 const sessionTitle = ref('')
 const chatHasMessages = ref(false)
+/** 首屏形态已定（历史/新建确定、骨架撤下）——光晕与头部图标此后才出现。 */
+const chatBooted = ref(false)
 
 const {
   token,
@@ -444,6 +451,15 @@ watch(headerTitle, (title) => {
 .embed-chat-fallback {
   position: relative;
   z-index: 1;
+}
+
+/* 未知阶段：转圈占满头部以下区域并居中 */
+.embed-boot-fallback {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .embed-header {

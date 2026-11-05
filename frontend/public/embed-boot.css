@@ -96,10 +96,11 @@
    .embed-intro 对齐；顶部留白 = 消息区的 12px + 问候语的 clamp 偏移）。
    左右 26px = 消息区 16px 内边距 + .embed-intro 的 10px 外边距。 */
 .embed-boot__body--intro {
-  padding-top: calc(12px + clamp(24px, 12vh, 88px));
+  padding-top: calc(12px + clamp(16px, 8vh, 56px));
   padding-left: 26px;
   padding-right: 26px;
   gap: 8px;
+  align-items: flex-start;
 }
 
 /* 对话骨架沿用消息区原本的间距（无外边距，左右回到 16px） */
@@ -109,11 +110,26 @@
 }
 
 /* 高度 = 问候语 20px 字号 × 1.5 行高；下外边距 20px 对齐 .embed-intro__greeting */
+/* 头像 + 名称：与 .embed-hero 同尺寸（64px 圆 / 16px 名称条） */
+.eb-intro-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  margin-bottom: 14px;
+}
+
+.eb-intro-name {
+  width: 116px;
+  height: 16px;
+  border-radius: 4px;
+  margin-bottom: 18px;
+}
+
 .eb-intro-greeting {
   width: 58%;
   height: 30px;
   border-radius: 6px;
-  margin: 0 auto 20px;
+  margin: 0 0 4px;
 }
 
 /* 高度取真实标签的行高（13px 字号 / 18px 行高）；上下外边距与 8px gap 叠加后
@@ -144,7 +160,7 @@
 .eb-row {
   width: 100%;
   height: 41px;
-  border-radius: 10px;
+  border-radius: 8px;
 }
 
 .embed-boot__input {
