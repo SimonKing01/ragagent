@@ -8,7 +8,12 @@
       </t-button>
     </div>
     <template v-else-if="config">
-      <header class="embed-header">
+      <!-- 右上角主题色光晕：只在新对话态出现，进入会话后淡出 -->
+      <Transition name="embed-glow">
+        <span v-if="!chatHasMessages" class="embed-page__glow" aria-hidden="true" />
+      </Transition>
+
+      <header class="embed-header" :class="{ 'embed-header--hero': !chatHasMessages }">
         <span class="embed-header__badge" :style="badgeStyle">
           <img v-if="headerAvatarImage" class="embed-header__avatar-img" :src="headerAvatarImage" alt="" />
           <span v-else-if="config.agentAvatar" class="embed-header__avatar">{{ config.agentAvatar }}</span>
@@ -29,11 +34,11 @@
           <template #icon><t-icon name="history" size="18px"/></template>
         </t-button>
         <t-button
+          v-if="chatHasMessages"
           variant="text"
           shape="square"
           size="medium"
           class="embed-header__action"
-          :disabled="!chatHasMessages"
           :title="$t('embedPublish.newChat')"
           :aria-label="$t('embedPublish.newChat')"
           @click="handleNewChat"
@@ -53,6 +58,9 @@
           :agent-id="config.agentId"
           :kb-ids="kbIds"
           :welcome-message="config.welcomeMessage"
+          :hero-avatar-image="headerAvatarImage"
+          :hero-avatar-text="config.agentAvatar || ''"
+          :hero-title="channelDisplayTitle"
           :show-suggested-questions="config.showSuggestedQuestions !== false"
           :agent-starter-questions-enabled="config.agentStarterQuestionsEnabled === true"
           :agent-follow-up-questions-enabled="config.agentFollowUpQuestionsEnabled === true"
@@ -355,6 +363,8 @@ watch(headerTitle, (title) => {
   flex-direction: column;
   background: var(--td-bg-color-container, #fff);
   overflow: hidden;
+  position: relative;
+
   /* 渠道主题色由 pageStyle 内联写入 --td-brand-color*；未配置时继承全局主题色。 */
 
   :deep(.embed-input-box:focus-within) {
@@ -364,14 +374,67 @@ watch(headerTitle, (title) => {
   :deep(.embed-send-btn:not(.disabled)) {
     background: var(--embed-primary, var(--td-brand-color));
   }
+
+  /* 右上角主题色光晕（装饰层，不吃事件） */
+  &__glow {
+    position: absolute;
+    top: -96px;
+    right: -72px;
+    width: 320px;
+    height: 320px;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 50%;
+    background: radial-gradient(closest-side,
+      color-mix(in srgb, var(--td-brand-color, #0052d9) 20%, transparent),
+      transparent 72%);
+    filter: blur(8px);
+    animation: embed-glow-drift 14s ease-in-out infinite alternate;
+  }
 }
 
-// 聊天分块加载中：骨架需占满头部以下，否则会被按 100vh 计算而溢出
+/* 光晕缓慢漂移：幅度很小，只做「活着」的感觉 */
+@keyframes embed-glow-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-18px, 14px, 0) scale(1.12);
+  }
+}
+
+.embed-glow-enter-active,
+.embed-glow-leave-active {
+  transition: opacity 0.24s ease;
+  /* 常驻的漂移动画是 infinite，Vue 会据此等 animationend 而永远不结束，
+     淡出期间必须停掉它，让过渡按 transitionend 收尾 */
+  animation: none;
+}
+
+.embed-glow-enter-from,
+.embed-glow-leave-to {
+  opacity: 0;
+}
+
+/* 系统要求减少动效时停掉漂移（保留静态光晕） */
+@media (prefers-reduced-motion: reduce) {
+  .embed-page__glow {
+    animation: none;
+  }
+
+  .embed-intro-leave-active,
+  .embed-intro-enter-active,
+  .embed-header {
+    transition: none;
+  }
+}
+
+/* 内容层压在光晕之上 */
+.embed-header,
+.embed-chat,
 .embed-chat-fallback {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 .embed-header {
@@ -382,6 +445,19 @@ watch(headerTitle, (title) => {
   border-bottom: .5px solid var(--td-component-stroke);
   background: var(--td-bg-color-container);
   flex-shrink: 0;
+  // 新对话态：头部退成右上角悬浮图标，头像与名称下沉到欢迎屏
+  transition: background-color 0.24s ease, border-color 0.24s ease;
+
+  &--hero {
+    justify-content: flex-end;
+    background: transparent;
+    border-bottom-color: transparent;
+
+    .embed-header__badge,
+    .embed-header__text {
+      display: none;
+    }
+  }
 
   &__badge {
     display: inline-flex;

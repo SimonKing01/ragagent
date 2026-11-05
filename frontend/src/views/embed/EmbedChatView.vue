@@ -8,6 +8,9 @@
     :agent-id="agentId"
     :kb-ids="kbIds"
     :welcome-message="welcomeMessage"
+    :hero-avatar-image="heroAvatarImage"
+    :hero-avatar-text="heroAvatarText"
+    :hero-title="heroTitle"
     :show-suggested-questions="showSuggestedQuestions"
     :agent-starter-questions-enabled="agentStarterQuestionsEnabled"
     :agent-follow-up-questions-enabled="agentFollowUpQuestionsEnabled"
@@ -39,6 +42,10 @@ defineProps<{
   agentId: string
   kbIds: string[]
   welcomeMessage?: string
+  /** 新对话态英雄区（头像图 / emoji 文本 / 名称），由外框按渠道配置传入 */
+  heroAvatarImage?: string
+  heroAvatarText?: string
+  heroTitle?: string
   showSuggestedQuestions?: boolean
   agentStarterQuestionsEnabled?: boolean
   agentFollowUpQuestionsEnabled?: boolean

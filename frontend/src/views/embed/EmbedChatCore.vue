@@ -11,10 +11,18 @@
         </div>
 
         <!-- 欢迎屏：问候语居中偏上，下面是「为您推荐」+ 问题列表；两者都关闭时只留问候语 -->
+        <Transition name="embed-intro" appear>
         <div
           v-if="showGreeting || showSuggestedBlock"
           class="embed-intro"
         >
+          <!-- 头像 + 名称：launcherIcon → agentAvatar，都没有时不渲染 -->
+          <div v-if="heroAvatarImage || heroAvatarText" class="embed-hero">
+            <img v-if="heroAvatarImage" class="embed-hero__avatar" :src="heroAvatarImage" alt="" />
+            <span v-else class="embed-hero__avatar embed-hero__avatar--text">{{ heroAvatarText }}</span>
+            <p v-if="heroTitle" class="embed-hero__name">{{ heroTitle }}</p>
+          </div>
+
           <p v-if="showGreeting" class="embed-intro__greeting">
             {{ hasWelcomeText ? welcomeText : t('chat.defaultGreeting') }}
           </p>
@@ -53,6 +61,7 @@
             </div>
           </div>
         </div>
+        </Transition>
 
         <div
           v-for="(session, index) in messagesList"
@@ -166,6 +175,10 @@ const props = defineProps<{
   agentId: string
   kbIds: string[]
   welcomeMessage?: string
+  /** 新对话态英雄区：头像图（launcherIcon → agentAvatar 图片）、emoji 文本与名称 */
+  heroAvatarImage?: string
+  heroAvatarText?: string
+  heroTitle?: string
   showSuggestedQuestions?: boolean
   agentStarterQuestionsEnabled?: boolean
   agentFollowUpQuestionsEnabled?: boolean
@@ -506,33 +519,88 @@ watch(
   width: 100%;
 }
 
-// 欢迎屏：问候语居中偏上，推荐问题在下方；两者都关闭时只剩问候语
+// 新对话态：头像 + 名称 + 问候 + 推荐，左对齐（参考图布局）
+.embed-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 18px;
+
+  &__avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--td-bg-color-container);
+    box-shadow:
+      0 0 0 2px var(--td-bg-color-container),
+      0 0 0 3px color-mix(in srgb, var(--td-brand-color, #0052d9) 18%, transparent),
+      0 6px 16px color-mix(in srgb, var(--td-brand-color, #0052d9) 16%, transparent);
+
+    &--text {
+      font-size: 28px;
+      line-height: 1;
+    }
+  }
+
+  &__name {
+    margin: 14px 0 0;
+    font-size: 16px;
+    line-height: 1.4;
+    font-weight: 600;
+    color: var(--td-text-color-primary);
+    word-break: break-word;
+  }
+}
+
+// 欢迎屏：问候语在头像下方左对齐，推荐问题紧随其后
 .embed-intro {
   display: flex;
   flex-direction: column;
   margin: 0 10px;
-  // 「居中偏上一点」：随面板高度取一段顶部留白，最高不超过 88px
-  padding-top: clamp(24px, 12vh, 88px);
+  // 顶部留白比旧版更小：头像成为第一屏主角
+  padding-top: clamp(16px, 8vh, 56px);
 
   &__greeting {
-    margin: 0;
+    margin: 0 0 4px;
     font-size: 20px;
     line-height: 1.5;
     font-weight: 600;
-    text-align: center;
+    text-align: left;
     color: var(--td-text-color-primary);
     // 欢迎语由渠道配置，可能自带换行
     white-space: pre-wrap;
     word-break: break-word;
-    margin-bottom: 20px;
   }
+}
+
+// 欢迎屏退场：消息发出后轻轻上移淡出，不打断气泡入场
+.embed-intro-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.embed-intro-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+}
+
+.embed-intro-enter-active {
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.embed-intro-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
 }
 
 .embed-suggested {
   width: 100%;
 
   &__title {
-    margin: 20px 0 12px;
+    margin: 18px 0 10px;
     font-size: 13px;
     font-weight: 500;
     color: var(--td-text-color-secondary);
@@ -549,9 +617,9 @@ watch(
     width: 100%;
     // 真实卡片是 button（默认 border-box）；显式声明，避免换成 div 时宽度算法变掉
     box-sizing: border-box;
-    padding: 10px 12px;
+    padding: 14px;
     border: 1px solid var(--td-component-stroke);
-    border-radius: 10px;
+    border-radius: 12px;
     background: var(--td-bg-color-container);
     text-align: left;
     cursor: pointer;
@@ -567,7 +635,11 @@ watch(
   }
 
   &__text {
-    font-size: 13px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 14px;
     line-height: 1.45;
     color: var(--td-text-color-primary);
   }
