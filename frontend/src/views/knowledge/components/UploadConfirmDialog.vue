@@ -360,7 +360,11 @@
                       <div class="settings-group">
                         <div class="setting-row">
                           <div class="setting-info">
-                            <label>{{ t('knowledgeEditor.ocr.label') }}</label>
+                            <label>{{
+                              t(uiState.imageOcrEnabled
+                                ? 'knowledgeEditor.ocr.statusOn'
+                                : 'knowledgeEditor.ocr.statusOff')
+                            }}</label>
                             <p class="desc">{{ t('knowledgeEditor.ocr.desc') }}</p>
                           </div>
                           <div class="setting-control">

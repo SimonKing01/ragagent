@@ -285,7 +285,11 @@
                     <div class="settings-group">
                       <div class="setting-row" data-guide="kb-create-ocr-toggle">
                         <div class="setting-info">
-                          <label>{{ $t('knowledgeEditor.ocr.label') }}</label>
+                          <label>{{
+                            $t(formData.ocrEnabled
+                              ? 'knowledgeEditor.ocr.statusOn'
+                              : 'knowledgeEditor.ocr.statusOff')
+                          }}</label>
                           <p class="desc">{{ $t('knowledgeEditor.ocr.desc') }}</p>
                         </div>
                         <div class="setting-control">
