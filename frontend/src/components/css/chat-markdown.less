@@ -591,6 +591,18 @@
     text-align: right;
   }
 
+  /* 音视频分块里的播放器：与图片同样的宽度与圆角 */
+  :deep(video.chunk-video) {
+    display: block;
+    max-width: 100%;
+    max-height: 300px;
+    width: auto;
+    height: auto;
+    margin: 1.25em 0;
+    border-radius: 8px;
+    background: #000;
+  }
+
   :deep(img) {
     max-width: 100%;
     max-height: 300px;

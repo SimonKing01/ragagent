@@ -16,6 +16,7 @@ import {
 } from "@/api/knowledge-base/index";
 import { MessagePlugin } from "tdesign-vue-next";
 import { sanitizeHTML, safeMarkdownToHTML, createSafeImage, isValidImageURL, hydrateProtectedFileImages, isValidURL } from '@/utils/security';
+import { isProtectedVideoHref } from '@/utils/protectedMedia';
 import { normalizeSpuriousTablePrefixes } from '@/utils/markdownTableNormalize';
 import { openMermaidFullscreen } from '@/utils/mermaidViewer';
 import { diffWikiLines, type WikiDiffLine } from '@/utils/wikiLineDiff';
@@ -631,6 +632,14 @@ const mergeChunks = (chunks: any[]): string => {
 let protectedImageObserver: MutationObserver | null = null;
 let protectedImageTimer: number | null = null;
 
+/** 节点内是否还有指向受保护音视频的 <a>（分块预览路径需要靠它触发升级）。 */
+const hasProtectedMediaAnchor = (node: Element): boolean => {
+  const anchors = node.matches('a[href]')
+    ? [node as HTMLAnchorElement]
+    : Array.from(node.querySelectorAll<HTMLAnchorElement>('a[href]'));
+  return anchors.some((a) => isProtectedVideoHref(a.getAttribute('href')));
+};
+
 const scheduleProtectedImageHydration = () => {
   if (protectedImageTimer !== null) {
     return;
@@ -653,7 +662,10 @@ onMounted(() => {
       Array.from(mutation.addedNodes).some((node) =>
         node instanceof HTMLElement
         && (node.matches('img[data-protected-src]')
-          || Boolean(node.querySelector('img[data-protected-src]'))),
+          || node.matches('video[data-protected-src]')
+          || Boolean(node.querySelector('img[data-protected-src], video[data-protected-src]'))
+          // 分块预览走 sanitizeHTML，媒体先以 <a> 形式出现，也要触发一次升级+水合
+          || hasProtectedMediaAnchor(node)),
       ),
     );
     if (hasProtectedImage) {
@@ -2173,6 +2185,16 @@ const handleChunkPageChange = (pageInfo: { current: number }) => {
   </div>
 </template>
 <style scoped lang="less">
+/* 分块正文里的音视频播放器：与聊天侧保持一致的观感 */
+.doc-content :deep(video.chunk-video) {
+  display: block;
+  max-width: 100%;
+  max-height: 300px;
+  margin: 1em 0;
+  border-radius: 8px;
+  background: #000;
+}
+
 @import "./css/markdown.less";
 
 .section-title-actions,

@@ -1,3 +1,5 @@
+import { createProtectedVideo, isProtectedVideoHref, posterRefFromTitle } from './protectedMedia';
+
 export const domPurifyForbidTags = ['script', 'style', 'object', 'embed', 'form', 'input'] as const;
 export const domPurifyForbidAttr = ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur'] as const;
 
@@ -57,6 +59,16 @@ export const markdownDomPurifySecurityHooks = {
     if (!('tagName' in currentNode) || !('getAttribute' in currentNode)) return;
     const element = currentNode as Element;
     if (element.tagName === 'A' && element.getAttribute('href')) {
+      const href = element.getAttribute('href') || '';
+      // 受保护的音视频引用（local://…/xxx.mp4）：渲染成播放器，而不是普通链接
+      if (isProtectedVideoHref(href)) {
+        element.replaceWith(createProtectedVideo(
+          element.ownerDocument,
+          href,
+          posterRefFromTitle(element.getAttribute('title')),
+        ));
+        return;
+      }
       const className = element.getAttribute('class') || '';
       if (/\bprotected-resource-card\b/.test(className) || element.hasAttribute('download')) {
         element.removeAttribute('target');
@@ -79,12 +91,13 @@ export const markdownDomPurifyConfig = {
     'clippath', 'lineargradient', 'radialgradient', 'stop', 'pattern',
     'image', 'foreignobject', 'desc', 'title', 'switch', 'symbol', 'mask',
     'math', 'annotation', 'semantics', 'mo', 'mi', 'mn', 'msup', 'mrow', 'mfrac', 'msqrt', 'mroot', 'mstyle',
-    'button',
+    'button', 'video',
   ],
   ALLOWED_ATTR: [
     'href', 'title', 'target', 'rel', 'data-tooltip', 'data-url', 'data-kb-id',
     'data-chunk-id', 'data-doc', 'data-slug', 'class', 'role', 'tabindex', 'src', 'alt', 'data-protected-src', 'data-img-loading',
     'data-artifact-index', 'data-protected-resource', 'download',
+    'controls', 'preload', 'playsinline', 'poster',
     'width', 'height', 'style', 'id', 'type', 'aria-label', 'data-mermaid', 'disabled',
     'd', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin',
     'stroke-dasharray', 'stroke-dashoffset', 'stroke-miterlimit', 'stroke-opacity',

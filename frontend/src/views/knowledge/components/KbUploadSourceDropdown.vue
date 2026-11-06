@@ -153,15 +153,15 @@ const handleActionSelect = (data: { value: string }) => {
 }
 
 const notifyFilterResult = (result: ReturnType<typeof filterUploadFiles>, emptyAllSkippedKey: string) => {
-  const { validFiles, skippedCount, videoFilteredCount } = result
+  const { validFiles, skippedCount } = result
   if (validFiles.length === 0) {
     if (skippedCount > 0) {
       MessagePlugin.warning(t(emptyAllSkippedKey))
+    } else {
+      // 兜底：走到这里通常是文件类型不被当前解析引擎支持，不能一声不吭
+      MessagePlugin.warning(t('error.unsupportedFileType'))
     }
     return false
-  }
-  if (videoFilteredCount > 0) {
-    MessagePlugin.warning(t('knowledgeBase.videosFilteredNoVLM', { count: videoFilteredCount }))
   }
   if (skippedCount > 0) {
     MessagePlugin.warning(t('knowledgeBase.filesSkippedNoEngine', { count: skippedCount }))

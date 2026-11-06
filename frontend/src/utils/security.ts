@@ -4,6 +4,7 @@
 
 import DOMPurify from 'dompurify';
 import { applyProtectedFile, responseFileName, RESOURCE_PREVIEW_EVENT, type LoadedProtectedFile } from './protectedResource.ts';
+import { findPosterImage, upgradeProtectedMediaRefs } from './protectedMedia.ts';
 import type { Config, NodeHook } from 'dompurify';
 import {
   domPurifySecurityHooks,
@@ -532,6 +533,97 @@ function applyHydratedProtectedImage(root: ParentNode, sourceURL: string, file: 
   });
 }
 
+/**
+ * 受保护音视频（local://…/xxx.mp4）与图片同一条链路：带鉴权取 blob，塞回 <video src>。
+ * 视频不重试占位，失败就保持 controls 不可用。
+ */
+async function hydrateProtectedMedia(
+  root: ParentNode,
+  access?: ProtectedFileAccessContext,
+): Promise<void> {
+  const videos = root.querySelectorAll<HTMLVideoElement>('video[data-protected-src]');
+  if (!videos.length) {
+    return;
+  }
+  const resolvedAccess = resolveProtectedFileAccess(access);
+  await Promise.all(Array.from(videos).map(async (video) => {
+    const sourceURL = (video.getAttribute('data-protected-src') || '').trim();
+    if (!sourceURL || video.dataset.authHydrated === '1') {
+      return;
+    }
+    const request = buildProtectedFileRequest(sourceURL, resolvedAccess);
+    if (!request) {
+      return;
+    }
+    const { url: requestURL, headers } = request;
+    const requestKey = JSON.stringify([requestURL, headers]);
+    const applyPoster = async () => {
+      // 优先用链接 title 里带的封面（新格式），回退到同块里的封面图（老分块）
+      const posterRef = (video.getAttribute('data-poster-src') || '').trim();
+      if (posterRef) {
+        const posterRequest = buildProtectedFileRequest(posterRef, resolvedAccess);
+        if (posterRequest) {
+          const posterKey = JSON.stringify([posterRequest.url, posterRequest.headers]);
+          const cachedPoster = protectedFileBlobCache.get(posterKey);
+          if (cachedPoster) {
+            video.poster = cachedPoster.blobURL;
+            return;
+          }
+          try {
+            // raw-fetch-ok: 取的是封面图二进制（blob），响应体不是 JSON
+            const resp = await fetch(posterRequest.url, {
+              method: 'GET',
+              headers: posterRequest.headers,
+              credentials: 'include',
+            });
+            if (resp.ok) {
+              const blob = await resp.blob();
+              const blobURL = URL.createObjectURL(blob);
+              protectedFileBlobCache.set(posterKey, { blobURL, blob, fileName: 'poster.jpg' });
+              video.poster = blobURL;
+              return;
+            }
+          } catch (error) {
+            console.warn('[security] load video poster failed:', error);
+          }
+        }
+      }
+      const poster = findPosterImage(video);
+      const posterSrc = poster ? poster.getAttribute('src') || '' : '';
+      if (posterSrc.startsWith('blob:')) {
+        video.poster = posterSrc;
+      }
+    };
+    const cached = protectedFileBlobCache.get(requestKey);
+    if (cached) {
+      video.src = cached.blobURL;
+      video.dataset.authHydrated = '1';
+      await applyPoster();
+      return;
+    }
+    try {
+      // raw-fetch-ok: 取的是二进制（视频流），响应体不是 JSON
+      const resp = await fetch(requestURL, { method: 'GET', headers, credentials: 'include' });
+      if (!resp.ok) {
+        return;
+      }
+      const blob = await resp.blob();
+      const blobURL = URL.createObjectURL(blob);
+      const file = {
+        blobURL,
+        blob,
+        fileName: responseFileName(resp.headers.get('Content-Disposition'), sourceURL),
+      };
+      protectedFileBlobCache.set(requestKey, file);
+      video.src = blobURL;
+      video.dataset.authHydrated = '1';
+      await applyPoster();
+    } catch (error) {
+      console.warn('[security] hydrateProtectedMedia failed:', error);
+    }
+  }));
+}
+
 function ensureProtectedResourceCardClicks(): void {
   if (typeof window === 'undefined') return;
   const scope = window as typeof window & { __weknoraProtectedCardClicks__?: boolean };
@@ -571,11 +663,15 @@ export async function hydrateProtectedFileImages(
   }
 
   ensureProtectedResourceCardClicks();
+  // 任何渲染路径（聊天 / 分块预览 / 手工编辑）都先把媒体链接升级成播放器
+  upgradeProtectedMediaRefs(root);
 
   const images = root.querySelectorAll<HTMLImageElement>(
     'img[data-protected-src], img[src^="resource://"], img[src^="storage://"], img[src^="local://"], img[src^="minio://"], img[src^="cos://"], img[src^="tos://"], img[src^="s3://"], img[src^="oss://"], img[src^="ks3://"], img[src^="obs://"]',
   );
   if (!images.length) {
+    // 没有图片也要处理视频（模型可能只给出播放链接）
+    await hydrateProtectedMedia(root, access);
     return;
   }
 
@@ -675,4 +771,7 @@ export async function hydrateProtectedFileImages(
       img.dataset.authHydrated = '0';
     }
   }));
+
+  // 图片先水合完：视频的 poster 直接复用同一容器里封面图的 blob
+  await hydrateProtectedMedia(root, access);
 }
