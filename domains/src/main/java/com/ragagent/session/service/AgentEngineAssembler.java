@@ -421,7 +421,7 @@ final class AgentEngineAssembler {
                 // 思考/待办是**引擎内置工具**：由 agent-engine 的工厂按同一份允许清单注册
                 case ToolDefinitions.TOOL_THINKING, ToolDefinitions.TOOL_TODO_WRITE -> {
                 }
-                // 检索/会话/记忆/DB 族（接线批）：seam → 真实服务经 AgentToolBackends
+                // 检索/会话/记忆/DB 族：seam → 真实服务经 AgentToolBackends
                 case ToolDefinitions.TOOL_KNOWLEDGE_SEARCH, ToolDefinitions.TOOL_GREP_CHUNKS,
                         ToolDefinitions.TOOL_LIST_KNOWLEDGE_CHUNKS,
                         ToolDefinitions.TOOL_QUERY_KNOWLEDGE_GRAPH,
@@ -431,7 +431,7 @@ final class AgentEngineAssembler {
                         ToolDefinitions.TOOL_DATA_SCHEMA, ToolDefinitions.TOOL_DATA_ANALYSIS ->
                         toolToRegister = toolBackends.createTool(toolName,
                                 config.getSearchTargets(), rerankModel, toolOwnerId, sessionId);
-                // wiki 族 10 件（接线批）
+                // wiki 族 10 件
                 case ToolDefinitions.TOOL_WIKI_READ_PAGE, ToolDefinitions.TOOL_WIKI_SEARCH,
                         ToolDefinitions.TOOL_WIKI_READ_SOURCE_DOC, ToolDefinitions.TOOL_WIKI_FLAG_ISSUE,
                         ToolDefinitions.TOOL_WIKI_WRITE_PAGE, ToolDefinitions.TOOL_WIKI_REPLACE_TEXT,
@@ -439,7 +439,7 @@ final class AgentEngineAssembler {
                         ToolDefinitions.TOOL_WIKI_READ_ISSUE, ToolDefinitions.TOOL_WIKI_UPDATE_ISSUE ->
                         toolToRegister = toolBackends.createWikiTool(toolName,
                                 config.getSearchTargets(), plan.wikiScopes(), plan.wikiKbIds(), plan.wikiRoutes());
-                // web 两件（接线批）
+                // web 两件
                 case ToolDefinitions.TOOL_WEB_SEARCH, ToolDefinitions.TOOL_WEB_FETCH ->
                         toolToRegister = toolBackends.createWebTool(toolName,
                                 config.getWebSearchMaxResults(), config.getWebSearchProviderId());

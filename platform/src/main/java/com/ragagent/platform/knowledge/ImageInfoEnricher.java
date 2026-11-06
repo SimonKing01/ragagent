@@ -69,9 +69,9 @@ public final class ImageInfoEnricher {
     /**
      * 按 chunk 聚合子块 image_info（两级解析——文本块的直接子块是图片块；
      * parent_text 块的孙辈图片折算到顶层文本 ID），禁用子块跳过；
-     * 返回 chunkID → 合并后数组 JSON。
+     * 返回 chunkId → 合并后数组 JSON。
      *
-     * <p>仓储以 {@code lister} 回调注入（tenantId + parentIDs → 子块列表），
+     * <p>仓储以 {@code lister} 回调注入（tenantId + parentIds → 子块列表），
      * 聊天管线端口与知识库的具体仓储都走这里，避免两份实现漂移。</p>
      *
      * <p>{@code lister} 的元素类型由实体 {@code Chunk} 改为 L1 的

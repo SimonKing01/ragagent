@@ -25,7 +25,7 @@ export function loadHighlight(): Promise<void> {
     loading = import('highlight.js')
       .then((mod) => {
         hljs = mod.default
-        // mermaid 源码块按 plaintext 高亮（原先在模块顶层注册，随按需加载搬到这里）
+        // mermaid 源码块按 plaintext 高亮；注册必须在按需加载完成之后，不得回到模块顶层
         hljs.registerAliases('mermaid', { languageName: 'plaintext' })
       })
       .catch((err) => {

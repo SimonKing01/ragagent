@@ -26,7 +26,7 @@ public class McpMetadata {
 
     private Long tenantId;
     private String serviceId;
-    /** 空串 = 非 OAuth（租户级）快照；非空 = principal.StorageID() */
+    /** 空串 = 非 OAuth（租户级）快照；非空 = principal.storageId() */
     private String principal = "";
     private String configFingerprint;
     private List<McpTool> tools = new ArrayList<>();

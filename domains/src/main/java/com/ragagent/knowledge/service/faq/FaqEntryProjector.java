@@ -10,10 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * FAQ chunk → 响应条目的唯一投影：tag 只查一次，seqId 映射与 tagName 回填同一处。
- *
- * <p>创建/更新/相似问/批量字段四条尾路径此前各抄一遍，且每条都把同一个 tag 查两次
- * （一次取 seqId、一次取 name）；收敛后规则变更只改这里。</p>
+ * FAQ chunk → 响应条目的唯一投影：tag 只查一次，seqId 映射与 tagName 回填同一处，
+ * 规则变更只改这里。
  */
 final class FaqEntryProjector {
 

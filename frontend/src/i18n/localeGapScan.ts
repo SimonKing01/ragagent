@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import {
   LOCALE_BUNDLES,
@@ -157,12 +157,38 @@ for (const [root, files] of tmRoots) {
 }
 
 // embed bundle audit
+// EMBED_MESSAGES 是 locale → 导入标识符的映射（键集合实际在 src/i18n/locales/embed/*.ts），
+// 因此先从 import 语句解析标识符 → 文件路径，再实际加载各语言包取键集合。
+// 定位或解析失败必须抛错，不允许静默降级为空 bundle。
 const embedFile = join(dirname(fileURLToPath(import.meta.url)), 'embed.ts')
 const embedSource = readFileSync(embedFile, 'utf8')
-const embedMessagesMatch = embedSource.match(/const messages = (\{[\s\S]*?\n\}) as const/)
-const embedMessages = embedMessagesMatch
-  ? (Function(`"use strict"; return (${embedMessagesMatch[1]});`)() as Record<string, unknown>)
-  : {}
+const embedMessagesMatch = embedSource.match(/export const EMBED_MESSAGES = \{([\s\S]*?)\n\} as const/)
+if (!embedMessagesMatch) {
+  throw new Error('localeGapScan: cannot locate "export const EMBED_MESSAGES" in src/i18n/embed.ts')
+}
+
+const embedImportPaths = new Map<string, string>()
+const EMBED_IMPORT_RE = /import\s+(\w+)\s+from\s+'(\.[^']+)'/g
+let importMatch: RegExpExecArray | null
+while ((importMatch = EMBED_IMPORT_RE.exec(embedSource))) {
+  embedImportPaths.set(importMatch[1], importMatch[2])
+}
+
+const embedEntryRe = /['"]?([\w-]+)['"]?\s*:\s*(\w+)/g
+const embedMessages: Record<string, unknown> = {}
+let entryMatch: RegExpExecArray | null
+while ((entryMatch = embedEntryRe.exec(embedMessagesMatch[1]))) {
+  const [, locale, identifier] = entryMatch
+  const importPath = embedImportPaths.get(identifier)
+  if (!importPath) continue
+  const modulePath = join(dirname(embedFile), importPath)
+  const mod = await import(pathToFileURL(modulePath).href)
+  embedMessages[locale] = mod.default
+}
+
+if (Object.keys(embedMessages).length === 0) {
+  throw new Error('localeGapScan: EMBED_MESSAGES resolved to 0 locales')
+}
 
 const embedKeysByLocale = Object.fromEntries(
   Object.entries(embedMessages).map(([locale, bundle]) => [locale, flattenMessages(bundle)]),

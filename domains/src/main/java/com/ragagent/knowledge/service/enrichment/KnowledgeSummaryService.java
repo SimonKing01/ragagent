@@ -560,7 +560,7 @@ public class KnowledgeSummaryService {
         spawnSummaryRefreshWorker(knowledgeId, k.getTenantId());
     }
 
-    /** M2 解环：worker 处理完成经<b>同步</b>领域事件触发后处理摘要（语义 = 原直调）。 */
+    /** 订阅 worker 处理完成事件（{@link KnowledgeProcessedEvent}），同步在发布线程内触发后处理摘要。 */
     @EventListener
     public void onKnowledgeProcessed(KnowledgeProcessedEvent event) {
         requestPostProcessSummaryGeneration(event.knowledgeId());
@@ -632,12 +632,10 @@ public class KnowledgeSummaryService {
     }
 
     /**
-     * KB.NeedsEmbeddingModel 的服务层读法（
-     * kb 来自 {@code kbService.GetKnowledgeBaseByID} → {@code EnsureDefaults()}：
-     * IsZero（4 字段全 false）→ Default），即 vector||keyword。
-     * 服务层（kbService，含 EnsureDefaults 钩子）与 repo 层（kbRepository，仅 Scan：
-     * NULL→Default、全 false 保持）。本方法对应服务层；{@link ChunkVectorIndexer}
-     * updateImageInfo/regenerate 路径仍被判定为需要 embedding（契约样例 1007 锁定）。</p>
+     * 服务层判定：strategy 为 null 或全 false → Default（vector+keyword 开），
+     * 否则 vector||keyword。repo 层（Scan）读法不同：NULL→Default、显式全 false 保持
+     * （见 ChunkVectorIndexer 的 repo 层判定）。本方法判定摘要刷新后是否重建
+     * summary chunk 的向量行。
      */
     private static boolean kbNeedsEmbedding(KnowledgeBase kb) {
         KnowledgeBaseIndexingStrategy strategy = kb.getIndexingStrategy();
@@ -648,8 +646,9 @@ public class KnowledgeSummaryService {
     }
 
     /**
-     * payload 为
-     * handler 解析出的字段（null = 请求体 null 字面量）。@return 响应体 knowledge
-     * （内存对象，metadata 为声明序键，updated_at RFC3339 秒级 UTC）。
+     * 更新接口的响应装配口径。
+     *
+     * @param payload handler 解析出的字段（null = 请求体 null 字面量）
+     * @return 响应体 knowledge（内存对象，metadata 为声明序键，updated_at RFC3339 秒级 UTC）
      */
 }

@@ -259,7 +259,7 @@ public class SessionKnowledgeQaService {
         setupOutput.put("search_targets", searchTargets.size());
         setupSpan.finish(setupOutput, null, null);
 
-        // Trigger（session tenant 设定 + sessionID 传播在 Java 侧由 TenantContext 承担）
+        // 会话租户设定与 sessionId 传播由 TenantContext 承担；
         // 取消探针是线程级的：STOP 置 streamCtx.cancelled 后，各阶段循环能读到并退出
         CANCEL_PROBE.set(req.cancellationProbe);
         try {
@@ -369,7 +369,6 @@ public class SessionKnowledgeQaService {
         PipelineLog.info("Pipeline", "all_stages_complete", f);
     }
 
-    /** 虚拟线程取消探测（检测中断标志；stop 链路 4.6d 接线）。 */
     /** 当前执行线程的取消探针（来自 QaRequest；STOP 置位后返回非 null）。 */
     private static final ThreadLocal<java.util.function.Supplier<String>> CANCEL_PROBE = new ThreadLocal<>();
 

@@ -287,7 +287,7 @@ public final class PromptCache {
      *
      * <p>返回值 {@code rewritten} = 是否就地改写了 body，调用方按此使用即可。</p>
      *
-     * <p>语义要点：NONE 或策略什么都不发时<b>原样返回</b>；命中 sendKey 但 sessionID 为空时
+     * <p>语义要点：NONE 或策略什么都不发时<b>原样返回</b>；命中 sendKey 但 sessionId 为空时
      * 只跳过 key（不影响 sendCacheControl 分支）；sendCacheControl 命中时即使没找到任何可打
      * 断点的位置，也返回 {@code true}（应用过断点即视为改写）。</p>
      *

@@ -7,10 +7,10 @@ import java.util.List;
 /**
  * OAuth handler 的配置。
  *
- * <p>只保留 WeKnora 实际设置的字段：{@code AuthServerMetadataURL} 来自
- * {@code service.AuthConfig.AuthServerMetadataURL}（可空 → 走自动发现），
- * {@code TokenStore} 是按 principal 隔离的 {@code DbTokenStore}，
- * {@code HTTPClient} 换成 Java 侧的 SSRF 安全出站（{@link OAuthHttp}）。</p>
+ * <p>只保留 WeKnora 实际设置的字段：{@code authServerMetadataUrl} 来自
+ * MCP 服务的 AuthConfig（{@code McpAuthConfig.authServerMetadataUrl}，可空 → 走自动发现），
+ * {@code tokenStore} 是按 principal 隔离的 {@code DbTokenStore}，
+ * 出站 HTTP 统一走 Java 侧的 SSRF 安全实现（{@link OAuthHttp}）。</p>
  */
 public final class OAuthConfig {
 

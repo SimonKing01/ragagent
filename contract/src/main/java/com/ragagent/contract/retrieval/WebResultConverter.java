@@ -48,7 +48,7 @@ public final class WebResultConverter {
             SearchResult result = new SearchResult();
             result.setId(chunkId);
             result.setContent(content);
-            // URL 作 KnowledgeID，让每条网络结果在 merge 时保持独立
+            // URL 作 knowledgeId，让每条网络结果在 merge 时保持独立
             result.setKnowledgeId(chunkId);
             result.setChunkIndex(0);
             result.setKnowledgeTitle(webResult.getTitle());

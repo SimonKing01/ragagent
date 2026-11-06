@@ -59,7 +59,7 @@ public final class WikiLanguageSupport {
     /**
      * 部署默认语言的原始值（{@code RAGAGENT_LANGUAGE}）——**启动期快照**。
      *
-     * <p>本类是纯静态工具（17 处调用点散布在 wiki/session/agent.management），没有 Spring 装配点，
+     * <p>本类是纯静态工具（调用点散布在 wiki/session/knowledge/agentmanagement 等），没有 Spring 装配点，
      * 故值由 {@code config.RuntimeSnapshotWiring} 在启动期写入一次；
      * <b>只允许装配层调用 install</b>，运行期不得改写（那是状态不是配置）。</p>
      */

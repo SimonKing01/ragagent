@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  * 取 query 向量 / 混合检索）；{@link ChunkInfoBackend}（按 ID 取 chunk 读 FAQ 元数据 /
  * 取文档总块数）；{@link ImageEnricher}（图片富化，null=跳过富化）；
  * {@link RerankerModel} 重排。检索按 target 顺序执行——final sort 在
- * （score, knowledgeID）唯一时完全确定，MMR/dedup 的输入序差异不可见（实现边界：
+ * （score, knowledgeId）唯一时完全确定，MMR/dedup 的输入序差异不可见（实现边界：
  * allResults 追加序不保证，完全并列时结果可能不同）。</p>
  */
 public class KnowledgeSearchTool extends BaseTool {

@@ -12,7 +12,7 @@
 ## 快速开始
 
 ```bash
-cp deploy/builtin_models.yaml.example config/builtin_models.yaml
+mkdir -p config && cp deploy/builtin_models.yaml.example config/builtin_models.yaml
 # 在 .env 里补 LLM_BASE_URL / LLM_API_KEY
 # 或改用样例里的本地 Ollama 写法（不需要 key）
 bash scripts/java-server-down.sh
@@ -33,8 +33,8 @@ bash scripts/java-server-up.sh
 | `description` | 否 | 说明文案 |
 | `is_default` | 否 | 同一 `(tenant_id, type)` 桶内只允许一个默认 |
 | `status` | 否 | 默认 `active` |
-| `parameters.baseUrl` | 是 | 供应商地址；OpenAI 兼容写 `.../v1` |
-| `parameters.apiKey` | 是 | 凭据；建议用 `${LLM_API_KEY}` 插值 |
+| `parameters.baseUrl` | 是 | 供应商地址；OpenAI 兼容写 `.../v1`。启动时不校验，缺失要到首次调用才暴露 |
+| `parameters.apiKey` | 是 | 凭据；建议用 `${LLM_API_KEY}` 插值。启动时不校验，缺失要到首次调用才暴露 |
 | `parameters.interfaceType` | 否 | `openai` / `ollama`；留空按 `source` 推断 |
 | `parameters.embeddingParameters.dimension` | 向量模型必填 | 必须与模型实际维度一致，否则相似度无意义 |
 
@@ -80,9 +80,9 @@ builtin_models:
 
 ## 与模型管理页的关系
 
-- 文件托管的行由启动对账维护；页面上改了，下次启动仍会按文件覆盖。
+- 文件托管的行由启动对账维护；在页面上（系统管理员）编辑过某条会解除文件托管，下次启动保留页面改动、不再按文件覆盖。
 - 手工在页面上新建的模型不受影响。
-- 如果希望某条模型完全交给页面管理，把它从文件里移除（会触发一次软删），再在页面重建。
+- 如果希望某条模型完全交给页面管理，在页面上编辑一次即可（自动解除托管）；从文件里移除只会软删从未被页面编辑过的托管行。
 
 ## 排障
 

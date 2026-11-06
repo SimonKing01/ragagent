@@ -183,7 +183,7 @@ public class OAuthManager {
     }
 
     /**
-     * 只持有 serviceID 的调用方
+     * 只持有 serviceId 的调用方
      * （如 IM 渠道）的便捷入口。
      */
     public String startAuthorizationForService(long tenantId, TenantContext.Principal principal,
@@ -232,7 +232,7 @@ public class OAuthManager {
         try {
             st = states.take(state);
         } catch (RuntimeException e) {
-            // state 都消费不了时，前端地址与 serviceID 都还不知道
+            // state 都消费不了时，前端地址与 serviceId 都还不知道
             throw new OAuthCallbackException("", "", e.getMessage(), e);
         }
         String frontendRedirect = st.frontendRedirect();

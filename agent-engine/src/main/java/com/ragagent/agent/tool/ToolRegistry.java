@@ -34,15 +34,15 @@ import org.slf4j.LoggerFactory;
  * <p><b>first-wins 注册</b>：同名工具重复注册时保留先到者（GHSA-67q9-58vj-32qx——
  * 防止借名字冲突劫持工具执行），后到者被拒并记 warn。</p>
  *
- * <p><b>排序决定字节稳定</b>：ListTools / GetFunctionDefinitions 都按工具名排序——
+ * <p><b>排序决定字节稳定</b>：listTools / getFunctionDefinitions 都按工具名排序——
  * 不排序则每次请求发给 LLM 的工具块都会重排，
  * 按"字节级前缀匹配"做提示词缓存的 provider（如 Qwen 显式缓存）会全部失手。</p>
  *
- * <p><b>deferred 注册</b>：RegisterDeferredTool 保留执行能力但不把完整定义发给模型
- * （GetModelFunctionDefinitions 会滤掉）；注册在执行前已完成，所以按名执行不受影响。</p>
+ * <p><b>deferred 注册</b>：registerDeferredTool 保留执行能力但不把完整定义发给模型
+ * （getModelFunctionDefinitions 会滤掉）；注册在执行前已完成，所以按名执行不受影响。</p>
  *
  * <p>错误通道约定：工具不存在/取消/工具抛错都折叠为返回 {@link ToolResult}——
- * {@code result.Error} 已置好文案。取消探测走
+ * {@code getError()} 已置好文案。取消探测走
  * {@link ToolCancellation}，元数据走 {@link ToolExecContext}。</p>
  */
 public class ToolRegistry {
@@ -51,10 +51,9 @@ public class ToolRegistry {
 
     private final Map<String, AgentTool> tools = new HashMap<>();
     private final Map<String, Boolean> deferred = new HashMap<>();
-    /** 完整暴露是显式兼容路径。 */
     /** MCP 编排端口（逻辑在 MCP 适配层，装配期注入）。 */
     private McpToolingGateway mcpTooling;
-    /** 工具输出上限（字符数）；0 = 用 DefaultMaxToolOutput。 */
+    /** 工具输出上限（字符数）；0 = 用 {@code ToolOutput.DEFAULT_MAX_TOOL_OUTPUT}。 */
     private int maxToolOutputSize;
 
     // ── 校验失败的追加提示（文本属于各工具文件，registry 拼接点先就位） ──
@@ -66,7 +65,7 @@ public class ToolRegistry {
                     + "put `path` first, then `edits` as an array of {old_string, new_string}. "
                     + "Do not send the whole file — this tool replaces snippets.";
 
-    /** 设置工具输出最大字符数；≤0 时用 DefaultMaxToolOutput。 */
+    /** 设置工具输出最大字符数；≤0 时用 {@code ToolOutput.DEFAULT_MAX_TOOL_OUTPUT}。 */
     public void setMaxToolOutputSize(int maxChars) {
         this.maxToolOutputSize = maxChars;
     }

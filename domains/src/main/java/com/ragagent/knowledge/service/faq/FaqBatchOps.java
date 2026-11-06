@@ -49,14 +49,12 @@ final class FaqBatchOps {
     }
 
     /**
- * 导入执行循环——
- * 走查批接线（此前是「embedding runtime is not available」占位）：
- * 按 faqImportBatchSize(50) 分批 → 逐条 sanitize/resolveTagID/建 chunk → CreateChunks
- * → service.faqIndexWriter.indexFAQChunks(adjustStorage=true) → status=2 → 收集成功条目 → 进度落库；
- * 末尾 finalizeImport（completed 终态 + 结果落库 + replace 清未引用标签）。
- * 事务性回滚（失败直落 failed 终态，残留行由重导/replace 清理）——与 processImport
- * 的既有取舍同款。</p>
- */
+     * 导入执行循环：按 faqImportBatchSize(50) 分批 → 逐条 sanitize/resolveTagId/建 chunk →
+     * {@code faqIndexWriter.createChunks} → {@code faqIndexWriter.indexFAQChunks}
+     * （adjustStorage=true）→ status=2 → 收集成功条目 → 进度落库；
+     * 末尾 finalizeImport（completed 终态 + 结果落库 + replace 清未引用标签）。
+     * 失败直落 failed 终态（残留行由重导/replace 清理），与 processImport 同一取舍。
+     */
     void executeImportBatches(ImportJob job, KnowledgeBase kb, Knowledge faqKnowledge,
                                       ModelRowView embeddingModel, FaqImportProgress progress) {
         List<Integer> valid = progress.validEntryIndices();

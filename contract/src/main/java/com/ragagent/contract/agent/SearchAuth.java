@@ -62,7 +62,7 @@ public final class SearchAuth {
         ChunkView byIdOnly(String chunkId);
     }
 
-    /** 取知识的标签（knowledgeID → 其标签）。 */
+    /** 取知识的标签（knowledgeIds → 其标签）。 */
     @FunctionalInterface
     public interface KnowledgeTagsFetcher {
         Map<String, List<TagView>> fetchTags(List<String> knowledgeIds);

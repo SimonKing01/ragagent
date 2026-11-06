@@ -510,11 +510,13 @@
     border-radius: 8px;
     margin: 20px;
     font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
     &:hover {
-      color: var(--td-brand-color-hover);
       text-decoration-color: var(--td-brand-color);
-      background-color: var(--td-brand-color-hover);
+      background-color: color-mix(in srgb, var(--td-brand-color) 10%, transparent);
     }
   }
 

@@ -436,7 +436,7 @@ public class SteerController {
         return out;
     }
 
-    /** 队列项视图：事件 data 是冻结的线协议（下划线），响应体按契约输出 camelCase。 */
+    /** 队列项视图：事件 data 与响应体都是 camelCase 键（队列项视图字段＝线协议字段）。 */
     static List<Map<String, Object>> pendingQueueItems(List<StreamEvent> events,
             Set<String> injectedIds) {
         List<Map<String, Object>> out = new ArrayList<>();

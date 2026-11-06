@@ -18,8 +18,8 @@ public final class McpClientConfig {
     /** 调用者身份。 */
     private final TenantContext.Principal principal;
     /**
-     * 兼容旧调用点的兜底身份。
-     * 新代码应传 {@link #principal}；principal 无效时才回退到它。
+     * 兜底身份：principal 缺失/无效时按 web_user 构造 OAuth 作用域
+     * （当前主码构造点均不传，仅兼容路径保留）。
      */
     private final String userId;
     /** OAuth 装配（可为 null——非 OAuth 服务不需要）。 */

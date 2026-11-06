@@ -78,7 +78,7 @@ sequenceDiagram
 domains/.../session/assembly/QaWiring.java
 ```
 
-`PluginSearchParallel` 的两个内部插件由 `QaWiring` 显式传入（构造注入）——它们**不注册**到 manager，只作为并行 fan-out 的内部执行体。这是刻意的（避免同一阶段出现第二个 handler），不要"顺手"把它们注册进去。
+`PluginSearchParallel` 的两个内部插件（`PluginSearch` / `PluginSearchEntity`）由 `QaWiring` 构造注入，且是**已注册的同一批实例**：既作为 `CHUNK_SEARCH` / `ENTITY_SEARCH` 的执行体注册到 manager，又作为并行 fan-out 的内部执行体传入。给这两个阶段换实现时，主链与并行分支会一起变——是同一实例，不是两套。
 
 完整阶段表见 [`rag-pipeline.md`](rag-pipeline.md)。
 
@@ -90,7 +90,7 @@ domains/.../session/assembly/QaWiring.java
 
 ### 3. 身份不随虚拟线程走
 
-`TenantContext` 是 ThreadLocal 语义。跨虚拟线程/异步任务时必须显式传快照；漏一次就是"owner 为空 / 静默 0 行"。原先全仓 30+ 处手工 `replay()`，现已统一收口到 `TenantScope`（`run`/`supply`/`callable`），当前 26 个 `capture()` 站点都在边界显式快照，并由 `scripts/check-tenant-scope.py` 守卫禁止新的裸 `capture`/`replay`。这是全仓最容易被"优化"掉、也最容易埋隐 bug 的契约。
+`TenantContext` 是 ThreadLocal 语义。跨虚拟线程/异步任务时必须显式传快照；漏一次就是"owner 为空 / 静默 0 行"。全仓 28 个 `capture()` 站点统一经 `TenantScope`（`run`/`supply`/`callable`）在边界显式快照，并由 `scripts/check-tenant-scope.py` 守卫禁止新的裸 `capture`/`replay`。这是全仓最容易被"优化"掉、也最容易埋隐 bug 的契约。
 
 ### 4. 一轮的收尾不在主链路里
 

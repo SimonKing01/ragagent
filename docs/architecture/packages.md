@@ -232,7 +232,7 @@
 | `:domains` | `com.ragagent.session.domain.message` | 消息实体面（由 session.domain 切出，对齐方案）：Message 与其 附件/图片/工件/搜索/建议集（MessageArtifact / MessageSuggestionSet …） |
 | `:domains` | `com.ragagent.session.dto` | 会话 · 数据传输：BatchDeleteSessionsRequest / GenerateTitleResponse / SearchMessagesRequest…。 |
 | `:domains` | `com.ragagent.session.mapper` | 会话 · 映射：TemporaryDocumentMapper / MessageSuggestionMapper / MessageMapper…。 |
-| `:domains` | `com.ragagent.session.qa` | QA 轮的编排簇（阶段 5 从 session.controller 剥离）。 |
+| `:domains` | `com.ragagent.session.qa` | QA 轮的编排簇。 |
 | `:domains` | `com.ragagent.session.rag` | 聊天管线（库式域，无 HTTP 面）：可插拔的 Plugin 链——检索、合并、重排、实体抽取、数据分析、历史装载等， 由会话域按顺序驱动。 |
 | `:domains` | `com.ragagent.session.rag.plugin` | chat 管线的**插件实现**：Plugin 接口 + 18 个步骤实现 （query_understand → search → merge → rerank → into_chat_messag |
 | `:domains` | `com.ragagent.session.rag.spi` | 管线 · spi：KnowledgeQaEventPort。 |
@@ -326,7 +326,7 @@
 | `:platform` | `com.ragagent.platform.audit` | 平台审计写入：业务活动的租户兜底、操作者提取、details 字母序与 best-effort 语义。 |
 | `:platform` | `com.ragagent.platform.concurrent` | 平台并发原语：进程内 in-flight 去重（SingleFlight）等与业务无关的并发工具。 |
 | `:platform` | `com.ragagent.platform.config` | 平台配置面：部署属性与环境查找面。 |
-| `:platform` | `com.ragagent.platform.event` | 平台事件总线面（由 com.ragagent.event 迁入，对齐方案 的 platform.event/）： Event / EventBus / EventJson 等 12 类——进程内事件总线与载荷编解码。 |
+| `:platform` | `com.ragagent.platform.event` | 平台事件总线面（platform.event/）： Event / EventBus / EventJson 等 9 类——进程内事件总线与载荷编解码。 |
 | `:platform` | `com.ragagent.platform.http` | 平台 HTTP 面：SSRF 策略下的安全抓取工具，以及全进程共享的裸 HTTP 传输层 （com.ragagent.platform.http.LlmTransport：连接级 SSRF 校验 + |
 | `:platform` | `com.ragagent.platform.knowledge` | 平台 · 知识/文本/图片工具：分块文本检索、文档分块组装、FAQ 元数据编解码、图片引用富化与重写。 |
 | `:platform` | `com.ragagent.platform.persistence` | 平台持久化面：MyBatis 拦截器（全表写守卫 / 租户过滤）、分页请求、JSONB / 时间类型处理器、方言与 LIKE 转义。 |
@@ -345,7 +345,7 @@
 | `:platform` | `com.ragagent.platform.tracing.decorators` | 追踪 · decorators：LangfuseChatClient / LangfuseEmbedder / LangfusePayloads…。 |
 | `:platform` | `com.ragagent.platform.tracing.langfuse` | 平台追踪面（Langfuse OTel 适配； |
 | `:platform` | `com.ragagent.platform.web` | 平台 Web 面：统一响应外壳、JSON 映射、分页/字段参数、请求 ID 过滤器、非空体/RBAC 拦截器与序列化器。 |
-| `:platform` | `com.ragagent.platform.web.error` | 平台错误面（的 `platform.web.error/`）：`BizException` 家族、`GuardForbiddenException`、`PlainErrorException` 与全局异常处理器。 |
+| `:platform` | `com.ragagent.platform.web.error` | 平台错误面：`BizException` 家族（含 `GuardForbiddenException`、`PlainErrorException`）、统一响应外壳的错误分派与全局异常处理器。 |
 | `:platform` | `com.ragagent.platform.web.health` | 平台健康检查面。 |
 | `:retrieval-engine` | `com.ragagent.retrieval` | 检索引擎域（库式域，**无 HTTP 面**）：多引擎仓储（engine/：OpenSearch/Doris/Milvus/Qdrant/Tencent…， 含 postgres 引擎的 embedd |
 | `:retrieval-engine` | `com.ragagent.retrieval.artifact` | 检索 · artifact：ArtifactReferenceRewriter。 |

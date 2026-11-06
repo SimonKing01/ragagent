@@ -95,8 +95,8 @@ public class KnowledgeBase {
     public Long getTenantId() { return tenantId; }
     public void setTenantId(Long v) { tenantId = v; }
     /**
-     * 走查实案：dev 库 A/B 种子行 creator_id 为 NULL → 列表服务 {@code .isEmpty()} NPE 500；
-     * 响应形态与全部调用点（ChunkAccessGuard/Controller 的 ownership 判定等）。
+     * creator_id 为 NULL 的行（如种子行）也返回 ""——列表服务与 ownership 判定
+     * （ChunkAccessGuard/Controller 等）无需再判空。
      */
     public String getCreatorId() { return creatorId == null ? "" : creatorId; }
     public void setCreatorId(String v) { creatorId = v == null ? "" : v; }

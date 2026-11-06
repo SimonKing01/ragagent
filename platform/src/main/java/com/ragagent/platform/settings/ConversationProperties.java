@@ -14,7 +14,7 @@ import java.util.Map;
  * <p>经 {@code @ConfigurationProperties(prefix="conversation")}
  * 绑定 application.yml 的 {@code conversation.*}；vendor 模板经
  * {@code com.ragagent.platform.prompt.PromptSource}（classpath {@code prompts/}）装载。
- * FindTemplateByID 语义：按 {@code PromptSource.files()} 的顺序首个 id 命中即返回 content。</p>
+ * 按 id 取模板的语义：按 {@code PromptSource.files()} 的顺序首个 id 命中即返回 content。</p>
  */
 @org.springframework.boot.context.properties.ConfigurationProperties(prefix = "conversation")
 public class ConversationProperties {
@@ -103,7 +103,7 @@ public class ConversationProperties {
         return t == null ? "" : t[0];
     }
 
-    /** FindTemplateByID：id → [content, user]。 */
+    /** 按 id 取模板：id → [content, user]。 */
     private Map<String, String[]> loadTemplates() {
         Map<String, String[]> byId = new LinkedHashMap<>();
         for (String file : PromptSource.files()) {

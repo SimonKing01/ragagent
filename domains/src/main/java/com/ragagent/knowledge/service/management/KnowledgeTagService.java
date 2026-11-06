@@ -324,20 +324,20 @@ public class KnowledgeTagService {
         try {
             deleted = chunkRepo.deleteChunksByTagId(tenantId, kb.getId(), tag.getId(), excludeUUIDs);
         } catch (RuntimeException e) {
-            // DeleteChunksByTagID err → NewInternalServerError("删除标签下的数据失败")
+            // 仓储删除失败 → 500「删除标签下的数据失败」
             throw BizException.internal("删除标签下的数据失败");
         }
         if (!deleted.isEmpty()) {
-            // 队列（可重试 + 租户所有权校验）；Java 单实例下用虚拟线程异步执行等价
+            // 索引删除异步执行（可重试语义由虚拟线程 + 异常日志承担）
             scheduleIndexDelete(kb, deleted);
         }
         log.info("Deleted {} chunks under tag {}", deleted.size(), tag.getId());
     }
 
     /**
- * 绑定外部 store 的 KB：向量行在外部店，走引擎口删除（评审补接线）；
- * 引擎与维度在请求线程上解析（TenantContext 只在这里有效），解析失败只 WARN
- */
+     * 绑定外部 store 的 KB：向量行在外部店，走引擎口删除；
+     * 引擎与维度在请求线程上解析（TenantContext 只在这里有效），解析失败只 WARN。
+     */
     private void scheduleIndexDelete(KnowledgeBase kb, List<String> chunkIds) {
         List<String> ids = List.copyOf(chunkIds);
         IndexEngine boundEngine = null;

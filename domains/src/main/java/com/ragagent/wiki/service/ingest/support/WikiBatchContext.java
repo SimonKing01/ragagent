@@ -13,7 +13,7 @@ import java.util.function.Function;
  *
  * <h2>为什么是"懒加载 + 逐批缓存"而不是物化全量页面</h2>
  * <p>历史上这里携带一份完全物化的全量页面列表，外加预建的 slug→标题、
- * knowledgeID→摘要正文查找表。在 4 万文档规模下，这意味着
+ * knowledgeId→摘要正文查找表。在 4 万文档规模下，这意味着
  * 每个批次干的第一件事就是把 10 万+ 行 wiki_pages（含 content TEXT）读进内存
  * ——然后为了死链清理 / 交叉链接注入 / 既有 slug 枚举再遍历好几遍。</p>
  * <p>现在改为通过 fetcher 懒加载，背后是轻量投影

@@ -13,13 +13,11 @@ import java.time.OffsetDateTime;
  * (tenant_id, principal_type, principal_id, service_id) 隔离——
  * 不是按 user 隔离。</p>
  *
- * <p>⚠️ 历史要点：隔离维度已从 (tenant, user, service) 演进为
- * (tenant, principal_type, principal_id, service)，索引名为
- * {@code idx_mcp_oauth_tokens_tenant_principal_svc}，user_id 放宽到 VARCHAR(512)。
- * <b>迁移脚本（000062 未含 principal 列、000064 才补）曾落后于模型，
- * 以当前模型为准。</b></p>
+ * <p>隔离维度 (tenant_id, principal_type, principal_id, service_id)，索引
+ * {@code idx_mcp_oauth_tokens_tenant_principal_svc}；user_id 列 VARCHAR(512)
+ * （遗留所有者列，仓储层兜底回填）；schema 以本模型为准。</p>
  *
- * <p>另有 refresh 租约 CAS：RefreshLeaseID / RefreshLeaseUntil 协调**跨实例**的
+ * <p>另有 refresh 租约 CAS：refreshLeaseId / refreshLeaseUntil 协调**跨实例**的
  * refresh-token 轮换，保证同一时刻只有一个所有者能拿旧 refresh token 去换新，
  * 这是纯运维字段，永不对外暴露。</p>
  *
@@ -39,7 +37,7 @@ public class McpOAuthToken {
     private Long tenantId;
     /**
      * 历史遗留的「所有者 id」列。新代码以 principal_type/principal_id 为准；
-     * 为空时由仓储层填 principal.StorageID()。
+     * 为空时由仓储层填 storageId(principal)。
      */
     private String userId;
     private String principalType;

@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * 事件包络。
  *
- * <p>字段：ID / Type / SessionID / Data / Metadata / RequestID。
+ * <p>字段：id / type / sessionId / data / metadata / requestId。
  * 发射路径按引用传递，两处约定用于隔离调用方对象：</p>
  * <ul>
  *   <li>{@code #shallowCopy()}：{@code EventBus} 发射前先做浅拷贝，发射中补出的 UUID

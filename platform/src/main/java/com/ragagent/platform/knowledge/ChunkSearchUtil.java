@@ -161,8 +161,8 @@ public final class ChunkSearchUtil {
     /**
      * 生成问题的检索
      * source_id。PG 的 source_id 列是 varchar(64)，chunk UUID + "-" + question UUID 有
-     * 73 字节——短 ID 保留历史表示，超长的只对 questionID 做 sha256 取前 12 字节 hex
-     * （{@code chunkID + "-q" + 24 hex}，总长 62 字节，既有索引行仍可按 delete/reindex 寻址）。
+     * 73 字节——短 ID 保留原样拼接，超长的只对 questionId 做 sha256 取前 12 字节 hex
+     * （{@code chunkId + "-q" + 24 hex}，总长 62 字节，既有索引行仍可按 delete/reindex 寻址）。
      */
     public static String generatedQuestionSourceId(String chunkId, String questionId) {
         String candidate = chunkId + "-" + questionId;
@@ -174,7 +174,7 @@ public final class ChunkSearchUtil {
     }
 
     /**
-     * 显式空白字符表：缺 U+0085/U+00A0（与 ChunkRepository.trimSpace 同一份表）。
+     * 显式空白字符表：Java 默认缺 U+0085/U+00A0，此处补齐（与 ChunkRepository.trimSpace 同一份表）。
      * 包内可见：ChunkService 的内容编辑 trim 与 HTML src 清洗共用。
      */
     public static String trimSpace(String s) {

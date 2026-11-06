@@ -8,7 +8,7 @@ import com.ragagent.platform.access.TenantContext;
  *
  * <h2>推导而不是接受 scope，就是整套隔离模型</h2>
  * <p>不存在任何"客户端可以用自己传的 id 选中一个记忆空间"的代码路径，
- * 所以没有任何端点需要为这件事被审计。主体是 {@code Principal.StorageID()}，
+ * 所以没有任何端点需要为这件事被审计。主体是 {@code storageId()} 推导的 subjectId，
  * 它同时覆盖 Web 用户、IM 用户、API 外部用户和 embed 访客；
  * 再与工作区配对，同一个人在多个工作区之间的记忆也就不会串。</p>
  *
@@ -25,7 +25,7 @@ public final class MemoryScopes {
      * 推导记忆 scope。
      *
      * <p>三条前置逐条检查：租户必须存在且 **非 0**；主体必须存在；主体的
-     * {@code StorageID()} 必须非空。</p>
+     * {@code storageId} 必须非空。</p>
      *
      * @throws MemoryScopeExceptions.NoScope 任一前置不满足
      */
@@ -49,11 +49,10 @@ public final class MemoryScopes {
  * {@code Type + ":" + ID} 形式的主体 id，两者都去空白后非空才算有效。
  *
  * <p>Java 侧没有独立的 Principal 领域类型（{@code TenantContext.Principal} 是 record），
- * 所以 {@code Normalize}/{@code Valid}/{@code StorageID} 三个方法在这里合一。</p>
+ * 所以归一/校验/{@code storageId} 三个步骤在这里合一。</p>
  *
  * <p>⚠️ 去空白按 Unicode White_Space 语义（含 U+00A0 / U+0085），**不是**
- * {@link String#strip()}
- * ——后者不含不换行空格（与 记的那条 {@code \s} 差异同族）。</p>
+ * {@link String#strip()}——后者不含不换行空格。</p>
  */
     public static String storageId(TenantContext.Principal principal) {
         if (principal == null) {

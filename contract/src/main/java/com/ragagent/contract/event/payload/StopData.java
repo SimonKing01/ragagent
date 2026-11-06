@@ -4,7 +4,7 @@ package com.ragagent.contract.event.payload;
 /**
  * 停止生成请求数据。
  * continue-stream 的 stop watcher 检测到该事件即取消生成
- * （handler/session 层发出，不在包注释 emit 表内）。
+ * （handler/session 层发出）。
  * {@code reason} 空串省略。
  */
 

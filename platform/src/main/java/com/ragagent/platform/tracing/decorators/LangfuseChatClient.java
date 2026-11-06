@@ -105,7 +105,7 @@ public final class LangfuseChatClient implements LlmChatClient {
 
         // 转发线程：累积 content/reasoning/usage/
         // tool_calls/finish_reason，首 token 到达时调 markCompletionStart，流结束收 generation。
-        // A3：句柄可关闭——关闭即中断转发线程（generation 在它的 finally 收尾）并向上游
+        // 句柄可关闭——关闭即中断转发线程（generation 在它的 finally 收尾）并向上游
         // 传播关闭；重新投终态帧解阻塞，消费者不必再靠"无界队列里的堆积"感知放弃。
         AtomicReference<Thread> forwarderRef = new AtomicReference<>();
         QueuedChatStream wrapped = new QueuedChatStream(() -> {

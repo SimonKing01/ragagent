@@ -78,13 +78,13 @@ public class KnowledgeService implements KnowledgeReadPort, KnowledgeDocumentGat
     private final KnowledgeRepository knowledgeRepository;
     private final ChunkRepository chunkRepository;
     private final KnowledgeTagRepository tagRepository;
-    /** A3-3 尾批：租户感知文件存储（本地契约不变；云 provider 租户真正落对象存储）。 */
+    /** 租户感知文件存储（本地契约不变；云 provider 租户真正落对象存储）。 */
     private final TenantFileStorage fileStorage;
     private final KnowledgeIngest knowledgeIngest;
-    /** 门面 helper 下沉（M2 解环）：requireKb/getKnowledge 等访问原语的收敛点。 */
+    /** 门面 helper 收敛点：requireKb/getKnowledge 等访问原语。 */
     private final KnowledgeAccessHelper access;
     private final ChunkVectorIndexer chunkVectorIndexer;
-    /** 图库仓储（D 批）：知识移动后清源命名空间。 */
+    /** 图库仓储：知识移动后清源命名空间。 */
     private final KnowledgeMoveService moveService;
     private final KnowledgeCloneService cloneService;
     private final KnowledgeSearchService searchService;
@@ -137,7 +137,7 @@ public class KnowledgeService implements KnowledgeReadPort, KnowledgeDocumentGat
     }
 
     /**
- * 同包开放的历史入口： 起**委任**{@link KnowledgeTenants#tenantId}（实现已上移到 domain，
+ * 包内租户取值入口：委任 {@link KnowledgeTenants#tenantId}（实现上移 domain，
  * 供不再依赖门面的子服务复用）。
  */
     static long tenantId() {
@@ -160,7 +160,7 @@ public class KnowledgeService implements KnowledgeReadPort, KnowledgeDocumentGat
     }
 
     /**
-     * @param processConfig 逐文档处理覆盖（可空）：目前只需 {@code imageProcessingConfig.ocrEnabled}，
+     * @param processConfig 逐文档处理覆盖（可空，分块/引擎/图谱/OCR/推荐问题），
      *                      落在 {@code metadata.processOverrides}，解析时优先于 KB 级配置。
      */
     public Knowledge createFromFile(String kbId, byte[] fileContent, String fileName,
@@ -644,7 +644,5 @@ public class KnowledgeService implements KnowledgeReadPort, KnowledgeDocumentGat
 
 
 
-    /** 入队端口外提为 {@code KnowledgeProcessingQueue}
-     *  （实现：KnowledgeProcessWorker）——原嵌套接口让全部提交方反向依赖门面类型，
-     *  是 M2 解环的根之一，已删。 */
+    /** 入队端口为 {@code KnowledgeProcessingQueue}（实现：KnowledgeProcessWorker）。 */
 }

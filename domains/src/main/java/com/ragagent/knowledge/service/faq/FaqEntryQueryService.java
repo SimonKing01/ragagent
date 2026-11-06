@@ -325,8 +325,8 @@ public class FaqEntryQueryService {
 
         boolean hasPriorityFilter = !firstPriorityTagUuids.isEmpty() || !secondPriorityTagUuids.isEmpty();
 
-        // HybridSearch 执行面（走查批接线——原「随收口」，
-        // FirstPriority 先结果后 SecondPriority 按 chunkID 去重合并；
+        // HybridSearch 执行面：FirstPriority 先检索、SecondPriority 后检索，
+        // 结果按 chunkId 去重合并。
         List<SearchResult> searchResults = searchFaqChunks(kbId, req.queryText(),
                 vectorThreshold, matchCount, req.onlyRecommended(),
                 hasPriorityFilter, firstPriorityTagUuids, secondPriorityTagUuids);
@@ -432,8 +432,8 @@ public class FaqEntryQueryService {
         out.put(level, results == null ? List.of() : results);
     }
 
-    /** 命中转换/优先级排序/限流（score/matchType/matchedQuestion
-     *  在转换时按 chunkID 回填，排序与截断在前，TagName 批补在调用方末尾）。 */
+    /** 命中转换/优先级排序/限流（score/matchType/matchedContent
+     *  在转换时按 chunkId 回填，排序与截断在前，TagName 批补在调用方末尾）。 */
     private List<FaqEntry> convertSearchResults(KnowledgeBase kb, List<Chunk> chunks, long tid,
                                                 int matchCount, boolean hasPriorityFilter,
                                                 List<String> firstPriority, List<String> secondPriority,
@@ -489,7 +489,7 @@ public class FaqEntryQueryService {
         if (entries.size() > matchCount) {
             entries = new ArrayList<>(entries.subList(0, matchCount));
         }
-        // 批量补 TagName（检索未接线时 entries 恒空，骨架保留）
+        // 批量补 TagName：调用方末尾统一回填
         return entries;
     }
 

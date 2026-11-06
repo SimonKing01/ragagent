@@ -108,7 +108,7 @@ public class SessionStreamController {
         this.messageService = messageService;
         this.streamManager = streamManager;
         this.emitter = emitter;
-        // A3-3 起 StorageBackendResolver 有生产实现（fileserve 桥）；FileUrlPort 的
+        // StorageBackendResolver 有生产实现（fileserve 桥）；FileUrlPort 的
         // 进程级实现仍属装配项。缺 bean 时按未装配分支降级：引用原样保留成 handle。
         this.fileService = fileService.getIfAvailable();
         this.storageBackendResolver = storageBackendResolver.getIfAvailable();
@@ -142,7 +142,7 @@ public class SessionStreamController {
      * 当前租户的实体，供 {@code FileUrlPortResolver} 读
      * {@code storage_engine_config.default_provider}。
      *
-     * <p><b>A3-3 接线</b>：{@code TenantContext} 只存 tenantId、不存租户实体，
+     * <p>{@code TenantContext} 只存 tenantId、不存租户实体，
      * 故此处按 id 取实体（与 {@code SystemController} / {@code HybridSearchPort} 同一写法）。
      * 取不到时返回 null（调用方按无租户降级）。</p>
      */

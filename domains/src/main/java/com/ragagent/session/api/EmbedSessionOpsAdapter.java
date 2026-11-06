@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 /**
  * {@link EmbedSessionOps} 的会话域实现：owner 串规则、描述标记与查询口径都留在会话域内。
  *
- * <p>语义与迁移前 embedchannel 内的三处调用逐一对齐（会话归属查询、建访客会话 + 补 owner、
+ * <p>语义与 embed 渠道的四处调用逐一对齐（会话归属查询、建访客会话 + 补 owner、
  * 渠道会话计数、访客会话投影映射）。</p>
  */
 @Component

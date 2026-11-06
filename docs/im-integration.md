@@ -8,12 +8,12 @@
 | 渠道 | 标识 | 接入方式 |
 |---|---|---|
 | 企业微信 | `wecom` | webhook / 长连接 |
-| 微信（公众号等） | `wechat` | webhook |
+| 微信（个人号 iLink 机器人） | `wechat` | 长轮询（唯一方式） |
 | 飞书（含国际版） | `feishu` / `lark` | webhook / 长连接 |
 | 钉钉 | `dingtalk` | webhook / 长连接 |
-| Slack | `slack` | webhook |
-| Telegram | `telegram` | webhook |
-| Mattermost | `mattermost` | webhook / 长连接 |
+| Slack | `slack` | webhook / 长连接（Socket Mode，缺省） |
+| Telegram | `telegram` | 长轮询（缺省）/ webhook（仅出站） |
+| Mattermost | `mattermost` | webhook（唯一方式） |
 | QQ 机器人 | `qqbot` | 长连接 |
 | 云之家 | `yunzhijia` | webhook / 长连接 |
 
@@ -26,7 +26,7 @@
    - 选择渠道类型、绑定 Agent、填写平台凭据（App ID / Secret / Token / 回调签名等，按渠道而异）。
    - 记录页面生成的**回调地址**。
 
-2. **在平台侧填回调地址**
+2. **在平台侧填回调地址**（仅 webhook 类渠道；长连接/长轮询渠道平台不需要回调地址）
    - 形如：`https://<你的域名>/api/v1/im/callback/{channelId}`
    - 平台会分别以 GET（校验）与 POST（消息）请求该地址。
 

@@ -133,7 +133,7 @@ public class BuiltinModelsReconciler implements ApplicationRunner {
     }
 
     /**
-     * INSERT ... ON CONFLICT(id) DO UPDATE。
+     * 按 id upsert：先 UPDATE 非 NULL 列，0 行则 INSERT（PK 冲突兜底重试）。
      * 更新列集不含 created_at：MyBatis-Plus 非空字段全量 SET，实体的 createdAt
      * 恒为 now，不携带它才能避免已存在行的 created_at 每次启动被改写。
      */

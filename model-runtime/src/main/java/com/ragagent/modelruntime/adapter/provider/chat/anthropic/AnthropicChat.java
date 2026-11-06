@@ -200,7 +200,7 @@ public class AnthropicChat implements LlmChatClient {
         }
 
         InputStream streamBody = resp.body();
-        // A3：句柄可关闭——关闭即关连接（读取循环立刻退出），取消不必再等 provider 自己收尾。
+        // 句柄可关闭——关闭即关连接（读取循环立刻退出），取消不必再等 provider 自己收尾。
         QueuedChatStream streamQueue = new QueuedChatStream(() -> {
             try {
                 streamBody.close();

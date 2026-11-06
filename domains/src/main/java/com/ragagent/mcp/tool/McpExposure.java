@@ -217,7 +217,7 @@ public final class McpExposure {
             return tools;
         };
         McpCatalog catalog = new McpCatalog(tenantId, "", "", services, gate, loader, lookup);
-        // 本入口由装配层传入 tenantId，principal 用 caller 的 StorageID 形态
+        // 本入口由装配层传入 tenantId，principal 用 caller 的 storageId 形态
         // （引擎侧再以 authorize 校验）。
         if (catalog.authorizeExecution() != null) {
             throw new IllegalStateException("MCP directory is unavailable for this authorization context");

@@ -109,7 +109,7 @@ public final class AuditAction {
     public static final String KB_SHARE_REMOVED = "kb.share_removed";
     /**
      * Wiki 内容变更（人工编辑 + ingest 批量摘要）。
-     * TargetType={@code wiki}，TargetID=kbID，Details={@code {"count":N,"actions":{...}}}。
+     * TargetType={@code wiki}，targetId=kbId，Details={@code {"count":N,"actions":{...}}}。
      */
     public static final String WIKI_CONTENT_CHANGED = "wiki.content_changed";
 

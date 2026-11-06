@@ -10,7 +10,7 @@ import java.io.IOException;
  * GetFileURL 的重写器端口）刻意分开：本端口是 HTTP 流式面，归属
  * {@code com.ragagent.storage} 的实现。八种 provider 都有真实实现
  * （local 走 {@code LocalFileContentService}；云 provider 经
- * {@code ProviderFileContentService} 适配 A3 的 provider 层）。</p>
+ * {@code ProviderFileContentService} 适配 provider 层）。</p>
  */
 public interface FileContentService {
 

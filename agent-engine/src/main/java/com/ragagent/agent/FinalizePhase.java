@@ -82,7 +82,8 @@ final class FinalizePhase {
         opts.setToolChoice("none");
         // 思考策略与主循环同源：取 agent 配置的三态值（null = 交由模型默认决定）。
         // 不显式传值时，模型的 thinking_control 策略（如 enable_thinking 且 alwaysSend=false）
-        // 会让该路径退化为上游默认（思考开）——本部署实测曾因此返回 2751 字 reasoning。
+        // 会让该路径退化为上游默认（思考开）——本部署实测会因此返回 2751 字 reasoning，
+        // 显式传值正是为挡住它。
         opts.setThinking(engine.config.getThinking());
 
         ThinkPhase.StreamLLMResult llmResult = engine.think.streamLLMToEventBus(messages, opts, (chunk, fullContent) -> {

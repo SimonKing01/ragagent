@@ -221,7 +221,7 @@ public class McpOAuthFlowService {
 
     /**
      * token 用 principal 走 oauthPrincipalFromContext（embed 访客会被细分），
-     * 而 gate 的 userID 用<b>原始</b> principal 的 StorageID（会话所有者）。
+     * 而 gate 的 userId 用<b>原始</b> principal 的 storageId（会话所有者）。
      */
     private static String gateUserId() {
         TenantContext.Principal raw = McpPrincipal.normalize(McpPrincipal.fromContext());
@@ -237,9 +237,9 @@ public class McpOAuthFlowService {
     }
 
     /**
-     * {@code gate.Resolve} 的错误映射。
-     *
-     * <p>四类哨兵 → 404 / 400 各一，其余（INTERNAL）→ 500（文案取异常消息）。</p>
+     * {@code resolve} 的错误映射：
+     * PENDING_NOT_FOUND→404，ALREADY_RESOLVED / TENANT_MISMATCH / USER_MISMATCH→400，
+     * INTERNAL→500（文案取异常消息）。
      */
     private static void resolveToolApprovalGate(ToolApprovalGate approvalToolApprovalGate, long tenantId, String gateUserId,
                                     String pendingId, Decision decision) {

@@ -64,7 +64,7 @@ public class BuiltinAgentRegistry {
     /** entry 的 i18n（name/description）与（过滤后的）config 树。 */
     public record Entry(String id, String avatar, boolean isBuiltin,
             Map<String, String[]> i18n, ObjectNode config) {
-        /** name/description 按 [default, zh-CN, zh-TW, ja-JP, ko-KR, …] 存放：i18n.get(locale)。 */
+        /** name/description 按 [default, zh-CN, zh-TW, en-US, …] 存放：i18n.get(locale)，未命中回落 default。 */
     }
 
     private final Map<String, Entry> entries = new LinkedHashMap<>();

@@ -146,7 +146,7 @@ function setActiveEmbedLocale(raw: string, localeRef: LocaleRef | undefined, per
 }
 
 /**
- * 显式选择（宿主 `WeKnora.setLocale()`）：**写**持久值，访客下次打开沿用。
+ * 显式选择（宿主 `RagAgent.setLocale()`）：**写**持久值，访客下次打开沿用。
  * 只有显式选择才该持久化——派生语言写持久值会让「跟随浏览器/宿主」永久失效。
  */
 export function applyEmbedLocale(raw: string, localeRef?: LocaleRef) {

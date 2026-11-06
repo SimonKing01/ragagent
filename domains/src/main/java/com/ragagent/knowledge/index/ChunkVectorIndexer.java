@@ -36,16 +36,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
- * chunk 向量行的重建执行体（走查批：把「路由在、执行体占位」的两处
- * 索引缺口收敛到同一实现）：
- * <ul>
- * （knowledge_process）：多 chunk 版（摘要 chunk 维护 / 问题重生成）；</li>
- * （chunk）：单 chunk 版（chunk 编辑链路；disabled 块删旧不重建）。</li>
- * </ul>
- * <p><b>source_id 契约</b>：chunk 行 = chunkID（无前缀）；生成问题行 =
- * {@code generatedQuestionSourceId}（chunkID-qID；超 64 字节折叠
- * {@code chunkID-q<sha256 前 12 字节 hex>}）。索引文本 =
- * {@code title + "\n" + EmbeddingContent}（KnowledgeIndexContent.build）。</p>
+ * chunk 向量行的重建执行体，两个入口：多 chunk 版 {@link #indexChunks}
+ * （knowledge_process 管线索引阶段；服务侧调用方已持有 KB 行时走同一实现），单 chunk 版
+ * {@link #syncChunkIndex}（chunk 编辑链路；disabled 块删旧不重建）。
+ * <p><b>source_id 契约</b>：chunk 行 = chunkId（无前缀）；生成问题行 =
+ * {@code generatedQuestionSourceId}（chunkId-qId；超 64 字节折叠为
+ * {@code chunkId-q<sha256 前 12 字节 hex>}）。索引文本 =
+ * {@code title + "\n" + embeddingContent}（KnowledgeIndexContent.build）。</p>
  */
 @Service
 public class ChunkVectorIndexer {
@@ -230,10 +227,10 @@ public class ChunkVectorIndexer {
     }
 
     /**
-     * {@code engine.DeleteByChunkIDList(ids, embedder.GetDimensions(), kb.Type)} →
-     * {@code engine.BatchIndex(embedder, items)}。items 的形状照 IndexInfo 逐字段
-     * （chunk 行 SourceID=chunkID、问题行 SourceID=GeneratedQuestionSourceID、
-     * KnowledgeType=kb.Type）；嵌入与分批/退避由 KV 引擎服务承担（40/10 分批 +
+     * 索引引擎路径：先 {@code deleteByChunkIdList(ids, embedder.getDimensions(), kb.getType())}
+     * 删旧行，再 {@code batchIndex(embedder, items)}。items 按 IndexInfo 形状逐字段构造
+     * （chunk 行 sourceId=chunkId、问题行 sourceId=generatedQuestionSourceId）；
+     * 嵌入与分批/退避由引擎服务承担。
      */
     private void indexAndStoreViaEngine(KnowledgeBase kb,
                                         IndexEngine engine,
@@ -313,10 +310,11 @@ public class ChunkVectorIndexer {
     }
 
     /**
- * <b>repo 层</b>判定——索引策略为 null 时返回 Default（NULL 列 → vector+keyword 开）；
- * 显式全 false / 空 JSON 保持全 false（IsZero 不翻）。{@link #syncChunkIndex} 走这里
- * （走查批实证：套钩子会让全 false 策略的 KB 误走进真实出站，13 测试红）。
- */
+     * <b>repo 层</b>判定：索引策略为 null 时返回 Default（NULL 列 → vector+keyword 开）；
+     * 显式全 false / 空 JSON 保持全 false（不归一）。{@link #syncChunkIndex} 走这里——
+     * repo 层读法不套服务层的「全 false → Default」归一，显式全 false 策略的 KB
+     * 不会误进真实出站索引。
+     */
     private static boolean needsEmbeddingRepoLayer(KnowledgeBase kb) {
         KnowledgeBaseIndexingStrategy strategy = kb.getIndexingStrategy();
         if (strategy == null) {

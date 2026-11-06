@@ -148,7 +148,8 @@ cp .env.example .env
 # 2) 配模型（**首次问答必需**）：复制样例，并在 .env 里补 LLM_BASE_URL / LLM_API_KEY
 #    （用本地 Ollama 的话改样例末尾那段，不需要 key）
 #    不配的话页面能打开，但第一次提问会失败——系统里没有任何可用模型
-cp deploy/builtin_models.yaml.example config/builtin_models.yaml
+mkdir -p config && cp deploy/builtin_models.yaml.example config/builtin_models.yaml
+#    （config/ 是运行期目录、不入库，首次需自建）
 
 # 3) 基础设施：PostgreSQL(15432) + Redis(16379) + 文档解析服务(50051)
 docker compose up -d
@@ -204,7 +205,8 @@ docker run --rm -p 8080:8080 --env-file .env ragagent-server
 |---|---|---|
 | `SERVER_PORT` | 8080 | 服务端口（dev `.env` 用 8083） |
 | `DB_HOST` / `DB_PORT` | localhost / 15432 | PostgreSQL（ParadeDB） |
-| `DB_USER` / `DB_PASSWORD` / `DB_NAME` | — | 数据库凭据与库名 |
+| `DB_USER` / `DB_PASSWORD` | postgres / postgres123!@# | 数据库凭据，与 compose 容器一致 |
+| `DB_NAME` | RagAgent | 库名，与 compose 容器初始化库名一致 |
 | `REDIS_HOST` / `REDIS_PORT` | localhost / 16379 | 事件流、限流与跨实例协调 |
 | `REDIS_PASSWORD` | — | 仅当 Redis 开启 requirepass 时设置 |
 | `DOCREADER_ADDR` | localhost:50051 | 文档解析 gRPC 地址 |
@@ -283,8 +285,8 @@ cd frontend && npm run type-check && npm test
 - **契约金片**：1,339 份逐字节钉死的 JSON 响应样本，另有 5 份下载/导出类样本（`.body` + `.headers` 成对）—— 改动响应形状必须显式重录，杜绝"接口悄悄变了"
 - **架构规则**：模块依赖矩阵、契约层纯度、禁止裸读环境变量、禁止双装配与分层倒挂等，均由 ArchUnit + 脚本守卫在 CI 强制
 - **测试**：约 5,000 条用例；Redis / 外部驱动等环境相关用例可跳过，但跳过项需登记理由（覆盖的消失是累积性的）
-- **集成测试**：Milvus / Weaviate 等驱动集成测试需真实服务，由环境变量门控、按需触发
-- **CI**：四个 job —— 架构守卫 · 后端（真实 PostgreSQL + Redis + 全量测试）· 镜像构建与迁移自检 · 前端
+- **集成测试**：Milvus / Weaviate 驱动的 `*IT` 由 CI 常驻 job 跑真实容器；本地需自备容器并经 `-Pit` + 环境变量触发
+- **CI**：五个 job —— 架构守卫 · 后端（真实 PostgreSQL + Redis + 全量测试）· 镜像构建与迁移自检 · 前端 · 真实驱动集成（Milvus / Weaviate）
 
 **参与贡献**
 

@@ -40,7 +40,7 @@ public interface LangfuseManager {
     /**
      * 以外部传入的 W3C trace id（可选父 span id）重建句柄、<b>不建新根</b>
      * （根归上游所有，子观测继承 trace id）。
-     * traceID 非法 → 返回 null，调用方回落 {@link #startTrace}。
+     * traceIdHex 非法 → 返回 null，调用方回落 {@link #startTrace}。
      */
     Trace resumeTrace(String traceIdHex, String parentSpanIdHex);
 

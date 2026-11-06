@@ -3,7 +3,7 @@ package com.ragagent.contract.event.payload;
 
 /**
  * 会话内 OAuth 提示结果（authorized / timeout / cancel）确认事件体。
- * emit 点：common/approval/Gate（{@code <pendingID>-mcp-oauth-resolved}），见包注释 emit 表 #13。
+ * emit 点：common/approval/Gate（{@code <pendingID>-mcp-oauth-resolved}）。
  *
  * <p>零值输出 {@code {"pendingId":"","serviceId":"","authorized":false}}；
  * {@code reason}/{@code timed_out}/{@code canceled} 空则省略。</p>

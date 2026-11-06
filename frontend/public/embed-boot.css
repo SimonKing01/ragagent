@@ -225,6 +225,7 @@ body {
 
 /* 用户气泡（右） */
 .eb-bubble--user {
+  margin-top: 36px;
   width: 46%;
   height: 40px;
   border-radius: 14px 4px 14px 14px;

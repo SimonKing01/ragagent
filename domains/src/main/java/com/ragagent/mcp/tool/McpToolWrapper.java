@@ -33,7 +33,7 @@ import java.util.Set;
  * 稳定，#715）。ToolRegistry 的 first-wins 语义防止后来者劫持（GHSA-67q9-58vj-32qx）。
  * 描述前缀 {@code [MCP Service: X (external)]} 标注不可信来源以削弱间接注入。</p>
  *
- * <p><b>身份注入</b>：tenantID/principal 构造时传入（引擎按 principal 组装 registry）。</p>
+ * <p><b>身份注入</b>：tenantId/principal 构造时传入（引擎按 principal 组装 registry）。</p>
  */
 public class McpToolWrapper implements AgentTool {
 
@@ -52,7 +52,7 @@ public class McpToolWrapper implements AgentTool {
     protected final int authWaitTimeoutSeconds;
     protected volatile String registeredName = "";
     protected String serverInstructions = "";
-    /** 模型可见身份（Java 注入）：tenant + principal.StorageID。 */
+    /** 模型可见身份（Java 注入）：tenant + principal 的 storageId。 */
     protected final long tenantId;
     /** schema 编译一次按工具快照缓存（见 McpInputSchemaValidator）。 */
     private final McpInputSchemaValidator schemaValidator;

@@ -117,7 +117,7 @@ public final class PipelinePorts {
         Map<String, Integer> documentAffinity(List<String> knowledgeIds);
     }
 
-    /** web 搜索执行（providerID + 执行面配置）。 */
+    /** web 搜索执行（providerId + 执行面配置）。 */
     public interface WebSearch {
         List<WebSearchResult> search(String providerId, WebSearchConfig config,
                                       String query);

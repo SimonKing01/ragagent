@@ -52,7 +52,7 @@ public final class StoragePaths {
 
     /**
      * {@code storage://<id>/<providerPath>}。
-     * 返回 (backendID, providerPath, ok) 三元组。
+     * 返回 (backendId, providerPath, ok) 三元组。
      */
     public static record ParsedBackendPath(String backendId, String providerPath, boolean ok) {
     }
@@ -89,7 +89,7 @@ public final class StoragePaths {
         return "";
     }
 
-    /** (backendID, provider) 二元组。 */
+    /** (backendId, provider) 二元组。 */
     public static record StorageTarget(String backendId, String provider) {
     }
 

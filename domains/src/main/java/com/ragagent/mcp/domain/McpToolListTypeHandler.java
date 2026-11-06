@@ -17,8 +17,8 @@ import org.apache.ibatis.type.JdbcType;
  * <p>为什么不用通用 {@link com.ragagent.platform.persistence.PgJsonTypeHandler}：
  * {@code List<McpTool>} 走泛型会退化成 {@code List<LinkedHashMap>}，元素类型丢失。</p>
  *
- * <p>⚠️ 落库键名＝{@link McpTool} 的 Java 属性名（{@code requireApproval} 驼峰）。
- * 存量的 {@code require_approval} 下划线行已按 SQL 迁移改写。</p>
+ * <p>⚠️ 落库键名＝{@link McpTool} 的 Java 属性名：键名恒为驼峰
+ * （{@code requireApproval}），无下划线形态。</p>
  *
  * 刻意不加 {@code @MappedTypes(List.class)}：全局注册会污染所有 List 列。
  */

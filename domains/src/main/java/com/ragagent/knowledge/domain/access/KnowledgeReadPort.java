@@ -7,13 +7,9 @@ import java.util.List;
 /**
  * 访问守卫所需的**最小知识读取面**。
  *
- * <p>原先三个守卫（{@code FaqGuard} / {@code KnowledgeAccessGuard} / {@code KnowledgeRouteGuards}）
- * 直接持有整个 {@code KnowledgeService}（796 行的枢纽）——这构成 knowledge SCC 的一条真实成环边
- * （{@code domain.access → service}）。改为依赖本端口后，守卫只看见 4 个读方法，依赖方向变为
- * **service 实现端口**（{@code service → domain.access}，本已存在），反向边消失 ⇒ 环断开。</p>
- *
- * <p>实现方：{@code com.ragagent.knowledge.service.management.KnowledgeService}（Spring 按类型注入，
- * 端口只有这一个实现）。若日后读取面归位到 {@code repository/}，实现随之替换即可。</p>
+ * <p>访问守卫只经本端口读知识（4 个方法，契约形状预算内）；实现方为
+ * {@code com.ragagent.knowledge.service.management.KnowledgeService}
+ * （依赖方向 {@code service → domain.access}，Spring 按类型注入，端口只有这一个实现）。</p>
  */
 public interface KnowledgeReadPort {
 

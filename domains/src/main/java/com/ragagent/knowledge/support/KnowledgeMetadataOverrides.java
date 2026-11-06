@@ -8,9 +8,9 @@ import com.ragagent.platform.web.JsonMappers;
 /**
  * 知识库文档 {@code metadata} 的写入辅助。
  *
- * <p>上传/重解析可带逐文档处理覆盖（processConfig）：目前只有图片 OCR 开关会被解析管线消费，
- * 但按「先落库、再消费」的口径统一写入 {@code metadata.processOverrides}，处理时间线与
- * 文档详情才能回读到用户当时的选择。</p>
+ * <p>上传/重解析可带逐文档处理覆盖（processConfig），按「先落库、再消费」的口径
+ * 统一写入 {@code metadata.processOverrides}，处理时间线与文档详情才能回读到
+ * 用户当时的选择。</p>
  *
  * <p>键名统一 camel：本仓约定自有 JSON 面不新增 snake 键（守卫 check-json-key-case 会拦）。</p>
  */

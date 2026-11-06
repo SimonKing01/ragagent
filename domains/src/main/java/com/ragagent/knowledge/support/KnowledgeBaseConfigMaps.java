@@ -20,8 +20,7 @@ import java.util.List;
  * 知识库配置形状的双向映射（领域形状 ⇄ 契约视图）——域内单一实现。
  *
  * <p>领域形状（{@code KnowledgeBase*Config}，jsonb 列类型）归 {@code knowledge/domain}；
- * 跨域视图（{@code *View}）归契约面。互转只在本类发生
- * （原散在契约视图内的 {@code from/toDomain} 已回收于此）。</p>
+ * 跨域视图（{@code *View}）归契约面。互转只在本类发生。</p>
  *
  * <p><b>VLM 与凭据</b>：{@link VlmConfigView} 按"凭据只进不出"设计不含 {@code apiKey}
  * ⇒ {@link #toDomain(VlmConfigView)} 产出的领域形状 {@code apiKey == null}；

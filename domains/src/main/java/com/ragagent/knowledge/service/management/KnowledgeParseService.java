@@ -88,9 +88,8 @@ public class KnowledgeParseService {
     }
 
     /**
-     * cancelled 幂等、
-     * completed/failed → 400 "解析已结束，无法取消"、deleting → 400 "知识正在删除中，
-     * 无法取消解析"、其余状态（含 unknown）放行改 cancelled。
+     * 取消解析的状态语义：cancelled 幂等、completed/failed → 400 "解析已结束，无法取消"、
+     * deleting → 400 "知识正在删除中，无法取消解析"、其余状态（含 unknown）放行改 cancelled。
      */
     public Knowledge cancelKnowledgeParse(String id) {
         Knowledge existing = documentParser.findById(KnowledgeTenants.tenantId(), id);

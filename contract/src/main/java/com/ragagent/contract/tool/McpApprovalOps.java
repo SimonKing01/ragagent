@@ -14,8 +14,8 @@ package com.ragagent.contract.tool;
  * 租户/主体校验与错误映射（{@code BizException} 语义）——embed 路由依赖这套校验 ✗，
  * 绕过去等于削安全边界。故端口按"**操作语义**"（＝ controller 的对外语义）暴露，而非按闸门原语。</p>
  *
- * <p><b>返回形态</b>：与既有 HTTP 面一致（恒 200 + body）——授权 URL 返回 {@code Map}（响应体原样），
- * 状态查询返回 {@code Object}（可能是 Map 或 mcp 的状态记录，调用方原样作为响应体）。</p>
+ * <p><b>返回形态</b>：与既有 HTTP 面一致（恒 200 + body）——授权 URL 返回 {@link AuthorizationUrl} 载荷；
+ * 状态查询返回 {@code Object}（调用方原样作响应体）。</p>
  */
 public interface McpApprovalOps {
 

@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
  *       {@code deleted_at IS NULL}；
  *       删除走 UPDATE 置 {@code deleted_at}——**硬删会连带触发
  *       {@code im_channel_sessions_session_id_fkey} 的 ON DELETE CASCADE**。</li>
- *   <li><b>可见性范围</b>：{@code userID} 非空时加
+ *   <li><b>可见性范围</b>：{@code userId} 非空时加
  *       {@code (user_id = ? OR user_id IS NULL OR user_id = '')}——**空 owner 的历史行/API 行
  *       对所有人都可见**。这条件出现在 Get/GetByTenantID/GetPagedByTenantID/Update/Delete/
  *       BatchDelete/DeleteAllByTenantID/UpdateLastRequestState 共 8 处，Java 侧收敛成

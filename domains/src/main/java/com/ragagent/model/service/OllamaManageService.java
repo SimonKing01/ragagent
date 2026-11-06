@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 /**
  * ollama 管理端点用例：status/models/check/download/progress 与拉取任务机制。
  *
- * <p>initialization 薄层化的产物：端点注解留在 controller，方法体逐字迁移至此。</p>
+ * <p>ollama 管理端点用例在本类；HTTP 注解在 controller 层。</p>
  */
 @Service
 public final class OllamaManageService {

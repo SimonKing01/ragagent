@@ -94,7 +94,7 @@ public class ImTurnOrchestrator implements AgentChannelCleaner {
     private final CommandRegistry cmdRegistry = new CommandRegistry();
     private final QaQueue qaQueue;
 
-    /** 运行中的渠道（channelID → 状态）。 */
+    /** 运行中的渠道（channelId → 状态）。 */
     private final Map<String, ChannelState> channelStates = new ConcurrentHashMap<>();
     /** 在途请求（/stop 的本地取消面）。 */
     final Map<String, InflightEntry> inflight = new ConcurrentHashMap<>();

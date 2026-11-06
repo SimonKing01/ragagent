@@ -352,7 +352,7 @@ public class AdminUserAdapter {
         return u;
     }
 
-    /** 落库后回填传入视图（保持"同对象被填充"的旧语义；null 安全）。 */
+    /** 落库后回填传入视图（保持"同对象被填充"语义，调用方依赖；null 安全）。 */
     static void copyInto(AdminUserView v, User u) {
         if (v == null || u == null) {
             return;

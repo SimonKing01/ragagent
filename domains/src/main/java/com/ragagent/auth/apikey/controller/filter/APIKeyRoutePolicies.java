@@ -362,7 +362,7 @@ public final class APIKeyRoutePolicies {
      * 而且<b>刻意不带任何能力清单</b>——理由：
      * 记忆空间属于一个人，scoped 集成 key 不该继承一个。
      * 所以带 {@code chat} 的 Key 能跑完整对话流程，却读不到同一批记忆：
-     * 记忆是<b>按人</b>的（{@code subject_id = principal.StorageID()}），
+     * 记忆是<b>按人</b>的（{@code subject_id = principal.storageId()}），
      * 而一把集成 Key 代表的是一个系统、不是一个人。</p>
      *
      * <p>注意与 {@code /api/v1/sessions/continue-stream/*} 的对比：那边是

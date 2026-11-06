@@ -1096,7 +1096,7 @@ const buildSubmitData = () => {
   if (!formData.value) return null
 
   // 新契约（docs/knowledge-api-contract-v1.md）：创建请求为 camelCase DTO，
-  // 分块/索引/多模态/ASR 走类型化视图，JsonNode 透传配置（FAQ/Wiki/问题生成等）内键保持原样。
+  // 分块/索引/图片OCR/ASR 走类型化视图，JsonNode 透传配置（FAQ/Wiki/问题生成等）内键保持原样。
   const data: any = {
     name: formData.value.name,
     description: formData.value.description,
@@ -1981,7 +1981,7 @@ watch(() => chatResources.allModels, (list) => {
   }
 }
 
-// 多模态配置内联样式（与子组件 KBStorageSettings/KBAdvancedSettings 一致）
+// 图片 OCR 与 ASR 分区共用的内联样式（类名 .kb-multimodal-settings 为历史沿用）
 .kb-multimodal-settings {
   width: 100%;
 

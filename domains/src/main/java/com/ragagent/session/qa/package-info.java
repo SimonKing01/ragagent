@@ -1,5 +1,5 @@
 /**
- * QA 轮的编排簇（阶段 5 从 {@code session.controller} 剥离）。
+ * QA 轮的编排簇。
  *
  * <p>{@code QaRequestParser}（请求解析）/ {@code QaSseOrchestrator}（SSE 编排）/
  * {@code QaTurnExecutor}（整轮执行）/ {@code QaTurnFinalizer}（收尾落库），以及协作件

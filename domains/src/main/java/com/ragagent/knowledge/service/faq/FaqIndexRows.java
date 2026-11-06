@@ -10,14 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * FAQ 索引行组装。 走查批接线：此前的
- * 索引步是「embedding runtime is not available」占位。
+ * FAQ 索引行组装。
  * <p><b>两种索引模式</b>（kb.faq_config）：</p>
  * <ul>
  * <li>question_index_mode=combined（默认）：单行，content = 标准问 + 相似问 +
- * （question_answer 模式时）答案；source_id = chunkID；</li>
- * <li>question_index_mode=separate：标准问一行（source_id=chunkID）+ 每个相似问
- * 一行（source_id = {@code chunkID-<序号>}）。</li>
+ * （question_answer 模式时）答案；source_id = chunkId；</li>
+ * <li>question_index_mode=separate：标准问一行（source_id=chunkId）+ 每个相似问
+ * 一行（source_id = {@code chunkId-<序号>}）。</li>
  * </ul>
  */
 final class FaqIndexRows {
@@ -72,7 +71,7 @@ final class FaqIndexRows {
                 }
                 similarContent = sb.toString();
             }
-            // sourceID = chunkID-{i}
+            // sourceId = chunkId-{i}
             rows.add(new IndexRow(chunk.getId() + "-" + i, chunk.getId(),
                     chunk.getKnowledgeId(), chunk.getKnowledgeBaseId(),
                     similarContent, enabled, tagId));

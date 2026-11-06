@@ -120,7 +120,8 @@ public class APIKeyAuthChannel {
 
     /**
      * 平台 Key 未指定 X-Tenant-ID 时的 tenantless 会话。
-     * 角色固定 Viewer（只为兼容旧守卫，真正权威是能力清单）。
+     * 角色固定 Viewer：只是供现行 role 鉴权（{@code TenantContext.currentRole()}）使用的
+     * 影子值，真实权威是 FullAccess + Capabilities + KB 白名单。
      */
     private void attachPlatformKey(TenantAPIKey key) {
         String principalId = String.valueOf(key.getId());
@@ -145,8 +146,7 @@ public class APIKeyAuthChannel {
             return new Rejected(401, "{\"error\":\"Unauthorized: invalid API key\"}");
         }
 
-        // 租户首位用户（created_at 最早），查不到走合成用户兜底
-        // system-<tenantId>（查询错误一律吞掉走兜底）。
+        // 租户首位用户（created_at 最早）；无行时回退合成用户 system-<tenantId>，DB 异常不吞、直接上抛。
         User user = userService.getUserByTenantIdFirst(tenantId);
         String userId = user != null ? user.getId() : "system-" + tenantId;
 
@@ -157,8 +157,7 @@ public class APIKeyAuthChannel {
             principalId = String.valueOf(key.getId());
             userId = platformSyntheticUserId(principalId);
         } else {
-            // 按租户 API principal
-            // 模式解析主体；配置缺失/tenant 模式回落 api_tenant/<tenantId>。
+            // 按租户 API principal 模式解析主体；配置缺失/tenant 模式回落 api_tenant/<tenantId>。
             ApiPrincipalResolutionOut resolution = resolveApiPrincipal(tenantId,
                     tenantService.apiPrincipalConfig(tenantId), request);
             if (resolution.error() != null) {
@@ -170,7 +169,8 @@ public class APIKeyAuthChannel {
         }
 
         // full-access 且非平台 → Owner，否则 Viewer。
-        // 这只是"旧守卫兼容"的角色影子，真实权威是 FullAccess + Capabilities + KB 白名单。
+        // 角色是供现行 role 鉴权（TenantContext.currentRole()）使用的影子值，
+        // 真实权威是 FullAccess + Capabilities + KB 白名单。
         boolean fullAccess = key.isFullAccess() && !key.isPlatform();
         String role = fullAccess ? "owner" : "viewer";
         TenantContext.set(tenantId,

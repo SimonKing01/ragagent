@@ -80,7 +80,7 @@ public final class PromptFingerprints {
      */
     public static String buildPromptCacheKey(long tenantId, String modelId, String purpose,
                                              String prefixFingerprint) {
-        // tenantID 用无符号十进制表示，避免高位租户 ID 输出成负数
+        // tenantId 用无符号十进制表示，避免高位租户 ID 输出成负数
         return "wk-" + fingerprintPromptPrefix(
                 Long.toUnsignedString(tenantId), modelId, purpose, prefixFingerprint);
     }

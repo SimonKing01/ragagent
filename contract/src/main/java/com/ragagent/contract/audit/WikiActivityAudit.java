@@ -8,7 +8,7 @@ import java.util.Map;
  *
  * <p>HTTP 层把人工页面变更写成一条 {@code wiki.content_changed} 审计事件。
  * 净效果是一条 {@code AuditLog}：Action={@code wiki.content_changed}、ScopeType={@code knowledge_base}、
- * TargetType={@code wiki}/TargetID={@code kbID}、Outcome={@code success}、
+ * TargetType={@code wiki}/targetId={@code kbId}、Outcome={@code success}、
  * Details={@code {"count":N,"actions":{...}}}（只在 count &gt; 0 时写）。</p>
  *
  * <p><b>为什么是接缝而不是直接调用</b>：定义端口是为了固定埋点位置、
@@ -28,7 +28,7 @@ public interface WikiActivityAudit {
      * （Details 为 {@code {"count": sum(actions), "actions": actions}}）。
      *
      * @param tenantId        页面所属工作空间
-     * @param knowledgeBaseId 页面所属知识库（同时是审计的 ScopeID 与 TargetID）
+     * @param knowledgeBaseId 页面所属知识库（同时是审计的 scopeId 与 targetId）
      * @param actions         动作名 → 次数（调用方恒传单键 {@code {action: 1}}）
      */
     void wikiContentChanged(long tenantId, String knowledgeBaseId, Map<String, Integer> actions);

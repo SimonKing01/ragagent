@@ -102,8 +102,8 @@ public class DataSourceController {
      * 新建数据源：成功是 <b>201</b> Created。
      *
      * <p>顺序：租户 → 解析请求体（400 {@code invalid request}）→ 知识库归属
-     * （400/403/404）→ 强制 {@code req.TenantID = tenantID} → service。
-     * 客户端就算在 body 里塞了别的租户 id 也会被覆盖掉。</p>
+     * （400/403/404）→ service。service 内以上下文租户覆盖实体租户
+     * （body 里的 tenantId 不生效）。</p>
      */
     @PostMapping("/api/v1/datasource")
     public ResponseEntity<?> createDataSource(@RequestBody(required = false) String rawBody) {

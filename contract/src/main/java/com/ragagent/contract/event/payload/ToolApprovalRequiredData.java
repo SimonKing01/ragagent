@@ -3,7 +3,7 @@ package com.ragagent.contract.event.payload;
 
 /**
  * 危险 MCP 工具即将执行时的"请求批准"事件体。
- * emit 点：common/approval/Gate（{@code <pendingID>-approval-required}），见包注释 emit 表 #10。
+ * emit 点：common/approval/Gate（{@code <pendingID>-approval-required}）。
  *
  * <p>minimal 形态：{@code args}/{@code args_json}/{@code request_id} 空则省略；其余恒输出——零值时
  * {@code {"pendingId":"","tenantId":0,"sessionId":"","assistantMessageId":"","serviceId":"",

@@ -754,7 +754,7 @@ renderer.code = function ({ text, lang }) {
     </div>
   `;
 };
-// 监听 chunks 变化，自动更新合并内容（已改为 computed 属性）
+// 合并内容：由 chunks 派生的 computed（props 变更自动重算）
 const mergedContent = computed(() => {
   const newChunks = props.details?.md;
   if (newChunks && newChunks.length > 0) {

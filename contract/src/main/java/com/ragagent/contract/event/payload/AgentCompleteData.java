@@ -6,7 +6,7 @@ import java.util.Map;
 
 /**
  * Agent 完成事件数据。
- * emit 点：FinalizePhase（{@code generateEventId("complete")}），见包注释 emit 表 #16。
+ * emit 点：FinalizePhase（{@code generateEventId("complete")}）。
  *
  * <p>{@code knowledge_refs}/{@code agent_steps}/{@code usage} 空则整键省略
  * （空列表也省略）；{@code total_duration_ms} 恒输出。</p>
@@ -39,7 +39,7 @@ public class AgentCompleteData {
     private String requestId = "";
 
     /** null 或空省略；**失败收束**时显式携带 {@code {"outcome":"failed","error":<msg>}}
-     *  （A1-AGENT：客户端据此区分"正常收尾"与"失败收尾"；成功不带 = 缺省即成功）。 */
+     *  （客户端据此区分"正常收尾"与"失败收尾"；成功不带 = 缺省即成功）。 */
     private Map<String, Object> extra;
 
     public AgentCompleteData() {

@@ -70,7 +70,7 @@ public class ModelCatalogAdapter implements ModelCatalogPort {
     @Override
     public ModelView createModel(ModelView model) {
         Model saved = modelService.createModel(toEntity(model));
-        // 旧语义：域服务就地把 id/createdAt/status 写回**调用方那个对象** ⇒ 这里回填传入视图
+        // 域服务就地把 id/createdAt/status 写回**调用方那个对象** ⇒ 这里回填传入视图
         //（调用方随后依赖该对象的 id，例如初始化流程的 embeddingModelId 归属）。
         copyInto(model, saved);
         return toView(saved);
@@ -107,7 +107,7 @@ public class ModelCatalogAdapter implements ModelCatalogPort {
         return v;
     }
 
-    /** 把落库后的实体字段回填到传入视图（保持"同对象被填充"的旧语义；null 安全）。 */
+    /** 把落库后的实体字段回填到传入视图（保持"同对象被填充"语义，调用方依赖；null 安全）。 */
     static void copyInto(ModelView v, Model m) {
         if (v == null || m == null) {
             return;

@@ -29,7 +29,7 @@
 - Port 对照表：[`architecture/port-map.md`](architecture/port-map.md) —— 域端口 ↔ 实现 ↔ 调用方
 - 问答链路：[`architecture/qa-flow.md`](architecture/qa-flow.md) —— 一次问答的类级调用链
 
-查表：[`architecture/packages.md`](architecture/packages.md) —— 356 份 `package-info` 的包索引（由脚本生成，勿手改）。
+查表：[`architecture/packages.md`](architecture/packages.md) —— 357 份 `package-info` 的包索引（由脚本生成，勿手改）。
 
 按业务链路查：[`architecture/business-capability-map.md`](architecture/business-capability-map.md) —— 六条链路（知识生产 / 问答 / Agent / 渠道 / 配置 / 初始化）→ 入口、编排、落点。
 

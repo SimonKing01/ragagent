@@ -3,7 +3,7 @@ package com.ragagent.contract.model;
 import java.util.concurrent.BlockingQueue;
 
 /**
- * 流式响应句柄（A3）：队列语义不变（{@code take}/{@code poll} 与既有消费者一致），
+ * 流式响应句柄：队列语义不变（{@code take}/{@code poll} 与既有消费者一致），
  * 额外提供**显式关闭**。
  *
  * <p>为什么需要句柄：只给 {@link BlockingQueue} 时，"停止消费"不等于"取消模型"——

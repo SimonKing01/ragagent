@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * 错误事件数据。
- * agent 引擎唯一 emit 点：AgentEngine（stage="agent_execution"），见包注释 emit 表 #20。
+ * agent 引擎唯一 emit 点：AgentEngine（stage="agent_execution"）。
  */
 
 public class ErrorData {

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
  * 批量面：批量删除 / 批量重解析 / 重建索引 / 清空 KB 内容。
  * <p>复位/全列写复用 {@link KnowledgeFileService}/{@link KnowledgeParseService}（同包开放），
  * moving 状态防线复用 {@link ChunkAccessGuard#rejectMovingKnowledge}；
- * 门面 helper（requireKb/getKnowledge/tenantId）下沉在 {@link KnowledgeAccessHelper}，直接依赖不回注门面（M2 解环）。</p>
+ * 门面 helper（requireKb/getKnowledge/tenantId）下沉在 {@link KnowledgeAccessHelper}，直接依赖不回注门面。</p>
  */
 @Service
 public class KnowledgeBatchOpsService {

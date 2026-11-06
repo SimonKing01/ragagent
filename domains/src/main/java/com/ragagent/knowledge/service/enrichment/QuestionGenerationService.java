@@ -25,12 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * 问题生成**批** worker。
- * metadata 并重建向量索引——这是"导入文档后，新建提问能看到推荐问题"的**数据来源**。
- * 本仓此前只有手动路径（{@code POST /chunks/by-id/{id}/questions/regenerate}），
- * 自动路径在 {@code KnowledgeService} 里为"未翻" ⇒ 刚导入的 KB 推荐问题恒为空。</p>
- * {@code generateAndStoreQuestionsForWorker}）→ 终态递减 finalizing 槽
- * （{@code finalizeSubtaskDetached} 的等价物 wiki 域的 subtask 收尾）。</p>
+ * 问题生成批 worker：消费 {@code question:generation} 队列，逐块生成推荐问题——
+ * 生成结果写入 chunk metadata 并重建该块向量索引（「导入文档后，新建提问能看到
+ * 推荐问题」的数据来源）；终态（成功或不再重试）递减 finalizing 槽位
+ * （{@code SubtaskDrain.drain} → {@code finalizeWikiSubtask}，与 wiki 域 subtask 收尾同款）。
  */
 @Service
 public class QuestionGenerationService implements QuestionGenerationConsumer {

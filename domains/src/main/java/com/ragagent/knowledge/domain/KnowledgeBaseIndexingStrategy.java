@@ -3,7 +3,7 @@ package com.ragagent.knowledge.domain;
 
 /**
  * IndexingStrategy。
- * 注意 Scan 语义：DB NULL（迁移前老行）→ DefaultIndexingStrategy()（vector+keyword=true）。
+ * 注意 Scan 语义：DB NULL → {@link #defaultStrategy()}（vector+keyword=true）。
  */
 public class KnowledgeBaseIndexingStrategy {
 

@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service;
  * 长尾（生产上偶发 OOM）。现在用 {@code ListPagesCursor} 以
  * {@value #LINT_CURSOR_BATCH} 条为一窗走页面集合，增量累积问题——无论 KB 多大，
  * 内存都有界。活跃 slug 集合不走全图调用：
- * {@code ListAllSlugs} 是同一谓词（kbID + status&lt;&gt;archived）上的单列投影，
+ * {@code listAllSlugs} 是同一谓词（kbID + status&lt;&gt;archived）上的单列投影，
  * 答案一样而代价只有零头。</p>
  */
 @Service

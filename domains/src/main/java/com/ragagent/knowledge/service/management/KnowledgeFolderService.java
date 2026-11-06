@@ -33,9 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 知识文件夹树与文件夹移动 / 重命名：树的增删改查、移动/重命名的路径重写与冲突校验。
  * <p>门面 helper（requireKb/findKb/tenantId/getKnowledgeBatch）下沉在
- * {@link KnowledgeAccessHelper}，直接依赖不回注门面（M2 解环）；搬移中防线统一走
- * {@link ChunkAccessGuard#rejectMovingKnowledge}（批量面同样复用）
- * （KnowledgeBatchOpsService）复用。</p>
+ * {@link KnowledgeAccessHelper}；搬移中防线统一走
+ * {@link ChunkAccessGuard#rejectMovingKnowledge}（批量面 {@link KnowledgeBatchOpsService} 复用）。</p>
  */
 @Service
 public class KnowledgeFolderService {

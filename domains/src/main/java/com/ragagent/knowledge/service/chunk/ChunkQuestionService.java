@@ -179,15 +179,14 @@ public class ChunkQuestionService implements ChunkQuestionPort {
     }
 
     /**
-     * <b>所有</b>失败被
-     * handler 包 400（err.Error() 原文，含 {@code %w} 包装链）。向量索引删除半边
-     * 可观测失败分支，文案逐字对照）。
+     * 删除 chunk 的一条生成问题。除向量索引删除半边外，所有失败都包 400
+     * （异常原文进文案）；向量索引删除失败只警告继续（问题未被索引过是常态）。
      */
     public void deleteGeneratedQuestion(String chunkId, String questionId) {
         log.info("Deleting generated question, chunk ID: {}, question ID: {}", chunkId, questionId);
         long tenantId = mustTenantId();
 
-        // "error code: N, ..." 前缀一并进入 400 文案
+        // writableChunk 失败的文案（含 "error code: N, ..." 前缀）一并进入 400 文案
         Chunk chunk;
         try {
             chunk = guard.writableChunk(chunkId);
@@ -219,7 +218,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
             throw BizException.badRequest("question with ID " + questionId + " not found in chunk " + chunkId);
         }
 
-        //    ErrKnowledgeBaseNotFound 的原文是 "knowledge base not found"）
+        // KB 缺失同样按 400 抛出（文案固定为 "knowledge base not found" 原文）
         KnowledgeBase kb = findKbRow(chunk.getKnowledgeBaseId());
         if (kb == null) {
             throw BizException.badRequest("failed to get knowledge base: knowledge base not found");
@@ -227,8 +226,6 @@ public class ChunkQuestionService implements ChunkQuestionPort {
 
         // 5. 删除该问题的向量索引。source_id 形如 {chunkId}-q{hash24}（短 ID 直拼）。
         String sourceId = ChunkSearchUtil.generatedQuestionSourceId(chunkId, questionId);
-        //     无绑定回落租户有效引擎（RETRIEVE_DRIVER 驱动），绑定 store 走归属校验 +
-        //     注册表解析。失败 → "failed to create retrieve engine: %w"（handler 包 400）。
         IndexEngine engine;
         try {
             // 绑定 store 走归属校验 + 注册表解析；无绑定回落租户有效引擎——解析收在
@@ -238,8 +235,8 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         } catch (RuntimeException e) {
             throw BizException.badRequest("failed to create retrieve engine: " + e.getMessage());
         }
-        //     "model ID cannot be empty" / "model not found"，经
-        //     ModelRuntime.getEmbeddingModel 的 RuntimeException 原文冒出）
+        //     嵌入模型解析失败（"model ID cannot be empty" / "model not found"）
+        //     以原文冒出，handler 包 400。
         Embedder embeddingModel;
         try {
             embeddingModel = modelRuntimeAssembler.getEmbeddingModel(
@@ -247,7 +244,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         } catch (RuntimeException e) {
             throw BizException.badRequest("failed to get embedding model: " + e.getMessage());
         }
-        //     （问题未被索引过）只警告继续，不阻断元数据更新。
+        //     向量索引删除失败（问题未被索引过）只警告继续，不阻断元数据更新。
         try {
             engine.deleteBySourceIdList(List.of(sourceId), embeddingModel.getDimensions(),
                     kb.getType());
@@ -309,7 +306,7 @@ public class ChunkQuestionService implements ChunkQuestionPort {
         if (kb.getSummaryModelId() == null || kb.getSummaryModelId().isEmpty()) {
             throw BizException.badRequest("summary model is required for question generation");
         }
-        // 的 handler 里统一包 400 err.Error()——"model not found" 等原文）
+        // chat 模型解析失败统一包 400（"model not found" 等原文进文案）
         LlmChatClient chatModel;
         try {
             chatModel = modelRuntimeAssembler.getChatModel(kb.getSummaryModelId());

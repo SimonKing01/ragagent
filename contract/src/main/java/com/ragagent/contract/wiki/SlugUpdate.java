@@ -51,7 +51,7 @@ public class SlugUpdate {
     private String retractDocContent = "";
 
     /**
-     * KnowledgeID 内<b>实质性支撑</b>本次更新的
+     * knowledgeId 内<b>实质性支撑</b>本次更新的
      * chunk ID。与 {@code #item} 的 SourceChunks 镜像——Reduce 阶段从这里读，
      * 省一次字段跳转。
      */

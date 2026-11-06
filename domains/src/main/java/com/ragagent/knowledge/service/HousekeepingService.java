@@ -24,46 +24,33 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * follow-up 落地）。
- * <p>周期扫描"卡在处理态"的知识行并判死为 failed。这是最后一道兜底网——其它防线
- * （worker 重试预算、多模态收口回调）漏掉的情形由它接住：</p>
- * <ul>
- *   <li>worker 进程在 handler 中途被杀，清理逻辑还没跑到；</li>
- *   <li>DocReader 调用真的超过上限，而重试还没轮到；</li>
- *   <li>多模态计数器置为 N 但 N 个图片任务全部以绕过收口的方式失败。</li>
- * </ul>
- * <p>没有这道网，一次不幸的失败就能让一行永久停在 processing——用户侧只看到一个
- * 永远转的圈。有了它，"停滞 → 用户可见的失败"的最坏时延被界定为约
- * 「1 个 stale 阈值 + 1 个清扫周期」。</p>
+ * 知识处理链路的兜底清扫：周期扫描「卡在处理态」的知识行并判死为 failed，另扫
+ * 摘要停滞行。worker 重试预算、多模态收口回调等防线漏掉的情形（handler 中途被杀、
+ * 长调用超上限、计数器置位但子任务全部旁路失败）由它接住——没有这道网，
+ * 一行就会永久停在 processing，用户侧只见一个永远转的圈。
+ *
  * <h2>清扫 A：知识行（pending / processing / finalizing）</h2>
- * <p><b>两级判定是核心</b>：{@code knowledges.updated_at} 只在 parse_status 迁移时推进，
- * 而一个长阶段（500MB PDF 的 DocReader、5K 分块的嵌入）可以跑一小时且状态不变——
- * 只看 updated_at 会误杀正在跑的活。因此与 {@code knowledge_processing_spans} 的
- * 最新心跳做<b>或</b>组合：SpanTracker 的每次 Begin/End/Fail/Skip 都会推进 span 行，
- * 所以真在推进的流水线即使父行"冻结"也总有新鲜心跳。</p>
- * <p>完全没有 span 的知识行（Lite 模式、本机制上线前的历史任务）回落到单纯的
- * updated_at 判定——它们没有心跳可查。</p>
- * <h2>第二道闸：队列仍有活则不算孤儿</h2>
- * <p>一行可能心跳过期但完全健康——当它的富化子任务（摘要/问题/图谱/wiki）只是排在
- * 忙碌队列后面时，没有 worker 取到它们，因此自 post-process 扇出以来就没有 span
- * 写入。杀掉这种行正是重上传压力下用户遇到的误报。两道探测：</p>
- * <ol>
- *   <li><b>持久表</b>（{@code task_pending_ops}，wiki ingest 按知识 id 去重）——立即判定，
- *       且<b>永远生效</b>（不依赖 inspector）；探测出错时<b>推迟本轮全部候选</b>——
- *       分不清积压与孤儿时，误杀一个活文档用户无法恢复，而多等一个周期可以；</li>
- *       "仍是卡死"处理（与 span 心跳查询的失败方向一致）。</li>
- * </ol>
+ * <p><b>两级判定</b>：{@code knowledges.updated_at} 只在 parse_status 迁移时推进，
+ * 长阶段（大 PDF 解析、分块嵌入）可以跑一小时且状态不变，只看 updated_at 会误杀
+ * 正在跑的活；因此与 {@code knowledge_processing_spans} 的最新心跳做<b>或</b>组合
+ * （SpanTracker 每次 Begin/End/Fail/Skip 都推进 span 行，真在推进的流水线即使父行
+ * 「冻结」也总有新鲜心跳）。心跳查询按「存在 {@code updated_at > cutoff} 的 span 行
+ * 即活」的语义写、不做聚合——SQLite 对聚合返回值不做类型转换。完全没有 span 的
+ * 知识行回落到单纯 updated_at 判定。查库失败一律失败安全：心跳查不出按「无心跳」、
+ * 持久表查不出推迟本轮全部候选。</p>
+ * <p><b>第二道闸：队列仍有活则不算孤儿</b>——心跳过期但富化子任务只是排在忙碌队列
+ * 后面时，杀掉就是误报。两级探测：① 持久表 {@code task_pending_ops}（wiki ingest
+ * 按知识 id 去重，立即判定且永远生效，不依赖 inspector）；② inspector 查瞬时队列
+ * （出错按「仍是卡死」处理）。</p>
  * <h2>清扫 B：摘要状态</h2>
- * <p>摘要是解析后阶段，阈值更短（单个 LLM 调用即可界定），且没有 span 心跳可查
- * （它在下游任务里）。沿用最初的简单判定：{@code summary_status=processing} 且
- * updated_at 早于 1 小时 → failed。</p>
- * <h2>装配与开关</h2>
- * 才首次触发"同形）；{@code RAGAGENT_HOUSEKEEPING_ENABLED}
- * <b>缺省开启</b>，运维必须显式设 {@code false}/{@code 0}/{@code off}/{@code no} 才关停。</p>
- * （同 {@code TemporaryDocumentService} 的 10 分钟 ticker 约定）；② span 心跳过滤由
- * 绕开 SQLite 对聚合返回值不做类型转换的问题；本仓改 {@code EXISTS(updated_at > cutoff)}，
- * 见 {@code SystemAdminController} 的 noopTaskInspector 对照），本类保留同名能力的注入缝，
- * 生产装配传 {@code null}。</p>
+ * <p>摘要是解析后阶段，阈值更短（单个 LLM 调用即可界定）且没有 span 心跳可查：
+ * {@code summary_status=processing} 且 updated_at 早于阈值 → failed。</p>
+ * <h2>周期与开关</h2>
+ * <p>5 分钟 ticker（应用就绪后启动，幂等；容器关闭停止接收）；卡死阈值 =
+ * max(1 小时下限, 文档处理超时) + 10 分钟缓冲。{@code RAGAGENT_HOUSEKEEPING_ENABLED}
+ * 缺省开启，显式 {@code false}/{@code 0}/{@code off}/{@code no} 才关停。
+ * inspector 是注入缝：Lite 部署无任务队列，生产装配传 {@code null}
+ * （只关闭这一项检查，持久表那道闸不受影响）。</p>
  */
 @Component
 public class HousekeepingService {
@@ -72,10 +59,10 @@ public class HousekeepingService {
 
     static final Duration SWEEP_INTERVAL = Duration.ofMinutes(5);
 
-    /** = time.Now().Add(-1 * time.Hour)}。 */
+    /** 摘要停滞判定阈值。 */
     static final Duration SUMMARY_STALE_THRESHOLD = Duration.ofHours(1);
 
-    /** = 1 * time.Hour}。 */
+    /** 处理行判死阈值下限（防误杀长阶段）。 */
     static final Duration STALE_FLOOR = Duration.ofHours(1);
 
     static final Duration STALE_BUFFER = Duration.ofMinutes(10);
@@ -213,7 +200,8 @@ public class HousekeepingService {
     }
 
     /**
-     * {@code Updates({parse_status: failed, error_message: ..., pending_subtasks_count: 0})}，
+     * 卡死行复位：{@code parse_status=failed、error_message=停滞说明、
+     * pending_subtasks_count=0}（行仍处于可复位状态且未软删才生效）。
      */
     private void recoverStuckKnowledge(List<String> stuck, Duration threshold) {
         MapSqlParameterSource params = new MapSqlParameterSource()

@@ -6,7 +6,7 @@ import com.ragagent.im.domain.ImChannelEntity;
 import com.ragagent.platform.web.JsonMappers;
 import java.time.OffsetDateTime;
 
-/** IM 渠道响应行：键序与旧控制器逐字一致。 */
+/** IM 渠道响应行：键序保持 WeKnora 线格式（前端逐字依赖）。 */
 public final class ImChannelRows {
 
     private static final ObjectMapper MAPPER = JsonMappers.lenient();

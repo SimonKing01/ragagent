@@ -8,10 +8,10 @@
 
 **原因**：服务自己就是消费者：
 
-- `KnowledgeProcessWorker implements KnowledgeProcessingQueue`（`domains/.../knowledge/task/KnowledgeProcessWorker.java:70`）；
+- `KnowledgeProcessWorker implements KnowledgeProcessingQueue`（`domains/.../knowledge/task/KnowledgeProcessWorker.java:55`）；
 - `DataSourceService implements DataSourceSyncHandler`（`domains/.../datasource/service/DataSourceService.java:90`）。
 
-队列接口是给**跨域调用方**用的端口；实现类同时提供入队与执行。Go 时代的 service 结构就是"方法即处理器"，迁移时保留了这一形态。
+队列接口是给**跨域调用方**用的端口；实现类同时提供入队与执行，"方法即处理器"。
 
 **去哪改**：入队与消费都在上述两个类；改重试/租约/崩溃回收时看对应 `*TaskQueue` 与 `*Wiring`。
 
@@ -60,7 +60,7 @@
 
 ## 5. 事务边界：整轮问答不开事务，多表写才开
 
-**现象**：`domains/.../session` 没有 `@Transactional`；knowledge/wiki 的仓储层有；`auth` 只有 `UserRegistrationService.register` 一处（租户→用户→Owner 成员行，`UserService.register` 是它的纯委托门面）；另有少量 `TransactionTemplate`（`StorageBackendService`、`VectorStoreConfigService`）。
+**现象**：`domains/.../session` 没有 `@Transactional`；knowledge 的 `service/management/`（含统一删除回收的 `KnowledgeRecycleService`）与 wiki 的仓储层有；`auth` 只有 `UserRegistrationService.register` 一处（租户→用户→Owner 成员行，`UserService.register` 是它的纯委托门面）；另有少量 `TransactionTemplate`（`StorageBackendService`、`VectorStoreConfigService`）。
 
 **原因**：一轮问答横跨 LLM 流式输出（数秒到数分钟）、外部调用与 SSE。把整轮包进一个事务会长时间持锁，且外部副作用无法回滚。因此：
 
@@ -90,7 +90,7 @@ Thread.ofVirtual().start(() -> TenantScope.run(snap, () -> {
 }));
 ```
 
-全仓 26 个 `capture()` 站点（原先 30+ 处手工 `replay()`）已统一收口到 `TenantScope`（`run` / `supply` / `callable` / `runnable`），覆盖 domains / agent-engine / retrieval-engine / model-runtime / platform / boot，包括 `QaSseOrchestrator`、`QaTurnFinalizer`、`QaTurnExecutor`、`SteerSinkBridge`、`MessageSuggestionService`、`ActPhase`、`EventBus`、`HybridSearchService` 等。
+全仓 28 个 `capture()` 站点已统一收口到 `TenantScope`（`run` / `supply` / `callable` / `runnable`），覆盖 domains / agent-engine / retrieval-engine / model-runtime / platform / boot，包括 `QaSseOrchestrator`、`QaTurnFinalizer`、`QaTurnExecutor`、`SteerSinkBridge`、`MessageSuggestionService`、`ActPhase`、`EventBus`、`HybridSearchService` 等。
 
 **去哪改**：`platform/.../access/TenantScope.java`；守卫 `scripts/check-tenant-scope.py` 拦裸 `.replay()` 与未走 TenantScope 的 `capture()`。
 
@@ -128,8 +128,8 @@ Thread.ofVirtual().start(() -> TenantScope.run(snap, () -> {
 
 | 写法 | 数量 | 适用 |
 |---|---|---|
-| MyBatis-Plus `Mapper`（`*/mapper/*Mapper.java`） | 51 | 单表 CRUD、条件查询 |
-| `Repository`（`*/repository/*Repository.java`） | 58 | 跨表、方言差异（PostgreSQL/SQLite）、事务模板、复杂聚合 |
+| MyBatis-Plus `Mapper`（`*/mapper/*Mapper.java`） | 48 | 单表 CRUD、条件查询 |
+| `Repository`（`*/repository/*Repository.java`） | 43 | 跨表、方言差异（PostgreSQL/SQLite）、事务模板、复杂聚合 |
 
 **选择规则**：单表且无方言分支 → `Mapper`；出现跨表、方言判断或需要事务模板 → `Repository`。
 
@@ -143,7 +143,7 @@ Thread.ofVirtual().start(() -> TenantScope.run(snap, () -> {
 
 ## 10. 可选 Bean：缺失时的行为一览
 
-全仓 78 处 `ObjectProvider.getIfAvailable()`——IDE 在注入点只看到接口，所以"缺 bean 时会发生什么"必须查表，不能靠猜。
+全仓 77 处 `ObjectProvider.getIfAvailable()`——IDE 在注入点只看到接口，所以"缺 bean 时会发生什么"必须查表，不能靠猜。
 
 | 可选 Bean | 缺失后果 | 有日志？ | 依据 |
 |---|---|---|---|

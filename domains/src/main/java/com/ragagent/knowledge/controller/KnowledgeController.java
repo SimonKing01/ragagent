@@ -85,8 +85,9 @@ public class KnowledgeController {
      * <p>返回 201 与新文档视图；真正的"解析 → 分块 → 向量化"由后台流水线执行，
      * 前端凭响应里的 {@code parseStatus} 与进度接口跟进。</p>
      *
-     * <p>{@code process_config} 中的图片 OCR 开关会被写入 {@code metadata.processOverrides}，
-     * 解析时优先于 KB 级配置；其余覆盖项暂未消费。</p>
+     * <p>{@code processConfig} 中的逐文档覆盖（分块/解析引擎/图谱抽取/图片 OCR/推荐问题）
+     * 整体写入 {@code metadata.processOverrides}，解析与收尾时优先于 KB 级配置
+     * （消费点见 {@link com.ragagent.knowledge.support.ProcessOverridesResolver}）。</p>
      */
     @PostMapping("/knowledge-bases/{id}/knowledge/file")
     public ResponseEntity<KnowledgeResponse> createFromFile(
@@ -100,8 +101,8 @@ public class KnowledgeController {
             throws IOException {
         log.info("Start creating knowledge from file, KB: {}", kbId);
         JsonNode customMetadata = KnowledgeRouteGuards.parseJsonParam(MAPPER, metadataJson, "metadata");
-        // 逐文档处理覆盖（目前消费 imageProcessingConfig.ocrEnabled）：落 metadata，
-        // 解析时优先于 KB 级配置；解析失败按「未传」处理，不阻断上传。
+        // 逐文档处理覆盖：整体落 metadata.processOverrides，解析时优先于 KB 级配置；
+        // 解析失败按「未传」处理，不阻断上传。
         JsonNode processConfig = KnowledgeRouteGuards.parseJsonParam(MAPPER, processConfigJson, "processConfig");
         byte[] content = LocalStorageService.readAll(file.getInputStream());
         var k = knowledgeService.createFromFile(

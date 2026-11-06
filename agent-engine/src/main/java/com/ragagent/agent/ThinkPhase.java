@@ -95,7 +95,7 @@ final class ThinkPhase {
         AtomicBoolean stalled = new AtomicBoolean(false);
 
         while (true) {
-            // A3：用户取消 ⇒ 停止消费并**关流**（在 finally）——"停止消费"不等于"取消模型"：
+            // 用户取消 ⇒ 停止消费并**关流**（在 finally）——"停止消费"不等于"取消模型"：
             // 不关会让 provider 连接继续读、并发 permit 继续被占。
             if (engine.pollCancellation() != null) {
                 log.info("[Agent][Stream] canceled; closing model stream");
@@ -241,7 +241,7 @@ final class ThinkPhase {
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                // A3：中断同样属于"提前离开"，关流让上游 provider 调用终止。
+                // 中断同样属于"提前离开"，关流让上游 provider 调用终止。
                 stream.close();
                 throw new AgentEngineException("context canceled");
             }

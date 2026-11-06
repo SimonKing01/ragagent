@@ -103,7 +103,7 @@ public class LocalLimiter implements ModelConcurrencyLimiter, RuntimeInspectable
 
     @Override
     public void setModelName(String modelId, String name) {
-        // modelID 或 name 为空时忽略
+        // modelId 或 name 为空时忽略
         if (modelId == null || modelId.isEmpty() || name == null || name.isEmpty()) {
             return;
         }

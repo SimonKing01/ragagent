@@ -62,7 +62,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * agent 引擎检索工具族的接缝适配（接线批）。
+ * agent 引擎检索工具族的接缝适配。
  *
  * <p>agent/tools 下的工具类走窄 seam（{@code KnowledgeSearchBackend} /
  * {@code GrepChunkSearch} / {@code GraphSearch} / {@code KnowledgeInfoReader} /
@@ -272,8 +272,8 @@ public class AgentToolBackends {
 
     /**
      * wiki 工具的构造面。{@code scopes} 只给 wiki_read_page /
-     * wiki_search（刻意不对称：其余八件收扁平 kbIDs，内部用
-     * NewWikiScopesFromKBIDs 重建 scope，按设计丢失 doc/tag 窄化）。
+     * wiki_search（刻意不对称：其余八件只收扁平 kbIds 作为 KB 级范围，
+     * 按设计不带 doc/tag 窄化）。
      *
      * @param routes 请求级共享的 slug→KB 路由记忆（一个引擎一个实例）
      */
@@ -325,7 +325,7 @@ public class AgentToolBackends {
      * web 工具的构造面：web_search 收 agent 配置的
      * maxResults/providerID，web_fetch 直构造无参。
      * 租户的 WebSearchConfig 在装配期捕获——执行期从上下文取租户 id，
-     * 同一回合内取值等价；tenantID 留在执行期读（==0 拒绝）。
+     * 同一回合内取值等价；tenantId 留在执行期读（==0 拒绝）。
      */
     public AgentTool createWebTool(String toolName,
             int webSearchMaxResults, String webSearchProviderId) {

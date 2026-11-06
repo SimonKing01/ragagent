@@ -369,7 +369,7 @@ public class RemoteApiChat implements LlmChatClient {
         }
 
         InputStream body = resp.body();
-        // A3：返回带 close 的句柄——关闭时把 provider 连接关掉，读取循环随之中止
+        // 返回带 close 的句柄——关闭时把 provider 连接关掉，读取循环随之中止
         // （"停止消费"不再等于"模型继续跑"）。
         QueuedChatStream streamChan = new QueuedChatStream(() -> closeBodyQuietly(body));
         boolean rawPath = out.rawPath();

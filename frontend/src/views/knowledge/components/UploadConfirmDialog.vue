@@ -907,7 +907,7 @@ function initFromKbInfo(kb: any) {
     },
     // 缺省开启：只有知识库里显式 false 才关
     imageOcrEnabled: kb.imageProcessingConfig?.ocrEnabled !== false,
-    // questionGenerationConfig 是落库 jsonb 透传（内层键为 snake，见 KB 更新请求）
+    // questionGenerationConfig 为落库 jsonb，内键 camel（与 KB 更新请求一致），读侧无 snake 兜底
     questionGenerationConfig: {
       enabled: kb.questionGenerationConfig?.enabled ?? true,
       questionCount: kb.questionGenerationConfig?.questionCount || 3,
@@ -933,7 +933,7 @@ function buildProcessOverrides(): KnowledgeProcessOverrides {
   const chunking = state.chunkingConfig
 
   const overrides: KnowledgeProcessOverrides = {
-    // KB 配置规则是 camel 面，覆盖是 snake 面 —— 显式转换（直接透传会让运行时读不到）
+    // 覆盖面与 KB 配置面同为 camel，仍需过 toOverrideParserRules 显式拷贝/清洗，不得透传引用
     parserEngineRules: toOverrideParserRules(chunking.parserEngineRules ?? []),
     chunkingConfig: {
       chunkSize: chunking.chunkSize,

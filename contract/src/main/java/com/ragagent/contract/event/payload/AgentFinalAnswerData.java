@@ -3,7 +3,7 @@ package com.ragagent.contract.event.payload;
 
 /**
  * 最终答案流式数据。
- * 7 个 emit 点（ThinkPhase / ObservePhase / FinalizePhase，见包注释 emit 表）——
+ * 7 个 emit 点（ThinkPhase / ObservePhase / FinalizePhase）——
  * 最高危的 SSE 时序事件：同一 id 的分片在客户端重组（扣留键 = 类型 + NUL + 事件 id）。
  *
  * <p>零值输出 {@code {"content":"","done":false}}；{@code isFallback}

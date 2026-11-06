@@ -208,7 +208,7 @@ public class GlobalExceptionHandler {
 
     /**
      * 错误体形态分派：{@code @ApiResult} 路由 → 统一外壳
-     * {@code {code, message, data}}（data 承载 details）；其余路由 → 历史形态。
+     * {@code {code, message, data}}（data 承载 details）；其余路由 → 存量信封形态。
      */
     private ResponseEntity<Object> respond(AppError e, HttpServletRequest req) {
         Object body = ApiResultSupport.isActive(req)

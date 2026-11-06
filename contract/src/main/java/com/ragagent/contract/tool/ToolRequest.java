@@ -32,7 +32,7 @@ public record ToolRequest(Object args, ToolExecContext execMeta, ToolCancellatio
         }
     }
 
-    /** 输出预算：≤0 回落 DefaultMaxToolOutput。 */
+    /** 输出预算：≤0 回落 {@code ToolOutput.DEFAULT_MAX_TOOL_OUTPUT}。 */
     public int outputBudget() {
         return budget > 0 ? budget : ToolOutput.DEFAULT_MAX_TOOL_OUTPUT;
     }

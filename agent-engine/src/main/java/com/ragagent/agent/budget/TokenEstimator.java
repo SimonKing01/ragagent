@@ -28,7 +28,7 @@ import java.util.List;
  * 从不查 special token 表。</p>
  *
  * <p><b>reasoning_content 必须计数</b>：思考类模型（DeepSeek V3.2/V4、MiMo）要求
- * 历轮 reasoning_content 原样回传，它通常数倍于可见回复。漏记曾把 130k 上下文
+ * 历轮 reasoning_content 原样回传，它通常数倍于可见回复。漏记会把 130k 上下文
  * 量成 26k——压缩于是切错位置、几乎白切、下轮再来一遍。因此它与正文、工具调用
  * 一起计数。</p>
  */

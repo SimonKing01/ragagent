@@ -3,7 +3,7 @@ package com.ragagent.contract.event.payload;
 
 /**
  * 上下文压缩报告。
- * emit 点：ObservePhase（{@code generateEventId("compaction")}），见包注释 emit 表 #6。
+ * emit 点：ObservePhase（{@code generateEventId("compaction")}）。
  *
  * <p>压缩改变了 agent 记住的东西，所以展示而非隐藏：答案忘了早先的指令，
  * 否则与模型无视指令无法区分。{@code degraded}/{@code split_turn}

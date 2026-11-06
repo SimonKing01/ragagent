@@ -61,8 +61,8 @@ import org.springframework.web.bind.annotation.RestController;
  * 成功响应不再包 {@code {data, success}} 信封——单资源直接返回对象、列表直接返回数组，
  * 删除返回 204。</p>
  *
- * <p><b>待办</b>：create 仍把请求体直接绑定 知识库实体 实体（含 storage_config
- * 兼容），待改为独立请求 DTO。</p>
+ * <p>create 的 {@code CreateKnowledgeBaseRequest} 兼容 {@code storage_config} 形状
+ * （对象存储配置仍由知识库实体的 jsonb 列承载）。</p>
  */
 @RestController
 @ApiResult

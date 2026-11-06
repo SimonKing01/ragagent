@@ -13,7 +13,10 @@
 | **检索引擎 / retrieve engine** | pgvector / ES / Milvus 等后端适配；由 `RETRIEVE_DRIVER` 或 KB 绑定选择 | `retrieval-engine/.../engine/EngineRegistry.java` |
 | **混合检索 / hybrid search** | 向量召回 + 关键词召回，融合后交重排 | `retrieval-engine/.../HybridSearchService.java` |
 | **重排 / rerank** | 对召回结果二次打分排序；可选模型 | `model-runtime/.../rerank/`、`PluginRerank` |
-| **金片 / golden** | 逐字节钉死的 HTTP 响应样本，共 1,346 份 JSON + 5 份下载/导出类（`.body`+`.headers` 成对）；改响应形状必须显式重录 | `domains/src/testFixtures/resources/contracts/` |
+| **金片 / golden** | 逐字节钉死的 HTTP 响应样本，共 1,339 份 JSON + 5 份下载/导出类（`.body`+`.headers` 成对）；改响应形状必须显式重录 | `domains/src/testFixtures/resources/contracts/` |
+| **图片 OCR** | 入库时对扫描件图片做 OCR：知识库级开关（默认开启）+ 应用级 `ragagent.ocr` 配置（endpoint 为空 = 关闭；并发/大图尺寸全局可调） | `boot/.../application.yml` 的 `ragagent.ocr` 段、`scripts/ocr-server.py` |
+| **逐文档覆盖 / process overrides** | 上传/重解析弹窗对单个文档覆盖分块、解析引擎、图片处理（processConfig）与图谱抽取（extractConfig）配置；载荷统一 camel，读侧保留历史 snake 兜底 | `domains/.../knowledge/support/ProcessOverridesResolver.java` |
+| **删除回收 / delete_failed** | 删除/清空知识库与数据源同步删除的统一回收用例；物理清理失败落 `delete_failed` 终态，启动时自愈重试 | `domains/.../knowledge/service/management/KnowledgeRecycleService.java` |
 
 ## 问答与 Agent
 
@@ -47,7 +50,7 @@
 
 | 术语 | 含义 | 代码落点 |
 |---|---|---|
-| **package-info** | 每个包的设计说明，共 356 份，是事实上的架构文档 | 各包 `package-info.java`；索引见 `architecture/packages.md` |
+| **package-info** | 每个包的设计说明，共 357 份，是事实上的架构文档 | 各包 `package-info.java`；索引见 `architecture/packages.md` |
 | **守卫 / guard** | `scripts/run-guards.sh` 里的 48 条架构/契约检查 | `scripts/` |
 | **棘轮 / ratchet** | 只许减不许增的基线（大文件、域间边、命名口径等） | `scripts/*.baseline.json` |
 | **契约 / contract** | 跨模块公开 API、SPI 与不可变载荷；纯 JDK | `contract/` |
@@ -65,5 +68,5 @@
 
 ## 前身与遗留命名
 
-- **WeKnora**：本项目参考/复用的上游 Go 项目。代码里的 `weknora.*` 配置前缀、库名 `WeKnora` 都是历史命名，不是当前产品概念。
+- **WeKnora**：本项目参考/复用的上游 Go 项目。代码里的 `weknora.*` 配置前缀、库名 `WeKnora` 都是历史命名，不是当前产品概念；前端对外全局对象自 2026-11 起已改名 `RagAgent`。
 - **knowledage-base**：前端包名里的历史拼写错误（正确是 knowledge），仅作标识，不影响功能。

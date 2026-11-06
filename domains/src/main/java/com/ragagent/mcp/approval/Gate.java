@@ -33,8 +33,8 @@ import org.slf4j.LoggerFactory;
  * <ul>
  *   <li>pending 注册/等待/超时/取消：{@link #requestAndWait}；</li>
  *   <li>Resolve 幂等与冲突：已投递 → {@code ALREADY_RESOLVED}；不存在 → {@code PENDING_NOT_FOUND}；</li>
- *   <li>租户/用户不匹配：{@code TENANT_MISMATCH} / {@code USER_MISMATCH}（调用方 userID 为空
- *       但等待者有 userID 时**也算不匹配**，fail-close）；</li>
+ *   <li>租户/用户不匹配：{@code TENANT_MISMATCH} / {@code USER_MISMATCH}（调用方 userId 为空
+ *       但等待者有 userId 时**也算不匹配**，fail-close）；</li>
  *   <li>跨实例：{@link #resolveCrossInstance} 用“每 pending 的回复频道 + 每调用 nonce”换回准确状态；</li>
  *   <li>订阅循环：{@link #runSubscriber} 断线按 1s→30s 指数退避重连。</li>
  * </ul>
@@ -406,8 +406,8 @@ public class Gate implements ToolApprovalGate, AutoCloseable {
             if (w.tenantId != tenantId) {
                 return ToolApprovalException.tenantMismatch();
             }
-            // 鉴权：注册时带 userID 的 pending，调用方必须给出**相同的非空** userID。
-            // 调用方 userID 为空一律视为不匹配（fail-close），避免缺失鉴权中间件时绕过校验。
+            // 鉴权：注册时带 userId 的 pending，调用方必须给出**相同的非空** userId。
+            // 调用方 userId 为空一律视为不匹配（fail-close），避免缺失鉴权中间件时绕过校验。
             if (!w.userId.isEmpty() && !w.userId.equals(userId)) {
                 return ToolApprovalException.userMismatch();
             }

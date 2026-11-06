@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 消息入口的两道闸门：**去重**（同一 messageID 只处理一次）与**限流**（按渠道+用户+会话的滑动窗口配额）。
+ * 消息入口的两道闸门：**去重**（同一 messageId 只处理一次）与**限流**（按渠道+用户+会话的滑动窗口配额）。
  *
  * <p>自 {@link ImTurnOrchestrator} 原样外提（逐字搬迁，仅改依赖取用方式）。两者同属
  * 「入口闸门」这一关注点：都在 {@code runHandleMessage} 的最前面拦住不该进管线的消息，
@@ -33,7 +33,7 @@ final class ImInboundGuardOps {
     private final int rateLimitWindowSec;
     private final int rateLimitMax;
 
-    /** 去重（进程内分支）：messageID → epoch 秒。 */
+    /** 去重（进程内分支）：messageId → epoch 秒。 */
     private final Map<String, Long> processedMsgs = new ConcurrentHashMap<>();
     /** 限流的本地滑动窗口（Redis 故障时回落）。 */
     private final Map<String, List<Long>> rateWindows = new ConcurrentHashMap<>();
@@ -45,7 +45,7 @@ final class ImInboundGuardOps {
     }
 
     /**
-     * 同一 messageID 只处理一次：Redis 接入时走跨实例 SETNX（故障 fail-closed——
+     * 同一 messageId 只处理一次：Redis 接入时走跨实例 SETNX（故障 fail-closed——
      * 宁可丢一条可重发的，也不重复跑一轮 LLM）；未接入时回落到进程内 map。
      */
     boolean isDuplicate(String messageId) {

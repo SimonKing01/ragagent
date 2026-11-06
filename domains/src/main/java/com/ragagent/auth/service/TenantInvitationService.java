@@ -294,7 +294,8 @@ public class TenantInvitationService {
     /**
      * Owner 路由层把关后调用（这里不复查角色），
      * pending → revoked。跨租户的"以 A 撤 B 的邀请"由 controller 的
-     * inv.TenantID != tenantID 检查兜住（404 不泄漏存在性）。
+     * 租户归属检查（inv.getTenantId() 与上下文租户不等即 404）兜住，
+     * 不泄漏存在性。
      */
     public void revoke(long invId) {
         sweep();

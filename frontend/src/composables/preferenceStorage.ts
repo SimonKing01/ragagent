@@ -47,7 +47,7 @@ export function safeSetItem(key: string, value: string): void {
   } catch (err) {
     // Quota exceeded, disabled storage, private mode — surface in DevTools
     // so the issue is at least diagnosable, but don't break the UI.
-    console.warn(`[WeKnora] failed to persist preference "${key}":`, err)
+    console.warn(`[RagAgent] failed to persist preference "${key}":`, err)
   }
 }
 

@@ -74,12 +74,12 @@ public interface RetrieveEngineService {
     }
 
     /**
-     * 迁移前的整体预检口：不是
+     * 可选的移动前校验口：不是
      * {@code KnowledgeIndexMover} 的必填项，挂了就先跑校验。
      */
     interface KnowledgeIndexMoveValidator {
 
-        /** 迁移前预检。 */
+        /** 可选的移动前校验。 */
         void validateKnowledgeIndexMove();
     }
 }

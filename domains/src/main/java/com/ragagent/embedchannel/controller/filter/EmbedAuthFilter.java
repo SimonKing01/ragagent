@@ -27,7 +27,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  *   <li>路径 channel_id 缺失 → 400 "channel_id is required"；</li>
  *   <li>token 只认 {@code Authorization: Embed <token>}（query/Bearer 一律不算）→
  *       401 "embed publish token is required"；</li>
- *   <li>{@code ems_} 前缀 → 解析 Redis 里的 channelID，不匹配/失败 →
+ *   <li>{@code ems_} 前缀 → 解析 Redis 里的 channelId，不匹配/失败 →
  *       401 "invalid embed channel or token"；否则按渠道查（禁用 → 403 "embed channel
  *       is disabled"）；publish token 路径同理（禁用先于 token 比对，golden 钉死）；</li>
  *   <li>Origin 白名单（Origin 头优先，回落 Referer 解析；空清单全拒）→

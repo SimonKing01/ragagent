@@ -376,8 +376,8 @@ final class SourceToolCodec {
             return handle;
         }
         handle = reg.webs.handleForKey(SourceRegistry.canonicalWebURL(real));
-        // 未命中必须返回空串而不是 null（调用方对返回值直接判空——MCP 工具参数
-        // 经此路径时曾 NPE）。
+        // 未命中必须返回空串而不是 null：调用方对返回值直接判空，返回 null 会在
+        // MCP 工具参数经此路径时 NPE。
         return handle == null ? "" : handle;
     }
 

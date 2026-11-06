@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 工具批次执行器（A4）：读并行、写屏障、并发上限 {@value #MAX_CONCURRENCY}；中断 = 取消 + 等齐。
+ * 工具批次执行器：读并行、写屏障、并发上限 {@value #MAX_CONCURRENCY}；中断 = 取消 + 等齐。
  *
  * <p><b>调用序不变量</b>：结果按调用下标回填到对应槽位——乱序完成也稳定回填（收集与事件
  * 发射由调用方按序做）。中断后不再启动剩余调用，槽位补失败占位（槽不许留 null）。</p>
@@ -89,7 +89,7 @@ final class ToolBatchExecutor {
                         results[idx] = crashed(calls.get(idx), BizException.wireText(fatal));
                     } finally {
                         // acquire 被中断时并没有持票——此时 release 会让许可数虚增，
-                        // 后续批次的并发上限被悄悄放宽（A4）。
+                        // 后续批次的并发上限被悄悄放宽。
                         if (acquired) {
                             permits.release();
                         }
@@ -129,7 +129,7 @@ final class ToolBatchExecutor {
     /**
      * 等齐全部子线程；父线程被中断时**先取消子线程，再继续等齐**，最后恢复中断标志。
      *
-     * <p>A4（中断语义）：原先 join 一被打断就跳过、继续收集结果——子线程还在跑，
+     * <p>中断语义：join 一被打断就跳过、继续收集结果是不行的——子线程还在跑，
      * "本轮收集 / 下一批启动 / 下一轮工具写"会与它们并发（跨越写屏障）。中断在这里
      * 必须等价于"取消 + 等齐"。</p>
      *

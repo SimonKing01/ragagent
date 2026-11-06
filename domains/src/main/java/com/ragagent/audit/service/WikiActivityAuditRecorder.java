@@ -18,15 +18,14 @@ import org.springframework.stereotype.Component;
  *
  * <p>Wiki 侧埋点两类：{@code WikiPageOps} 经 {@code WikiActivityRecorder} 的 4 处人工埋点
  * （manual_create / manual_edit / manual_delete / revert），
- * 以及 {@code WikiIngestRunSupport} 在摄取收尾写入的 ingest / retract 批量摘要。
- * 这些写入此前因为没有实现 bean 而退化成 debug 日志；本类补上后它们才会真正落库。</p>
+ * 以及 {@code WikiIngestRunSupport} 在摄取收尾写入的 ingest / retract 批量摘要。</p>
  *
  * <h2>写入口径</h2>
  * <ul>
  *   <li>Action = {@code wiki.content_changed}，ScopeType = {@code knowledge_base}，
- *       ScopeID = TargetID = kbID，TargetType = {@code wiki}，Outcome = {@code success}；</li>
+ *       scope_id = target_id = kbID，TargetType = {@code wiki}，Outcome = {@code success}；</li>
  *   <li>Details = {@code {"count": N, "actions": {...}}}；count 为 0 时<b>不写</b>；</li>
- *   <li>ActorUserID = 上下文用户；仅在非空时才带 ActorRole；</li>
+ *   <li>actorUserId = 上下文用户；仅在非空时才带 actorRole；</li>
  *   <li>tenantId 传 0 时回落到上下文租户；仍为 0 则不写。</li>
  * </ul>
  *

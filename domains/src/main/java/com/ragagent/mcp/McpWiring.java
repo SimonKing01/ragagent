@@ -16,12 +16,10 @@ import org.springframework.context.annotation.Configuration;
 /**
  * MCP 模块的 bean 接线。
  *
- * 这里补上两个此前只有接口、没有实例的依赖：
- * - {@link McpClientManager}：MCP 连接池
- * - {@link ToolApprovalGate}：工具审批门
+ * <p>MCP 连接池（{@link McpClientManager}）与工具审批门（{@link ToolApprovalGate}）
+ * 的 bean 装配点。</p>
  *
- * 两者的消费方此前用 {@code Optional<...>} 注入，缺省时走"返回 500 / 业务失败"的兜底
- * 分支。这里提供实例后，那些分支不再触发。
+ * <p>消费方以 {@code Optional<...>} 注入——bean 缺失时兜底 500/业务失败，正常装配下不触发。</p>
  */
 @Configuration
 public class McpWiring {

@@ -11,7 +11,7 @@ import java.util.List;
  * 拼资源路径、只此一份文件清单——消费方（agent 侧多个组装点、会话侧回填、对外模板目录）
  * 一律经本类读取，避免"同一目录多份清单"漂移。</p>
  *
- * <p>{@link #files()} 的顺序即 {@code FindTemplateByID} 的查找序：首个 id 命中即返回，
+ * <p>{@link #files()} 的顺序即按 id 查找模板的查找序：首个 id 命中即返回，
  * 调整顺序会改变 id 冲突时的取值，勿随意重排。</p>
  *
  * <p>缺失语义与 {@link ClassLoader#getResourceAsStream} 一致：文件不在 → {@code null}，
@@ -35,7 +35,7 @@ public final class PromptSource {
     public static final String GENERATE_QUESTIONS = "generate_questions.yaml";
     public static final String INTENT_PROMPTS = "intent_prompts.yaml";
 
-    /** 模板文件清单（顺序 = FindTemplateByID 查找序，共 11 份）。 */
+    /** 模板文件清单（顺序 = 按 id 查找的查找序，共 11 份）。 */
     private static final List<String> FILES = List.of(
             AGENT_SYSTEM_PROMPT, SYSTEM_PROMPT, CONTEXT_TEMPLATE,
             FALLBACK, GENERATE_SUMMARY, GENERATE_SESSION_TITLE,

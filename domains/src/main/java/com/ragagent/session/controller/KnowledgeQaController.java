@@ -133,7 +133,7 @@ public class KnowledgeQaController {
 
         // 裸列表（无 {success,data} 信封）：检索结果直出。
         // 引用形式（resource_urls）在检索面不带存储引用（不经 Rewriter.copyReferences 改写）；
-        // handle 模式为透传（public 模式的直链生成经 provider 级文件服务，A3-3 起已接线）。
+        // handle 模式为透传（public 模式的直链生成经 provider 级文件服务）。
         return searchResults;
     }
 

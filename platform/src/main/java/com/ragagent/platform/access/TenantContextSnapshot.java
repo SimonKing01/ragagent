@@ -32,7 +32,7 @@ public record TenantContextSnapshot(
     }
 
     /**
-     * 是否带**身份**（principal 或 userId）——A5：新起的虚拟线程
+     * 是否带**身份**（principal 或 userId）——新起的虚拟线程
      * {@link #capture()} 拿到的是空身份，据此决定要不要用调用方快照补齐。
      */
     public boolean hasIdentity() {

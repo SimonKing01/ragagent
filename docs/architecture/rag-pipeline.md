@@ -27,7 +27,7 @@
 | `MEMORY_RECALL` | `PluginMemoryRecall` | 长期记忆召回（条件阶段） |
 | `QUERY_UNDERSTAND` | `PluginQueryUnderstand` → `PluginExtractEntity` | 查询改写/意图理解，再做实体抽取 |
 | `CHUNK_SEARCH` | `PluginSearch` | 普通 `rag` 预设的分块检索 |
-| `CHUNK_SEARCH_PARALLEL` | `PluginSearchParallel` | 主问答默认；内部复用 `PluginSearch` + `PluginSearchEntity`（构造注入，不注册） |
+| `CHUNK_SEARCH_PARALLEL` | `PluginSearchParallel` | 主问答默认；内部复用已注册的 `PluginSearch` + `PluginSearchEntity` 同一批实例（构造注入） |
 | `ENTITY_SEARCH` | `PluginSearchEntity` | 实体/图谱检索（条件阶段） |
 | `CHUNK_RERANK` | `PluginRerank` → `PluginWikiBoost` → `PluginMemoryAffinity` | 三插件按注册序执行 |
 | `WEB_FETCH` | `PluginWebFetch` | 网页抓取（条件阶段） |
@@ -52,14 +52,14 @@
 
 条件阶段（记忆召回、网页抓取、实体检索）由业务配置追加，或由 `PluginSearchParallel` 在内部执行；不在默认 `rag_stream` 序列里。
 
-## 为什么 `PluginSearchParallel` 的内部插件不注册
+## `PluginSearchParallel` 与两个检索插件的关系
 
-它把"分块检索"和"实体检索"并行 fan-out，再合并结果。两个内部插件由 `QaWiring` 通过构造器显式传入（不再藏在类体里 `new`），但**不注册**到 manager：
+它把"分块检索"和"实体检索"并行 fan-out，再合并结果。两个内部插件由 `QaWiring` 构造传入，且是**已注册的同一批实例**：`PluginSearch` 同时是 `CHUNK_SEARCH` 的执行体、`PluginSearchEntity` 同时是 `ENTITY_SEARCH` 的执行体；在并行分支里它们再次以内部执行体身份运行（见 `QaWiring` 的 `mgr.register(searchPlugin)` … `new PluginSearchParallel(searchPlugin, searchEntityPlugin)`）。
 
-- 若注册，`CHUNK_SEARCH` / `ENTITY_SEARCH` 会多出第二个 handler，执行序与结果合并语义都会变；
-- 并行分支会与主链共享同一份 `ChatManage` 可变状态，产生竞态。
+两点要知道：
 
-所以它们是**内部执行体**，生命周期与 `PluginSearchParallel` 绑定。看到构造器参数不要"顺手"改成 `mgr.register(...)`。
+- 并行分支与主链共享同一份 `ChatManage` 可变状态，两个执行序都可能写它，读检索结果时留意；
+- 给 `CHUNK_SEARCH` / `ENTITY_SEARCH` 换实现时，并行分支会一起变——同一实例，不是两套。
 
 ## 加一个新阶段
 
@@ -67,7 +67,7 @@
 2. 实现 `Plugin`，`activationEvents()` 返回新常量；
 3. 在 `QaWiring` 注册——**顺序即执行顺序**；
 4. 如果默认路径要跑，加入 `PipelineBuilder.presets()` 的对应预设；
-5. 跑 `mvn -B -pl domains test -Dtest='com.ragagent.session.*'` 与录制测试；`PipelineRegistryCompletenessTest` 会要求该阶段至少注册一个插件；
+5. 跑 `mvn -B -pl boot test -Dtest='*Pipeline*'`——`PipelineRegistryCompletenessTest` 在 boot 测试树，会要求该阶段至少注册一个插件；录制测试与全量口径见 `mvn -B verify`；
 6. 不要重排已有阶段：SSE 帧顺序与金片都锁着。
 
 ## 相关文件

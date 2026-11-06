@@ -82,15 +82,15 @@ public class KnowledgeMoveService {
 
 
     /**
- * 入队 move 任务。
- * 初始进度 SetNX（键已存在不覆写）；worker 在虚拟线程里真实驱动状态机：
- * pending → processing（total=items）→ 逐条搬行（"Moved X/N knowledge items"）→
- * <p><b>实现边界（写链改道 + reparse 收尾）</b>：reuse_vectors 模式已搬
- * 向量行（同店 + 同模型校验后 MoveKnowledgeIndices——绑定店走引擎口、未绑定走 postgres
- * cleanupMovedSourceWiki / EnqueueWikiIngest 随 wiki 消费面）、transfer-state 续跑/重试
- * 语义未实现（Java 无该状态机，见 {@code moveOneKnowledgeRow} 注释）；任务队列 的
- * retry/marker 语义同样未实现（既有取舍）。</p>
- */
+     * 入队 move 任务：初始进度先落库（SETNX 语义，只在键不存在时落），worker 在
+     * 虚拟线程里驱动状态机 pending → processing（total=items）→ 逐条搬行
+     * （"Moved X/N knowledge items"）→ completed/failed。
+     *
+     * <p><b>实现边界</b>：reuse_vectors 模式搬向量行（同店 + 同嵌入模型校验后改写；
+     * 绑定店走引擎口、未绑定走 postgres 适配器），wiki 收尾随 wiki 消费面；
+     * transfer-state 续跑/重试语义未实现（搬行是尽力一次，失败逐条记入 failures，
+     * 见 {@code moveOneKnowledgeRow} 注释）；任务队列的 retry/marker 语义同样未实现。</p>
+     */
     public void startKnowledgeMove(long tenantId, String taskId, List<String> knowledgeIds,
                                    String sourceKbId, String targetKbId, String mode) {
         progressStore.saveMoveInitial(new KnowledgeMoveProgress(
@@ -149,12 +149,12 @@ public class KnowledgeMoveService {
      * <ul>
      *   <li><b>reparse</b> → {@link #moveKnowledgeReparse}：源侧资源清理 + 行改写为目标 KB 的
      *       待解析态 + 重新解析入队；</li>
-     *   <li><b>reuse_vectors</b>：knowledge 行 + chunks 行换 KB，并保留既有的 vector 行
-     *       先清关联；同店 + 同嵌入模型校验后 {@code MoveKnowledgeIndices(sourceKB, targetKB,
-     *       knowledgeID)}——绑定店走引擎口，未绑定直接走 postgres 语义的 embeddings 改写
+     *   <li><b>reuse_vectors</b>：knowledge 行 + chunks 行换 KB，标签关联先清，向量行保留——
+     *       同店 + 同嵌入模型校验后按行改写（绑定店走引擎口，未绑定直接走 postgres 语义的
+     *       embeddings 改写）。</li>
      * </ul>
-     * 做 CAS 与重试幂等，本仓无该状态机——搬行是"尽力一次"，失败由移动任务逐条记入
-     * failures（既有取舍，见 {@link #startKnowledgeMove} 注释）。</p>
+     * <p>不做 CAS 与重试幂等（本仓无该状态机）——搬行是「尽力一次」，失败由移动任务
+     * 逐条记入 failures（见 {@link #startKnowledgeMove} 注释）。</p>
      */
     private void moveOneKnowledgeRow(long tenantId, String knowledgeId, String sourceKbId,
                                      String targetKbId, String mode) {
@@ -183,22 +183,21 @@ public class KnowledgeMoveService {
     }
 
     /**
-     * 与 {@code enqueueMovedKnowledge} 同源：搬走后按目标 KB 的配置重新解析——
-     * "向量不跟着走，到目标店重建"。
+     * reparse 搬行：搬走后按目标 KB 的配置重新解析——「向量不跟着走，到目标店重建」。
      * <ol>
      *   <li><b>源侧资源清理</b>（{@link #cleanupKnowledgeResourcesForReparse}）——向量行、
      *       chunks 行、源图谱命名空间；失败上抛为 {@code failed to clean up source: ...}；</li>
-     *   <li><b>清标签关联</b>（照 {@code DeleteKnowledgeTagRelations}）；</li>
-     *       embedding_model_id=目标 KB、parse_status=pending、error_message=""、
-     *       enable_status=disabled、description=""、processed_at=NULL、storage_size=0；
-     *       并按 delta 扣减租户存储用量（照 {@code UpdateKnowledgeForTransfer} 的
-     *       {@code storage_used += after-before}，负数钳 0）；</li>
+     *   <li><b>清标签关联</b>（标签是 KB 作用域的）；</li>
+     *   <li><b>行改写</b>为目标 KB 的待解析态（embedding_model_id=目标 KB、parse_status=pending、
+     *       error_message=""、enable_status=disabled、description=""、processed_at=NULL、
+     *       storage_size=0），并按 delta 扣减租户存储用量（storage_used += after-before，
+     *       负数钳 0）；</li>
      *   <li><b>重新解析入队</b>——目标 KB 的 chunker/嵌入模型/多模态/问题生成在重新解析时生效
-     *       净效果同一段配置）。</li>
+     *       （worker 按行上的 KB 现读，净效果同一段配置）；抽取图片回收由解析管线预清理承担，
+     *       wiki 触发随 wiki 消费面；进程内队列无去重键（重复入队会重解析，
+     *       幂等由解析本身承担）。</li>
      * </ol>
-     * {@code acknowledgeMovedReparse} 收尾（Java 无该状态机）；② 图片资源回收
-     * （{@code cleanupMovedSourceWiki}）与目标 KB 的 wiki 触发（{@code EnqueueWikiIngest}）
-     * 本仓进程内队列无去重键（重复入队会重解析，幂等由解析本身承担）。</p>
+     * <p>入队即本方法收尾（无独立的 acknowledge 状态机）。</p>
      */
     private void moveKnowledgeReparse(long tenantId, Knowledge row, String targetKbId) {
         String knowledgeId = row.getId();
@@ -228,9 +227,10 @@ public class KnowledgeMoveService {
     }
 
     /**
-     * knowledge_delete）：向量行（嵌入模型为空则整段跳过）→ chunks 行 →
-     * 先置 0，扣减由随后的行改写 delta 完成（见 {@link #moveKnowledgeReparse}）；
-     * 图片资源回收（{@code deleteExtractedImages}）随资源目录面处理，不在本方法内。</p>
+     * 源侧资源清理（reparse 搬行第一步）：向量行（嵌入模型为空则整段跳过）→ chunks 行 →
+     * 源图谱命名空间，逐项收集失败后聚合上抛。存储用量不在本方法扣减——storage_size
+     * 由随后的行改写置 0，扣减按行改写 delta 完成（见 {@link #moveKnowledgeReparse}）；
+     * 抽取图片回收随解析管线预清理处理，不在本方法内。
      */
     private void cleanupKnowledgeResourcesForReparse(Knowledge row, KnowledgeBase kb) {
         String knowledgeId = row.getId();

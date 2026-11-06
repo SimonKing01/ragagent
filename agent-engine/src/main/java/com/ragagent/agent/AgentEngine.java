@@ -486,7 +486,7 @@ public class AgentEngine {
                 messages.size(), tools.size(), toolListStr, mcpCatalogDescriptionLen(tools),
                 imgs == null ? 0 : imgs.size());
 
-        // 终态门（A1-AGENT）：成功由 executeLoop 的 finally 收口；失败由下面 catch 补终态——
+        // 终态门：成功由 executeLoop 的 finally 收口；失败由下面 catch 补终态——
         // 两者共用这道门 ⇒ 恰好一次。
         AtomicBoolean completionEmitted = new AtomicBoolean(false);
         Instant startTime = Instant.now();

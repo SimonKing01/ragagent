@@ -108,7 +108,7 @@ public class ConcurrencyChatClient implements LlmChatClient {
         // out 必须是 SynchronousQueue（无缓冲语义）：有界队列会让 offer
         // 在消费者不读时仍然成功，放弃检测就永远不触发。
         //
-        // A3：句柄可关闭——关闭即中断转发线程（permit 在它的 finally 归还）并向上游
+        // 句柄可关闭——关闭即中断转发线程（permit 在它的 finally 归还）并向上游
         // 传播关闭（让 provider 连接真停），不再靠 120s 放弃阈值猜"消费者已走"。
         AtomicReference<Thread> forwarderRef = new AtomicReference<>();
         SyncChatStream out = new SyncChatStream(() -> {

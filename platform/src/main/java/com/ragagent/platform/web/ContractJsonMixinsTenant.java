@@ -11,7 +11,7 @@ import com.ragagent.contract.tenant.StorageEngineConfig.S3EngineConfig;
 import com.ragagent.contract.tenant.StorageEngineConfig.TosEngineConfig;
 
 /**
- * 租户配置族的 Jackson mixin（A③-D：契约面纯 JDK 的配套）。
+ * 租户配置族的 Jackson mixin（契约面纯 JDK 的配套）。
  *
  * <p>承载的线格式：{@code @JsonInclude(NON_NULL)}（provider 子结构为 null 时省略键）与
  * {@code @JsonIgnoreProperties}；子结构（Local/Minio/Cos/Tos/S3/Oss/Ks3/Obs）**无注解**，

@@ -58,7 +58,7 @@ public class McpApprovalOpsAdapter implements McpApprovalOps {
         toolApproval.resolveToolApproval(pendingId, parse(rawBodyJson, ResolveToolApprovalRequest.class));
     }
 
-    /** 与迁移前 embedchannel 内的解析口径一致：空 body ⇒ null；解析失败 ⇒ 400 且带原始原因。 */
+    /** 解析口径全仓统一：空 body ⇒ null；解析失败 ⇒ 400 且带原始原因。 */
     private static <T> T parse(String rawBodyJson, Class<T> type) {
         if (rawBodyJson == null || rawBodyJson.isEmpty()) {
             return null;

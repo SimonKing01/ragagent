@@ -53,7 +53,7 @@ public class MessageHistoryService {
             TenantConfigLookup tenantService,
             FileResolverFactory fileResolverFactory) {
         this.messageService = messageService;
-        // 两个端口按 ObjectProvider 取（A3-3 起 StorageBackendResolver 有生产实现；
+        // 两个端口按 ObjectProvider 取（StorageBackendResolver 有生产实现；
         // FileUrlPort 的进程级实现仍属装配项），缺 bean 时按未装配分支降级。
         this.fileService = fileService.getIfAvailable();
         this.storageBackendResolver = storageBackendResolver.getIfAvailable();
@@ -122,7 +122,7 @@ public class MessageHistoryService {
     }
 
     /**
-     * 读者租户实体（A3-3 接线）——Rewriter 用它解析"引用不带 provider
+     * 读者租户实体——Rewriter 用它解析"引用不带 provider
      * scheme 时的租户默认 provider"。
      */
     private TenantStorageView currentTenant() {

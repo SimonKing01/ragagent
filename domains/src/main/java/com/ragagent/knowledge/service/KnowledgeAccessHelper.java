@@ -16,12 +16,11 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
- * 知识域访问面收敛点（M2 解环：原 KnowledgeService 门面 helper 下沉）。
+ * 知识域访问面收敛点。
  *
  * <p>requireKb / findKb / getKnowledge / getKnowledgeBatch 等是全子服务共用的
- * 访问原语，原先经 {@code @Lazy} 回注门面复用——那是 knowledge 域循环依赖环的根。
- * 现在下沉为本类，子服务直接依赖这里，不再回注门面
- * （禁 {@code @Lazy} 的配套拆法；数据访问契约与门面时代逐字一致）。</p>
+ * 访问原语，下沉为本类后子服务直接依赖这里、不回注门面
+ * （数据访问契约与门面公开语义一致）。</p>
  */
 @Component
 public class KnowledgeAccessHelper {

@@ -7,9 +7,9 @@ import java.util.function.Supplier;
 /**
  * agent 引擎句柄（业务域对运行中引擎的用法面）。
  *
- * <p>域侧原先直持 {@code agent.AgentEngine}（757 行实现类）并调它的 5 个方法；本端口只收
- * 域侧真调用的 4 个（`execute` 的返回值 {@code AgentState} 域侧并不使用 ⇒ 句柄声明为 void）。
- * 引擎构造、内置工具与技能装配已下沉 {@link AgentEngineFactory}。</p>
+ * <p>{@code AgentEngine} 的门面端口，只收窄面：域侧真调用的 4 个方法
+ * （`execute` 的返回值 {@code AgentState} 域侧并不使用 ⇒ 句柄声明为 void）。
+ * 引擎构造、内置工具与技能装配在 {@link AgentEngineFactory}。</p>
  *
  * <p>失败语义：引擎是失败上报的**唯一所有者**——失败时 error 事件已在抛出前发出，
  * 调用方只需带栈留痕；异常类型不跨模块暴露（实现侧抛自身的运行时异常）。</p>

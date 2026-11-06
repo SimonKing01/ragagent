@@ -134,7 +134,7 @@ public final class SqlGuard {
     }
 
     /**
-     * 安全默认全配置入口（tenantID/scopes 为注入阶段
+     * 安全默认全配置入口（tenantId/scopes 为注入阶段
      * 参数，校验本体不使用）。返回的 result 带完整 errors 列表
      * （Phase 5/6/7 的错误可叠加）。
      */

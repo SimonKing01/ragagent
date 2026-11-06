@@ -5,7 +5,7 @@ package com.ragagent.contract.event.payload;
 
 /**
  * Agent 思考流式数据。
- * emit 点：ThinkPhase（主思考流 / thinking tool 流），见包注释 emit 表 #1/#5。
+ * emit 点：ThinkPhase（主思考流 / thinking tool 流）。
  *
  * <p>三字段全部恒输出：零值输出 {@code {"content":"","iteration":0,"done":false}}。
  * 同一 id 的分片在客户端重组（思考流整段共用一个 generateEventId("thinking")）。</p>

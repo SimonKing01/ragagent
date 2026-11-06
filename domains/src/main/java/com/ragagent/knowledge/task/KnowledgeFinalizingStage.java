@@ -190,9 +190,8 @@ final class KnowledgeFinalizingStage {
             return;
         }
         try {
-            // M2 解环：原直连 KnowledgeService（@Lazy 环的一角）改同步领域事件；
-            // 订阅方 KnowledgeSummaryService#onKnowledgeProcessed 在本线程内执行，
-            // 语义与原直调一致（异常照旧从这里冒出）。
+            // 同步领域事件：订阅方 KnowledgeSummaryService#onKnowledgeProcessed
+            // 在本线程内执行，异常从这里冒出（由上方 try/catch 兜底）。
             eventPublisher.publishEvent(new KnowledgeProcessedEvent(knowledgeId));
         } catch (RuntimeException e) {
             log.warn("Post-process summary fan-out failed for knowledge {}", knowledgeId, e);
@@ -342,10 +341,9 @@ final class KnowledgeFinalizingStage {
                     KnowledgeProcessingSpan.STAGE_POST_PROCESS, null);
             // 索引完成即推进启用态（finalizing 前置）：
             // 索引完成 → summary_status=none（post-process fan-out 随后按需改 pending）。
-            // 条件化（走查批）：仅当 KB 配了 summary model 时推进——Java 的
-            // 进程内 worker 在契约测试里会真实处理：
-            // 录制进程内；无条件推进会让异步副作用污染 HTTP 快照断言（kg-manual-draft
-            // 等 3 例实测红）。无 summary model 的 KB 因此不做 none/failed 中间态
+            // 仅当 KB 配了 summary model 时推进——进程内 worker 在契约测试里会真实
+            // 处理，无条件推进会让异步副作用污染 HTTP 快照断言；
+            // 无 summary model 的 KB 因此不做 none/failed 中间态。
             Knowledge row = knowledgeRepository.findByIdAny(knowledgeId);
             KnowledgeBase rowKb = row == null ? null
                     : kbRepository.findByIdAny(row.getKnowledgeBaseId());

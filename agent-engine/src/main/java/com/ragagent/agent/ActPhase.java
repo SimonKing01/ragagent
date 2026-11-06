@@ -43,9 +43,6 @@ import org.slf4j.LoggerFactory;
  * 工具结果事件与持久化清洗、Langfuse 工具 span，以及工具结果图片的 VLM 描述。
  *
  * <p>持有 {@link AgentEngine} 回引以访问引擎字段；本类不得独立实例化。</p>
- *
- * <p>例外说明：836 行，略超 800 行硬顶——工具调用编排（串行/并行、事件、持久化清洗、
- * Langfuse span、VLM 描述）是一个不可再分的执行职责，再切只会制造参数传递层。</p>
  */
 final class ActPhase {
 

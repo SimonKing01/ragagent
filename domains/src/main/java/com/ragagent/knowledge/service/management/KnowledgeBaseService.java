@@ -44,10 +44,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
- * （覆盖 CRUD + pin + move-targets + 计数回填；
- * copy/duplicate/clear-contents/共享访问/审计随后续阶段）。
+ * 覆盖 CRUD + pin + move-targets + 计数回填 + clone/copy + clear-contents + 共享访问；
+ * 本类保留门面与创建/更新主路径。
  * 默认值链：
- *  EnsureDefaults → applyTenantDefaultStorageProvider → applyAndValidateStorageBackend
+ *  ensureDefaults → applyTenantDefaultStorageProvider → applyAndValidateStorageBackend
  */
 @Service
 public class KnowledgeBaseService
@@ -120,7 +120,7 @@ public class KnowledgeBaseService
         applyTenantDefaultStorageProvider(kb);
         applyAndValidateStorageBackend(kb);
         kb.normalizeVectorStoreId();
-        // 接线批：vector_store_id 绑定校验
+        // vector_store_id 绑定校验
         if (kb.hasVectorStore()) {
             validateVectorStoreBinding(tenantId(), kb.getVectorStoreId());
         }
@@ -547,8 +547,7 @@ public class KnowledgeBaseService
 
     /**
      * 更新请求的 {@code config} 内层 dispatch 键＝Java 字段名（camelCase），与创建请求的
-     * {@code CreateKnowledgeBaseRequest} 同名同形——此前这里是 snake（{@code faq_config} 等），
-     * 与创建面/落库面（值类型按 Java 字段名读写）三方不一致。
+     * {@code CreateKnowledgeBaseRequest} 同名同形；落库面的值类型也按 Java 字段名读写。
      */
     private static void applyUpdateConfig(KnowledgeBase kb, JsonNode config) {
         if (config.hasNonNull("chunkingConfig")) {

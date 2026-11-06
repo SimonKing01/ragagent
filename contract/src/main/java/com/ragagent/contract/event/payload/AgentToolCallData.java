@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * 工具调用通知数据。
- * emit 点：ThinkPhase（pending / progress）/ ActPhase（hint），见包注释 emit 表 #3/#4/#19。
+ * emit 点：ThinkPhase（pending / progress）/ ActPhase（hint）。
  *
  * <p>{@code arguments} null 与空 map 都省略；{@code hint} 空串省略
  * （人可读提示，如 {@code web_search("query")}）。</p>

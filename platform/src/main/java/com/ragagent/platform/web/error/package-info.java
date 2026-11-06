@@ -1,4 +1,4 @@
 /**
- * 平台错误面（的 `platform.web.error/`）：`BizException` 家族、`GuardForbiddenException`、`PlainErrorException` 与全局异常处理器。
+ * 平台错误面：`BizException` 家族（含 `GuardForbiddenException`、`PlainErrorException`）、统一响应外壳的错误分派与全局异常处理器。
  */
 package com.ragagent.platform.web.error;

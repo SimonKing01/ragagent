@@ -1,4 +1,4 @@
-// 文案走 activeI18n 访问器：直接 import '@/i18n' 会静态引入平台全部 9 种语言
+// 文案走 activeI18n 访问器：直接 import '@/i18n' 会静态引入平台全部 7 种语言包
 // （源文件 2 MB+），嵌入页会因此把整包语言资源带进首屏。
 import { tText } from '@/utils/activeI18n';
 import { getHljs, loadHighlight } from '@/utils/highlightRuntime';

@@ -8,13 +8,13 @@ import java.time.OffsetDateTime;
 
 /**
  * chunk_revisions 表实体。
- * <p><b>JSON 是契约</b>：handler 直接序列化本实体（{@code ListChunkRevisions} 的
- * 恒输出（is_enabled 的 false 也输出）。</p>
+ * <p><b>JSON 是契约</b>：handler 直接序列化本实体，字段恒输出
+ * （is_enabled 的 false 也输出）。</p>
  * <p>仓储行为契约（本仓约定）：</p>
  * <ol>
- *   <li><b>钩子/自动时间戳</b>：无 BeforeCreate；{@code created_at} 由 service 显式赋值
- *   <li><b>唯一约束</b>：{@code (chunk_id, revision)} 唯一索引（迁移 000078 的
- *       以 SQL 为准）。</li>
+ *   <li><b>钩子/自动时间戳</b>：无 BeforeCreate；{@code created_at} 由 service 显式赋值。</li>
+ *   <li><b>唯一约束</b>：{@code (chunk_id, revision)} 唯一索引
+ *   （以 migrations/versioned 建表 SQL 为准）。</li>
  *   <li><b>软删除</b>：无 DeletedAt，物理行。</li>
  *   <li><b>零值语义</b>：字符串列 NOT NULL DEFAULT ''，Java 侧由写入方显式赋值
  *       （editor_id 可为 ""）。</li>

@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * 工具执行结果数据。
- * emit 点：ActPhase（{@code <toolCallID>-tool-result}），见包注释 emit 表 #17。
+ * emit 点：ActPhase（{@code <toolCallID>-tool-result}）。
  *
  * <p>零值输出
  * {@code {"toolCallId":"","toolName":"","output":"","success":false,"iteration":0}}；

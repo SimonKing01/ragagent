@@ -33,7 +33,7 @@ import java.util.function.LongSupplier;
  *
  * <p>行为要点：</p>
  * <ol>
- *   <li>tenantID 经 {@link LongSupplier} 在执行期读（==0 拒绝）；
+     *   <li>tenantId 经 {@link LongSupplier} 在执行期读（==0 拒绝）；
  *       租户的 WebSearchConfig 在装配期捕获（同一回合内等价）。</li>
  *   <li>租户配置为 null 时用缺省
  *       （maxResults=10 / blacklist=[]），再被工具覆写 maxResults/filters，

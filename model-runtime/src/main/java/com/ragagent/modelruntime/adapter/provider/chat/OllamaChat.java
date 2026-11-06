@@ -142,7 +142,7 @@ public class OllamaChat implements LlmChatClient {
         OllamaChatRequest chatReq = buildChatRequest(messages, opts, true);
         log.info("发送流式聊天请求到模型 {}", modelName);
 
-        // A3：句柄可关闭——关闭即中断生产线程（回调里的 isInterrupted() 检查会提前退出，
+        // 句柄可关闭——关闭即中断生产线程（回调里的 isInterrupted() 检查会提前退出，
         // 阻塞中的 put 也会立刻解除），消费者取消不再只能靠"线程被中断"这条隐性约定。
         AtomicReference<Thread> producerRef = new AtomicReference<>();
         QueuedChatStream streamQueue = new QueuedChatStream(() -> {

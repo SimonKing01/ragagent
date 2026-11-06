@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  * Agent 工具执行事件数据。
- * emit 点：ActPhase（{@code <toolCallID>-tool-exec}），见包注释 emit 表 #18。
+ * emit 点：ActPhase（{@code <toolCallID>-tool-exec}）。
  *
  * <p>{@code tool_input} 恒输出——null map 也输出 {@code "tool_input":null}；
  * {@code error} 空串省略——成功路径整键不出现。</p>

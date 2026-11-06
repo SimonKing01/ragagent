@@ -144,7 +144,7 @@ public class FaqController {
         return ResponseEntity.ok(faqEntryQuery.getEntry(kbId, entrySeqId));
     }
 
-    /** 导入进度轮询面（前端 3 秒轮询依赖 404 语义与 data 内 snake_case 字段形状）。 */
+    /** 导入进度轮询面（前端 3 秒轮询依赖 404 语义与 data 内 camelCase 字段形状）。 */
     @GetMapping("/api/v1/faq/import/progress/{taskId}")
     public ResponseEntity<FaqImportProgress> getImportProgress(
             @PathVariable("taskId") String taskId) {

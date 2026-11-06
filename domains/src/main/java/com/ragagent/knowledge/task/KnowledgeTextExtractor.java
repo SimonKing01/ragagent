@@ -128,7 +128,7 @@ final class KnowledgeTextExtractor {
     /**
      * KB 级 {@code parserEngineRules} → 引擎名；未配置/不命中返回空（docreader 默认路由）。
      *
-     * <p>这是该配置的唯一消费点：此前 worker 固定传 {@code null}，UI 上的规则是空操作。</p>
+     * <p>这是该配置的唯一消费点。</p>
      */
     String resolveParserEngine(Knowledge k) {
         // 逐文档规则优先（上传/重解析弹窗里按文件类型指定的引擎）
