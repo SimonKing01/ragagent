@@ -77,7 +77,9 @@ test('uses section navigation with inline chunking controls and advanced options
   assert.match(dialog, /statusFull/)
   // 图片处理（OCR 开关）按文档可覆盖，分区保留
   assert.match(dialog, /data-section="multimodal"/)
-  // ASR 无解析管线消费，分区已从弹窗移除
-  assert.doesNotMatch(dialog, /data-section="asr"/)
+  // 音频处理（ASR）已恢复：解析管线消费 processOverrides.asrConfig（逐文档覆盖）
+  assert.match(dialog, /data-section="asr"/)
+  assert.match(dialog, /uiState\.asrConfig\.enabled/)
+  assert.match(dialog, /asrConfig: \{\s*enabled: true,/)
   assert.doesNotMatch(dialog, /<KBChunkingSettings/)
 })

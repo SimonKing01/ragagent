@@ -74,4 +74,6 @@ export interface KnowledgeProcessOverrides {
   graphEnabled?: boolean
   /** 逐文档图谱抽取配置：解析管线消费（节点/关系/标签/指令进提示词） */
   extractConfig?: ExtractConfigOverride
+  /** 逐文档音频处理覆盖：解析管线消费 enabled / modelId / language */
+  asrConfig?: { enabled?: boolean; modelId?: string; language?: string }
 }

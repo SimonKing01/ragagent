@@ -3263,7 +3263,7 @@ export default {
     },
     asr: {
       title: '音频语音识别',
-      description: '配置语音识别（ASR），启用后可上传音频文件并整段转写为文本（常见格式：mp3、wav、m4a、flac、ogg 等）。暂不支持视频上传。',
+      description: '配置语音识别（ASR），启用后可上传音频与视频文件，自动抽取音轨并整段转写为文本（音频：mp3、wav、m4a、flac、ogg 等；视频：mp4、mov、m4v、webm、mkv、avi）。',
       label: '启用音频语音识别',
       desc: '启用后可上传音频到知识库，系统自动将语音转写为文本并参与解析与检索',
       modelLabel: 'ASR 模型',

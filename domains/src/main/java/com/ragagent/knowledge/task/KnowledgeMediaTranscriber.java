@@ -1,5 +1,6 @@
 package com.ragagent.knowledge.task;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.model.AsrTranscriber;
 import com.ragagent.contract.model.ModelCatalogPort;
 import com.ragagent.contract.model.ModelCatalogPort.ModelRowView;
@@ -280,6 +281,31 @@ public class KnowledgeMediaTranscriber {
         }
     }
 
+    /** 逐文档 ASR 覆盖：{@code metadata.processOverrides.asrConfig{enabled,modelId,language}}。 */
+    record AsrOverride(String modelId, String language) {
+    }
+
+    static AsrOverride overrideAsr(Knowledge k) {
+        JsonNode metadata = k.getMetadata();
+        if (metadata == null || !metadata.isObject()) {
+            return null;
+        }
+        // 只认 camel：上传弹窗写的就是 processOverrides.asrConfig，历史数据里没有该键
+        JsonNode overrides = metadata.path("processOverrides");
+        if (!overrides.isObject()) {
+            return null;
+        }
+        JsonNode asr = overrides.path("asrConfig");
+        if (!asr.isObject() || !asr.path("enabled").asBoolean(false)) {
+            return null;
+        }
+        String modelId = asr.path("modelId").asText("");
+        if (modelId.isEmpty()) {
+            return null;
+        }
+        return new AsrOverride(modelId, asr.path("language").asText(""));
+    }
+
     private String displayTitle(Knowledge k) {
         String title = k.getTitle() == null ? "" : k.getTitle().trim();
         if (!title.isEmpty()) {
@@ -289,8 +315,15 @@ public class KnowledgeMediaTranscriber {
         return fileName.isEmpty() ? "未命名音视频" : fileName;
     }
 
-    /** KB 的 ASR 配置优先；未开启或没选模型时退回租户默认 ASR 模型。 */
+    /**
+     * 逐文档覆盖优先（上传确认弹窗的「音频处理」），其次 KB 的 ASR 配置，
+     * 最后退回租户默认 ASR 模型。
+     */
     private String resolveAsrModelId(Knowledge k) {
+        AsrOverride override = overrideAsr(k);
+        if (override != null) {
+            return override.modelId();
+        }
         String kbId = k.getKnowledgeBaseId();
         if (kbId != null && !kbId.isBlank()) {
             try {
@@ -320,6 +353,10 @@ public class KnowledgeMediaTranscriber {
     }
 
     private String resolveLanguage(Knowledge k) {
+        AsrOverride override = overrideAsr(k);
+        if (override != null && override.language() != null) {
+            return override.language();
+        }
         String kbId = k.getKnowledgeBaseId();
         if (kbId == null || kbId.isBlank()) {
             return "";

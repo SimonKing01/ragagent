@@ -2353,7 +2353,7 @@ export default {
       faq: 'FAQ Settings',
       graph: 'Knowledge Graph',
       multimodal: 'Image Processing',
-      asr: 'Audio',
+      asr: 'Audio Processing',
       datasource: 'Data Sources',
       share: 'Sharing',
       activity: 'Activity'
@@ -2831,7 +2831,7 @@ export default {
     },
     asr: {
       title: 'Audio Speech Recognition',
-      description: 'Configure ASR (speech-to-text). When enabled, you can upload audio files and transcribe them to text (e.g. mp3, wav, m4a, flac, ogg). Video upload is not supported.',
+      description: 'Configure ASR (speech-to-text). When enabled, you can upload audio and video files; audio tracks are extracted and transcribed to text (audio: mp3, wav, m4a, flac, ogg; video: mp4, mov, m4v, webm, mkv, avi).',
       label: 'Enable audio speech recognition',
       desc: 'When enabled, audio can be uploaded to the knowledge base; speech is transcribed to text for parsing and retrieval.',
       modelLabel: 'ASR Model',

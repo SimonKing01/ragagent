@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ragagent.contract.model.AsrTranscriber;
 import com.ragagent.knowledge.domain.Knowledge;
+import com.ragagent.platform.web.JsonMappers;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +30,35 @@ class KnowledgeMediaTranscriberTest {
 
         assertThat(KnowledgeMediaTranscriber.formatSegments(result))
                 .isEqualTo("[00:00] 第一句\n[01:02] 第二句");
+    }
+
+    @Test
+    void perDocumentAsrOverrideWins() throws Exception {
+        Knowledge k = new Knowledge();
+        k.setMetadata(JsonMappers.lenient().readTree("""
+                {"processOverrides":{"asrConfig":{"enabled":true,"modelId":"m-asr","language":"zh"}}}
+                """));
+
+        KnowledgeMediaTranscriber.AsrOverride override =
+                KnowledgeMediaTranscriber.overrideAsr(k);
+        assertThat(override).isNotNull();
+        assertThat(override.modelId()).isEqualTo("m-asr");
+        assertThat(override.language()).isEqualTo("zh");
+    }
+
+    @Test
+    void perDocumentAsrOverrideIgnoredWhenDisabledOrEmpty() throws Exception {
+        Knowledge disabled = new Knowledge();
+        disabled.setMetadata(JsonMappers.lenient()
+                .readTree("{\"processOverrides\":{\"asrConfig\":{\"enabled\":false,\"modelId\":\"m\"}}}"));
+        assertThat(KnowledgeMediaTranscriber.overrideAsr(disabled)).isNull();
+
+        Knowledge emptyModel = new Knowledge();
+        emptyModel.setMetadata(JsonMappers.lenient()
+                .readTree("{\"processOverrides\":{\"asrConfig\":{\"enabled\":true,\"modelId\":\"\"}}}"));
+        assertThat(KnowledgeMediaTranscriber.overrideAsr(emptyModel)).isNull();
+
+        assertThat(KnowledgeMediaTranscriber.overrideAsr(new Knowledge())).isNull();
     }
 
     @Test

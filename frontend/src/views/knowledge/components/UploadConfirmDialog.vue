@@ -404,6 +404,58 @@
                     </div>
                   </div>
 
+                  <div v-show="activeSection === 'asr'" class="section" data-section="asr">
+                    <div class="kb-settings-block">
+                      <div class="section-header">
+                        <h2 class="section-title">{{ t('knowledgeEditor.asr.title') }}</h2>
+                        <p class="section-desc">{{ t('knowledgeEditor.asr.description') }}</p>
+                      </div>
+                      <div class="settings-group">
+                        <div class="setting-row">
+                          <div class="setting-info">
+                            <label>{{ t('knowledgeEditor.asr.label') }}</label>
+                            <p class="desc">{{ t('knowledgeEditor.asr.desc') }}</p>
+                          </div>
+                          <div class="setting-control">
+                            <t-switch v-model="uiState.asrConfig.enabled" size="medium" />
+                          </div>
+                        </div>
+                        <div v-if="uiState.asrConfig.enabled" class="setting-row">
+                          <div class="setting-info">
+                            <label>
+                              {{ t('knowledgeEditor.asr.modelLabel') }}
+                              <span class="required">*</span>
+                            </label>
+                            <p class="desc">{{ t('knowledgeEditor.asr.modelDescription') }}</p>
+                          </div>
+                          <div class="setting-control">
+                            <t-select
+                              v-model="uiState.asrConfig.modelId"
+                              :options="asrModelOptions"
+                              :placeholder="t('knowledgeEditor.asr.modelPlaceholder')"
+                              clearable
+                              :style="{ width: '280px' }"
+                            />
+                          </div>
+                        </div>
+                        <div v-if="uiState.asrConfig.enabled" class="setting-row">
+                          <div class="setting-info">
+                            <label>{{ t('knowledgeEditor.asr.languageLabel') }}</label>
+                            <p class="desc">{{ t('knowledgeEditor.asr.languageDescription') }}</p>
+                          </div>
+                          <div class="setting-control">
+                            <t-input
+                              v-model="uiState.asrConfig.language"
+                              clearable
+                              :placeholder="t('knowledgeEditor.asr.languagePlaceholder')"
+                              :style="{ width: '280px' }"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div v-if="isGraphSectionAvailable" v-show="activeSection === 'graph'" class="section">
                     <GraphSettings
                       :graph-extract="uiState.nodeExtractConfig"
@@ -434,6 +486,7 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { MessagePlugin } from 'tdesign-vue-next'
+import ModelSelector from '@/components/ModelSelector.vue'
 import KBParserSettings from '../settings/KBParserSettings.vue'
 import GraphSettings from '../settings/GraphSettings.vue'
 import { useChatResourcesStore } from '@/stores/chatResources'
@@ -455,7 +508,7 @@ import type {
 } from '@/stores/uploadConfirm'
 
 
-type ConfigSectionKey = 'tags' | 'parser' | 'chunking' | 'multimodal' | 'question' | 'graph'
+type ConfigSectionKey = 'tags' | 'parser' | 'chunking' | 'multimodal' | 'asr' | 'question' | 'graph'
 type IssueSectionKey = never
 
 interface ChunkingUIConfig {
@@ -480,6 +533,8 @@ interface UploadUIState {
   chunkingConfig: ChunkingUIConfig
   /** 逐文档图片 OCR 开关（默认继承 KB，缺省开启） */
   imageOcrEnabled: boolean
+  /** 逐文档音频处理（ASR）：默认继承 KB，仅在开启时随上传下发 */
+  asrConfig: { enabled: boolean; modelId: string; language: string }
   questionGenerationConfig: { enabled: boolean; questionCount: number }
   nodeExtractConfig: {
     enabled: boolean
@@ -601,6 +656,13 @@ function onDestinationPicked(path: string) {
   localTargetFolder.value = path
   destinationPickerVisible.value = false
 }
+
+/** 音频处理分区可选的 ASR 模型（与设置里同一份模型清单）。 */
+const asrModelOptions = computed(() =>
+  allModels.value
+    .filter((m: any) => m?.type === 'ASR')
+    .map((m: any) => ({ label: m.displayName || m.name || m.id, value: m.id })),
+)
 
 function getModelName(modelId: string): string {
   if (!modelId) return t('uploadConfirm.notSet')
@@ -772,6 +834,7 @@ const navItems = computed(() => {
     'image',
     t('knowledgeEditor.sidebar.multimodal'),
   )
+  push('asr', 'sound', t('knowledgeEditor.sidebar.asr'))
   push('question', 'chat', t('knowledgeEditor.advanced.questionGeneration.label'))
   if (isGraphSectionAvailable.value) {
     push('graph', 'chart-bubble', t('knowledgeEditor.sidebar.graph'))
@@ -812,6 +875,13 @@ function getSectionNavStatus(
       return uiState.value.imageOcrEnabled
         ? { status: t('knowledgeEditor.ocr.statusOn') }
         : { status: t('knowledgeEditor.ocr.statusOff'), statusTone: 'muted' }
+    }
+    case 'asr': {
+      const asr = uiState.value.asrConfig
+      if (!asr.enabled || !asr.modelId) {
+        return { status: t('uploadConfirm.statusOff'), statusTone: 'muted' }
+      }
+      return { status: getModelName(asr.modelId) }
     }
     case 'question': {
       const question = uiState.value.questionGenerationConfig
@@ -871,6 +941,7 @@ function createDefaultUIState(): UploadUIState {
       tableMetadataInstructions: '',
     },
     imageOcrEnabled: true,
+    asrConfig: { enabled: false, modelId: '', language: '' },
     questionGenerationConfig: { enabled: true, questionCount: 3 },
     nodeExtractConfig: {
       enabled: false,
@@ -907,6 +978,11 @@ function initFromKbInfo(kb: any) {
     },
     // 缺省开启：只有知识库里显式 false 才关
     imageOcrEnabled: kb.imageProcessingConfig?.ocrEnabled !== false,
+    asrConfig: {
+      enabled: !!kb.asrConfig?.enabled,
+      modelId: kb.asrConfig?.modelId || '',
+      language: kb.asrConfig?.language || '',
+    },
     // questionGenerationConfig 为落库 jsonb，内键 camel（与 KB 更新请求一致），读侧无 snake 兜底
     questionGenerationConfig: {
       enabled: kb.questionGenerationConfig?.enabled ?? true,
@@ -950,6 +1026,16 @@ function buildProcessOverrides(): KnowledgeProcessOverrides {
     imageProcessingConfig: {
       ocrEnabled: state.imageOcrEnabled,
     },
+    // 只在开启且选了模型时下发，避免把「跟随知识库」写成显式关闭
+    ...(state.asrConfig.enabled && state.asrConfig.modelId
+      ? {
+        asrConfig: {
+          enabled: true,
+          modelId: state.asrConfig.modelId,
+          language: state.asrConfig.language,
+        },
+      }
+      : {}),
     questionGenerationConfig: {
       enabled: state.questionGenerationConfig.enabled,
       questionCount: state.questionGenerationConfig.questionCount,
@@ -998,6 +1084,13 @@ function applyOverridesToState(o?: KnowledgeProcessOverrides | null) {
   if (topRules) s.chunkingConfig.parserEngineRules = fromOverrideParserRules(topRules)
   if (o.imageProcessingConfig?.ocrEnabled != null) {
     s.imageOcrEnabled = o.imageProcessingConfig.ocrEnabled
+  }
+  if (o.asrConfig) {
+    s.asrConfig = {
+      enabled: !!o.asrConfig.enabled && !!o.asrConfig.modelId,
+      modelId: o.asrConfig.modelId || '',
+      language: o.asrConfig.language || '',
+    }
   }
   const qg = o.questionGenerationConfig
   if (qg) {
@@ -1157,6 +1250,11 @@ const handleConfirm = () => {
     return
   }
   if (!validateBeforeConfirm()) return
+  if (uiState.value.asrConfig.enabled && !uiState.value.asrConfig.modelId) {
+    MessagePlugin.warning(t('knowledgeEditor.asr.modelPlaceholder'))
+    activeSection.value = 'asr'
+    return
+  }
 
   const processConfig = buildProcessOverrides()
   if (props.mode === 'manual' && props.manualPreview) {
