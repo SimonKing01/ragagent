@@ -490,10 +490,11 @@ const fallbackProviderOptions = computed(() => [
       chat: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
       embedding: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
       rerank: 'https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank',
-      vllm: 'https://dashscope.aliyuncs.com/compatible-mode/v1'
+      vllm: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
+      asr: 'https://dashscope.aliyuncs.com/compatible-mode/v1'
     },
     description: t('model.editor.providers.aliyun.description'),
-    modelTypes: ['chat', 'embedding', 'rerank', 'vllm']
+    modelTypes: ['chat', 'embedding', 'rerank', 'vllm', 'asr']
   },
   {
     value: 'zhipu',

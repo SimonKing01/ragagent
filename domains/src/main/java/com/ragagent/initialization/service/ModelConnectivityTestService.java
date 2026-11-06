@@ -187,24 +187,24 @@ public final class ModelConnectivityTestService {
             data.put("message", "创建ASR实例失败: " + e.getMessage());
             return data;
         } catch (AsrTranscriber.AsrTranscribeException e) {
+            // 上游只要返回错误就是**不可用**：曾经把未命中白名单的错误当“端点可达”报成功，
+            // 于是 400「Model not exist.」被显示成“连接成功”，实际解析必然失败。
             String errMsg = e.getMessage() == null ? "" : e.getMessage();
-            if (errMsg.contains("401") || errMsg.contains("Unauthorized") || errMsg.contains("authentication")) {
-                available = false;
+            String lower = errMsg.toLowerCase(Locale.ROOT);
+            available = false;
+            if (lower.contains("401") || lower.contains("unauthorized")
+                    || lower.contains("authentication")) {
                 message = "认证失败，请检查API Key：" + errMsg;
-            } else if (errMsg.contains("404") || errMsg.contains("Not Found")) {
-                available = false;
+            } else if (lower.contains("404")) {
                 message = "API端点不存在，请检查Base URL：" + errMsg;
-            } else if (errMsg.contains("connection refused") || errMsg.contains("no such host")
-                    || errMsg.contains("dial tcp")) {
-                available = false;
+            } else if (lower.contains("connection refused") || lower.contains("no such host")
+                    || lower.contains("dial tcp")) {
                 message = "无法连接到服务器，请检查Base URL：" + errMsg;
-            } else if (errMsg.contains("model") && errMsg.contains("not found")) {
-                available = false;
+            } else if (lower.contains("model") && (lower.contains("not exist")
+                    || lower.contains("does not exist") || lower.contains("not found"))) {
                 message = "模型不存在，请检查模型名称：" + errMsg;
             } else {
-                // 端点可达（非致命错误）——available=true
-                available = true;
-                message = "ASR端点可达（非致命错误: " + errMsg + "）";
+                message = "ASR调用失败：" + errMsg;
             }
         }
         return okAvailability(available, message);

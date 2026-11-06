@@ -1,1 +1,1 @@
-{"code":0,"data":{"available":true,"message":"ASR端点可达（非致命错误: ASR transcription request failed: HTTP 500 Internal Server Error: boom）"},"message":"ok"}
+{"code":0,"data":{"available":false,"message":"ASR调用失败：ASR transcription request failed: HTTP 500 Internal Server Error: boom"},"message":"ok"}

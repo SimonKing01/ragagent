@@ -74,6 +74,7 @@
     "mcp/oauth/model/OAuthToken.java": "mcp/oauth",
     "memory/domain/MemoryExtractPayload.java": "memory/domain/MemoryExtractPayload",
     "memory/service/MemoryExtractionLlm.java": "memory/service/MemoryExtractionLlm",
+    "modelruntime/adapter/provider/asr/DashScopeAsrTranscriber.java": "modelruntime/",
     "modelruntime/adapter/provider/chat/PromptCache.java": "modelruntime/",
     "modelruntime/adapter/provider/chat/RemoteApiRequestOps.java": "modelruntime/",
     "modelruntime/adapter/provider/chat/RemoteApiResponseOps.java": "modelruntime/",

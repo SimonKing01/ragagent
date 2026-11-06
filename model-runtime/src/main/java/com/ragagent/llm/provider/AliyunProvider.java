@@ -20,8 +20,10 @@ public class AliyunProvider implements Provider {
                         ModelType.KNOWLEDGE_QA, ProviderBaseURLs.ALIYUN_CHAT_BASE_URL,
                         ModelType.EMBEDDING, ProviderBaseURLs.ALIYUN_CHAT_BASE_URL,
                         ModelType.RERANK, ProviderBaseURLs.ALIYUN_RERANK_BASE_URL,
-                        ModelType.VLLM, ProviderBaseURLs.ALIYUN_CHAT_BASE_URL),
-                List.of(ModelType.KNOWLEDGE_QA, ModelType.EMBEDDING, ModelType.RERANK, ModelType.VLLM),
+                        ModelType.VLLM, ProviderBaseURLs.ALIYUN_CHAT_BASE_URL,
+                        ModelType.ASR, ProviderBaseURLs.ALIYUN_CHAT_BASE_URL),
+                List.of(ModelType.KNOWLEDGE_QA, ModelType.EMBEDDING, ModelType.RERANK, ModelType.VLLM,
+                        ModelType.ASR),
                 true);
     }
 
