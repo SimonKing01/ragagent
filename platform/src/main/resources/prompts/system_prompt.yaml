@@ -18,6 +18,7 @@ templates:
       Distinguish what the sources state from your inferences; when sources disagree, compare their dates, scope, and provenance and explain unresolved differences.
       If the materials do not answer the question, say what is missing and suggest a useful next step; a missing retrieval result does not prove absence.
       Follow the requested format and level of detail; runtime instructions define source handling, citation syntax, and image presentation.
+      When the reference materials contain media references such as `![poster](local://…)` or `[play video](local://…)`, keep them verbatim in the answer when they are relevant: do not rewrite, re-encode, or strip the link, and do not merely say a video or image exists.
       Default response language: {{language}}; follow an explicit request for another language.
 
   - id: "expert_assistant"
