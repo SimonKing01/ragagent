@@ -93,7 +93,6 @@ const folderPickerVisible = ref(false);
   position: relative;
   z-index: 5;
   width: 100%;
-  max-width: 560px;
   margin: 0 auto;
   padding: 0 4px;
   box-sizing: border-box;
