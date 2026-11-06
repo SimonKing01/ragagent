@@ -867,8 +867,10 @@ function getSectionNavStatus(
       return { status: parts.join(' · ') }
     }
     case 'multimodal': {
-      // 固定文案：开关状态在分区里看，导航不再随开关变（用户要求的“启用图片OCR”）
-      return { status: t('knowledgeEditor.ocr.label') }
+      // 导航仍显示开关状态（分区内的行标签固定为“启用图片OCR”）
+      return uiState.value.imageOcrEnabled
+        ? { status: t('knowledgeEditor.ocr.statusOn') }
+        : { status: t('knowledgeEditor.ocr.statusOff'), statusTone: 'muted' }
     }
     case 'asr': {
       const asr = uiState.value.asrConfig
