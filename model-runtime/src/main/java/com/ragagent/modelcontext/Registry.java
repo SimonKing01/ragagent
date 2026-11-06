@@ -45,7 +45,10 @@ public final class Registry {
     public static final String ARGUMENT_RESOLUTION_UNRESOLVED = "unresolved";
 
     static final String RESOURCE_HANDLE_PROTOCOL_PROMPT = "\n\n## Resource handle protocol (system-owned)\n"
-            + "- res://NNNN and iN are request-local handles; copy them exactly. Never reuse or invent a handle not supplied in this request.";
+            + "- res://NNNN and iN are request-local handles; copy them exactly. Never reuse or invent a handle not supplied in this request.\n"
+            + "- When a retrieved document carries a `<media>` block, please cite that media: output "
+            + "`![poster](<poster>)` and `[play video](<play>)` (or `[play audio](<play>)`) with the values "
+            + "copied exactly; never invent media links.";
 
     final SourceRegistry sources;
     final ResourceRegistry resources;

@@ -20,6 +20,7 @@ import com.ragagent.contract.model.FunctionCall;
 import com.ragagent.contract.model.StreamResponse;
 import com.ragagent.contract.model.TokenUsage;
 import com.ragagent.platform.event.EventJson;
+import com.ragagent.platform.web.JsonMappers;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -42,8 +43,65 @@ class EngineRecordingTest {
      * 键序 / HTML 转义形态 / 时间写法不再构成断言目标（与 ContractJson 的既定方针一致；
      * golden 常量保留为历史基准，不再逐字节对齐）。
      */
+    /**
+     * 系统提示词正文不参与录制比对：{@code role=system} 的 content 归一为占位符，
+     * {@code prompt_len} 归零。提示词属于产品文案，迭代频繁；其余结构（消息、工具调用、
+     * 选项）仍逐字段比对。
+     */
+    private static Object systemPromptAgnostic(String text, int depth) {
+        if (text == null) {
+            return null;
+        }
+        if (depth < 4 && looksJson(text)) {
+            try {
+                Object parsed = JsonMappers.lenient().readValue(text, Object.class);
+                return systemPromptAgnostic(parsed, depth + 1);
+            } catch (Exception e) {
+                return text;
+            }
+        }
+        return text;
+    }
+
+    private static Object systemPromptAgnostic(Object node, int depth) {
+        if (node instanceof java.util.Map<?, ?> map) {
+            java.util.Map<String, Object> out = new java.util.LinkedHashMap<>();
+            boolean system = "system".equals(map.get("role"));
+            for (java.util.Map.Entry<?, ?> e : map.entrySet()) {
+                String k = String.valueOf(e.getKey());
+                Object v = e.getValue();
+                if (system && "content".equals(k)) {
+                    out.put(k, "<system-prompt>");
+                } else if ("prompt_len".equals(k)) {
+                    out.put(k, 0);
+                } else {
+                    out.put(k, systemPromptAgnostic(v, depth + 1));
+                }
+            }
+            return out;
+        }
+        if (node instanceof java.util.List<?> list) {
+            java.util.List<Object> out = new java.util.ArrayList<>(list.size());
+            for (Object item : list) {
+                out.add(systemPromptAgnostic(item, depth + 1));
+            }
+            return out;
+        }
+        if (node instanceof String text) {
+            return systemPromptAgnostic(text, depth);
+        }
+        return node;
+    }
+
+    private static boolean looksJson(String text) {
+        String t = text.trim();
+        return !t.isEmpty() && (t.charAt(0) == '{' || t.charAt(0) == '[')
+                && (t.endsWith("}") || t.endsWith("]"));
+    }
+
     private static void assertRecording(String actual, String recording) {
-        assertThat(ContractJson.deep(actual)).isEqualTo(ContractJson.deep(recording));
+        assertThat(systemPromptAgnostic(ContractJson.deep(actual), 0))
+                .isEqualTo(systemPromptAgnostic(ContractJson.deep(recording), 0));
     }
 
     private static String mask(String s) {

@@ -303,6 +303,8 @@ public final class PluginIntoChatMessage implements Plugin {
         if (!play.isEmpty()) {
             b.append(String.format("<play>%s</play>\n", escapeHtml(play)));
         }
+        b.append("  <usage>cite as ![poster](&lt;poster&gt;) and [play video](&lt;play&gt;) "
+                + "(or [play audio](&lt;play&gt;)) when relevant</usage>\n");
         b.append("</media>\n");
         return b.toString();
     }

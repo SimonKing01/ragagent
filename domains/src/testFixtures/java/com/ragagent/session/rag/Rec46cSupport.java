@@ -37,6 +37,7 @@ import com.ragagent.knowledge.support.ChunkRowViews;
 import com.ragagent.knowledge.support.KnowledgeRowViews;
 import com.ragagent.platform.event.EventJson;
 import com.ragagent.platform.stream.QueuedChatStream;
+import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.session.domain.message.Message;
 import com.ragagent.session.dto.PipelineMessageImageView;
 import com.ragagent.session.dto.PipelineMessageView;
@@ -91,17 +92,82 @@ final class Rec46cSupport {
         return EventJson.write(v);
     }
 
-    /** 解析 ChatPipelineGolden 常量并断言相等（带上下文 diff）。 */
+    /**
+     * 解析 ChatPipelineGolden 常量并断言相等（带上下文 diff）。
+     *
+     * <p>系统提示词正文不参与比对（归一为 {@code <system-prompt>}）：提示词是产品文案，
+     * 迭代频繁，钉死正文会让每次改文案都要重录整份回放；其余结构（工具调用、事件、
+     * 引用、用户/助手消息）仍逐字段比对。</p>
+     */
     static void assertRec(String group, String key, String actual) {
         String expected = ChatPipelineGolden.constant(group, key);
-        org.assertj.core.api.Assertions.assertThat(ContractJson.deep(actual))
+        org.assertj.core.api.Assertions.assertThat(parseForCompare(actual))
                 .as("recording %s/%s", group, key)
-                .isEqualTo(ContractJson.deep(expected));
+                .isEqualTo(parseForCompare(expected));
     }
 
-    /** 常量查找（ChatPipelineGolden 生成的常量名按组/键）。 */
-    static String constant(String group, String key) {
-        return ChatPipelineGolden.constant(group, key);
+    /** 规范化后的结构：Canonical JSON → Map/List，再归一系统提示正文。 */
+    private static Object parseForCompare(String raw) {
+        String canonical = ContractJson.deep(raw);
+        try {
+            Object parsed = JsonMappers.lenient().readValue(canonical, Object.class);
+            return normalizeSystemMessages(parsed);
+        } catch (Exception e) {
+            return normalizeSystemMessages(canonical);
+        }
+    }
+
+    /**
+     * 把 role=system 的消息正文替换成占位符，其余结构原样保留。
+     *
+     * <p>录制里 {@code llm_calls} 是「JSON 字符串的数组」，单独解析这一层；{@code prompt_len}
+     * 由提示词长度推导，一并归零，避免文案长度影响比对。</p>
+     */
+    static Object normalizeSystemMessages(Object node) {
+        if (node instanceof Map<?, ?> map) {
+            Map<String, Object> out = new LinkedHashMap<>();
+            boolean system = "system".equals(map.get("role"));
+            for (Map.Entry<?, ?> e : map.entrySet()) {
+                String k = String.valueOf(e.getKey());
+                Object v = e.getValue();
+                if (system && "content".equals(k) && v instanceof String) {
+                    out.put(k, "<system-prompt>");
+                } else if ("prompt_len".equals(k)) {
+                    out.put(k, 0);
+                } else if ("llm_calls".equals(k) && v instanceof List<?> calls) {
+                    out.put(k, normalizeLlmCalls(calls));
+                } else {
+                    out.put(k, normalizeSystemMessages(v));
+                }
+            }
+            return out;
+        }
+        if (node instanceof List<?> list) {
+            List<Object> out = new ArrayList<>(list.size());
+            for (Object item : list) {
+                out.add(normalizeSystemMessages(item));
+            }
+            return out;
+        }
+        return node;
+    }
+
+    /** llm_calls 的每一项是内层 JSON 文本：解析后再归一化。 */
+    private static List<Object> normalizeLlmCalls(List<?> calls) {
+        List<Object> out = new ArrayList<>(calls.size());
+        for (Object call : calls) {
+            if (call instanceof String text) {
+                try {
+                    out.add(normalizeSystemMessages(JsonMappers.lenient().readValue(text, Object.class)));
+                    continue;
+                } catch (Exception e) {
+                    out.add(text);
+                    continue;
+                }
+            }
+            out.add(normalizeSystemMessages(call));
+        }
+        return out;
     }
 
     /** 断言"无错误"（无错误时 err 键不出现/整体为 null）。 */

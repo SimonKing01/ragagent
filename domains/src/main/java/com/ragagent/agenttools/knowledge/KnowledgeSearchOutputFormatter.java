@@ -134,6 +134,9 @@ final class KnowledgeSearchOutputFormatter {
         if (!play.isEmpty()) {
             b.append(String.format(Locale.ROOT, "<play>%s</play>\n", FaqSnippet.xmlEscape(play)));
         }
+        // 就近给模型一条可用示范：自定义智能体不一定带系统提示词里的媒体规则
+        b.append("  <usage>cite as ![poster](&lt;poster&gt;) and [play video](&lt;play&gt;) "
+                + "(or [play audio](&lt;play&gt;)) when relevant</usage>\n");
         b.append("</media>\n");
         return b.toString();
     }
