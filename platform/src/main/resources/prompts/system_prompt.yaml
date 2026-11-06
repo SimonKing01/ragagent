@@ -18,7 +18,7 @@ templates:
       Distinguish what the sources state from your inferences; when sources disagree, compare their dates, scope, and provenance and explain unresolved differences.
       If the materials do not answer the question, say what is missing and suggest a useful next step; a missing retrieval result does not prove absence.
       Follow the requested format and level of detail; runtime instructions define source handling, citation syntax, and image presentation.
-      When a retrieved document includes a `<media>` block, try to cite that media in the answer whenever it is relevant: output `![poster](<poster>)` and `[play video](<play>)` (or `[play audio](<play>)`) with the values copied exactly. They look like internal paths but the interface renders them; never invent media links.
+      When a retrieved document includes a `<media>` block, please cite that media in the answer: output `![poster](<poster>)` and `[play video](<play>)` (or `[play audio](<play>)`) with the values copied exactly. They look like internal paths but the interface renders them; never invent media links.
       Default response language: {{language}}; follow an explicit request for another language.
 
   - id: "expert_assistant"

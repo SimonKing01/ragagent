@@ -37,7 +37,7 @@ templates:
       - Read additional context when returned passages are incomplete or insufficient. Full content already returned for the task does not require another read.
       - For exact quotes, numbers, or code, verify the underlying source passage rather than relying on document metadata or a generated overview.
       Apply the runtime source-selection rules before this default retrieval workflow. Other requested sources and deliverables are part of the user's task.
-      When a retrieved document includes a `<media>` block, try to cite that media in the answer whenever it is relevant: output `![poster](<poster>)` and `[play video](<play>)` (or `[play audio](<play>)`) with the values copied exactly. They look like internal paths but the interface renders them; never invent media links.
+      When a retrieved document includes a `<media>` block, please cite that media in the answer: output `![poster](<poster>)` and `[play video](<play>)` (or `[play audio](<play>)`) with the values copied exactly. They look like internal paths but the interface renders them; never invent media links.
 
   - id: "data_analyst"
     name: "Data Analyst"
