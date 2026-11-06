@@ -2202,7 +2202,7 @@ export default {
     ocr: {
       title: 'Processamento de imagens',
       description: 'Digitalizações e imagens embutidas são reconhecidas na ingestão; o texto é inserido no corpo e indexado.',
-      label: 'Função OCR',
+      label: 'Ativar OCR de imagens',
       desc: 'Ativado por padrão. Se desativado, as imagens ficam sem extração de texto.',
       statusOn: 'OCR ativado',
       statusOff: 'OCR desativado',

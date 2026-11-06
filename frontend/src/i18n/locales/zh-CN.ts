@@ -3212,7 +3212,7 @@ export default {
     ocr: {
       title: '图像处理',
       description: '扫描件与文档内图片在入库时自动识别文字，识别结果插入正文并参与检索。',
-      label: '图片OCR功能',
+      label: '启用图片OCR',
       desc: '默认开启；关闭后该知识库的图片只保留原图，不提取文字。',
       statusOn: 'OCR已开启',
       statusOff: 'OCR未开启',

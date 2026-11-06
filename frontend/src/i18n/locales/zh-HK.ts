@@ -2202,7 +2202,7 @@ export default {
     ocr: {
       title: '圖片處理',
       description: '掃描件與文件內圖片在入庫時自動識別文字，結果插入正文並參與檢索。',
-      label: '圖片OCR功能',
+      label: '啟用圖片OCR',
       desc: '預設開啟；關閉後該知識庫的圖片只保留原圖，不提取文字。',
       statusOn: 'OCR已開啟',
       statusOff: 'OCR未開啟',

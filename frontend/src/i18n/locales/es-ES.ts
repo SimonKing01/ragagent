@@ -2202,7 +2202,7 @@ export default {
     ocr: {
       title: 'Procesamiento de imágenes',
       description: 'Los escaneos e imágenes incrustadas se reconocen al ingerir; el texto se inserta en el cuerpo y se indexa.',
-      label: 'Función OCR',
+      label: 'Activar OCR de imágenes',
       desc: 'Activado por defecto. Si se desactiva, las imágenes se guardan sin extraer texto.',
       statusOn: 'OCR activado',
       statusOff: 'OCR desactivado',

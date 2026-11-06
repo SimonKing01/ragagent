@@ -2202,7 +2202,7 @@ export default {
     ocr: {
       title: 'Image processing',
       description: 'Scanned pages and embedded images are OCR-ed on ingest; recognized text is inserted into the body and indexed.',
-      label: 'Image OCR',
+      label: 'Enable image OCR',
       desc: 'On by default. When off, images are kept as-is without text extraction.',
       statusOn: 'OCR is on',
       statusOff: 'OCR is off',

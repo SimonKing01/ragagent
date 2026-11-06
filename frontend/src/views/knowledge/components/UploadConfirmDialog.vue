@@ -360,11 +360,7 @@
                       <div class="settings-group">
                         <div class="setting-row">
                           <div class="setting-info">
-                            <label>{{
-                              t(uiState.imageOcrEnabled
-                                ? 'knowledgeEditor.ocr.statusOn'
-                                : 'knowledgeEditor.ocr.statusOff')
-                            }}</label>
+                            <label>{{ t('knowledgeEditor.ocr.label') }}</label>
                             <p class="desc">{{ t('knowledgeEditor.ocr.desc') }}</p>
                           </div>
                           <div class="setting-control">
@@ -871,10 +867,8 @@ function getSectionNavStatus(
       return { status: parts.join(' · ') }
     }
     case 'multimodal': {
-      // 与分区内开关文案一致：OCR已开启 / OCR未开启
-      return uiState.value.imageOcrEnabled
-        ? { status: t('knowledgeEditor.ocr.statusOn') }
-        : { status: t('knowledgeEditor.ocr.statusOff'), statusTone: 'muted' }
+      // 固定文案：开关状态在分区里看，导航不再随开关变（用户要求的“启用图片OCR”）
+      return { status: t('knowledgeEditor.ocr.label') }
     }
     case 'asr': {
       const asr = uiState.value.asrConfig
