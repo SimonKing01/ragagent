@@ -28,6 +28,7 @@ import com.ragagent.session.service.SessionAgentQaService;
 import com.ragagent.session.service.SessionKnowledgeQaService;
 import com.ragagent.session.service.SteerRunCoordinator;
 import com.ragagent.session.service.TurnLifecycle;
+import com.ragagent.session.support.AgentConfigSnapshot;
 import io.micrometer.core.instrument.Metrics;
 import java.io.IOException;
 import java.time.OffsetDateTime;
@@ -432,6 +433,7 @@ public final class QaTurnExecutor {
             am.setCreatedAt(OffsetDateTime.now());
             reqCtx.assistantMessage = am;
         }
+        applyAgentConfigSnapshot(reqCtx.assistantMessage, reqCtx);
         if (reqCtx.userMessageId.isEmpty() && reqCtx.assistantMessage.getId().isEmpty()) {
             // 两条消息同事务写入：任一失败一起回滚，避免孤儿 user 行
             List<MessageAttachment> userMessageAttachments = new ArrayList<>(reqCtx.attachments);
@@ -456,6 +458,24 @@ public final class QaTurnExecutor {
             reqCtx.assistantMessage = created;
         }
     }
+    /**
+     * 把智能体配置快照挂到 assistant 消息上：追问建议在主流程结束后异步发起，
+     * 那时只能靠这份快照判断「是否开启 / 用哪个模型 / 配置有没有变」。
+     */
+    private void applyAgentConfigSnapshot(Message assistant, QaRequestContext reqCtx) {
+        if (assistant == null) {
+            return;
+        }
+        AgentConfigSnapshot.Snapshot snapshot = AgentConfigSnapshot.of(reqCtx.agentConfig);
+        MessageExecutionContext ctx = assistant.getExecutionContext();
+        if (ctx == null) {
+            ctx = new MessageExecutionContext();
+        }
+        ctx.setAgentConfigHash(snapshot.configHash());
+        ctx.setQuestionSuggestions(snapshot.questionSuggestions());
+        assistant.setExecutionContext(ctx);
+    }
+
     private Message buildUserMessage(QaRequestContext reqCtx, List<MessageAttachment> attachments) {
         Message m = new Message();
         m.setSessionId(reqCtx.sessionId);

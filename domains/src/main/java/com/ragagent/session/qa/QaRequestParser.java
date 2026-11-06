@@ -31,6 +31,7 @@ import com.ragagent.session.dto.QaRequests.CreateKnowledgeQARequest;
 import com.ragagent.session.service.AgentResolver;
 import com.ragagent.session.service.QaSupport;
 import com.ragagent.session.service.QaSupport.QaRequestContext;
+import com.ragagent.session.support.AgentConfigSnapshot;
 import com.ragagent.session.support.SessionNotFoundException;
 import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
@@ -334,7 +335,12 @@ public final class QaRequestParser {
     assistant.setAgentId(agentId);
     assistant.setAgentTenantId(agentTenantId);
     assistant.setModelId(modelId);
-    assistant.setExecutionContext(new MessageExecutionContext());
+    // 追问建议的执行上下文：主流程结束后异步发起时，只认这份快照
+    AgentConfigSnapshot.Snapshot snapshot = AgentConfigSnapshot.of(rc.agentConfig);
+    MessageExecutionContext ctx = new MessageExecutionContext();
+    ctx.setAgentConfigHash(snapshot.configHash());
+    ctx.setQuestionSuggestions(snapshot.questionSuggestions());
+    assistant.setExecutionContext(ctx);
     rc.assistantMessage = assistant;
 
     }

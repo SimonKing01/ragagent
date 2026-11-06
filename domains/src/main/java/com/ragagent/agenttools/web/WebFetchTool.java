@@ -202,7 +202,7 @@ public class WebFetchTool extends BaseTool {
             for (JsonNode element : itemsNode) {
                 WebFetchItem item = parseItemElement(element);
                 if (item == null) {
-                    return new ParsedItems(List.of(), itemsTypeMessage(itemsNode));
+                    return new ParsedItems(List.of(), itemFieldsMessage(element));
                 }
                 items.add(item);
             }
@@ -226,7 +226,7 @@ public class WebFetchTool extends BaseTool {
                     for (JsonNode element : reparsed) {
                         WebFetchItem item = parseItemElement(element);
                         if (item == null) {
-                            return new ParsedItems(List.of(), itemsTypeMessage(reparsed));
+                            return new ParsedItems(List.of(), itemFieldsMessage(element));
                         }
                         items.add(item);
                     }
@@ -239,8 +239,8 @@ public class WebFetchTool extends BaseTool {
         return new ParsedItems(List.of(), itemsTypeMessage(itemsNode));
     }
 
-    /** 单个 item 的字段解析（url 必为文本，offset/limit 必为整型）。 */
-    private static WebFetchItem parseItemElement(JsonNode element) {
+    /** 单个 item 的字段解析（url 必为文本，offset/limit 接受任意数字，按整型取用）。 */
+    static WebFetchItem parseItemElement(JsonNode element) {
         if (!element.isObject()) {
             return null;
         }
@@ -250,13 +250,20 @@ public class WebFetchTool extends BaseTool {
         if (!url.isTextual()) {
             return null;
         }
-        if (!(offset.isMissingNode() || offset.isNull() || offset.isIntegralNumber())) {
+        // 模型在批量 JSON 里常把整数写成 4000.0：接受任意数字，取整使用
+        if (!(offset.isMissingNode() || offset.isNull() || offset.isNumber())) {
             return null;
         }
-        if (!(limit.isMissingNode() || limit.isNull() || limit.isIntegralNumber())) {
+        if (!(limit.isMissingNode() || limit.isNull() || limit.isNumber())) {
             return null;
         }
         return new WebFetchItem(url.asText(), offset.asInt(0), limit.asInt(0));
+    }
+
+    /** 数组元素字段错误文案：比「got array」更接近真实原因（LLM 可见）。 */
+    static String itemFieldsMessage(JsonNode element) {
+        return "invalid argument 'items': each item needs a string url and numeric offset/limit, got "
+                + ToolJson.nodeTypeLabel(element);
     }
 
     /** items 参数的类型错误文案（LLM 可见）。 */

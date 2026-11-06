@@ -120,6 +120,32 @@ class WebSearchServiceExecTest {
     }
 
     @Test
+    void emptyProviderIdFallsBackToTenantDefault() {
+        WebSearchProviderRepository repo = mock(WebSearchProviderRepository.class);
+        WebSearchProviderEntity fallback = entity("prov-default", "bocha");
+        fallback.setDefault(true);
+        when(repo.list(7)).thenReturn(List.of(fallback));
+        when(repo.getById(7, "prov-default")).thenReturn(fallback);
+
+        WebSearchProviderRegistry registry = new WebSearchProviderRegistry();
+        registry.register("bocha", params -> new com.ragagent.websearch.provider.WebSearchProvider() {
+            @Override
+            public String name() {
+                return "bocha";
+            }
+
+            @Override
+            public List<WebSearchResult> search(String query, int maxResults, boolean includeDate) {
+                return List.of();
+            }
+        });
+        WebSearchService service = new WebSearchService(registry, repo, 5);
+
+        // 智能体链路只带开关、不带 providerId：应回落到租户默认源而不是报错
+        assertDoesNotThrow(() -> service.search(7, "", new WebSearchService.WebSearchConfig(), "q"));
+    }
+
+    @Test
     void resolveProviderErrorBranches() {
         WebSearchProviderRepository repo = mock(WebSearchProviderRepository.class);
         when(repo.getById(anyLong(), anyString())).thenReturn(null);

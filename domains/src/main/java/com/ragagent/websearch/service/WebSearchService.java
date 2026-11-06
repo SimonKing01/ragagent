@@ -83,13 +83,20 @@ public class WebSearchService {
         return filterBlacklist(results, config.blacklist);
     }
 
-    /** resolveProvider：优先显式 providerId，回落默认 provider。 */
+    /** resolveProvider：优先显式 providerId，其次租户默认 provider，最后兼容内联 provider。 */
     private WebSearchProvider resolveProvider(
             long tenantId, String providerId, WebSearchConfig cfg) {
-        if (providerId != null && !providerId.isEmpty()) {
-            WebSearchProviderEntity entity = providerRepo.getById(tenantId, providerId);
+        String effectiveId = providerId == null ? "" : providerId;
+        // 智能体链路常只带开关不带 providerId（内置智能体、会话快照都没有这一项），
+        // 缺省时回落到租户的默认搜索源；兼容路径（cfg.provider 内联）保持原优先级。
+        boolean inlineProvider = cfg != null && cfg.provider != null && !cfg.provider.isEmpty();
+        if (effectiveId.isEmpty() && !inlineProvider) {
+            effectiveId = defaultProviderId(tenantId);
+        }
+        if (!effectiveId.isEmpty()) {
+            WebSearchProviderEntity entity = providerRepo.getById(tenantId, effectiveId);
             if (entity == null) {
-                throw new IllegalStateException("web search provider not found: " + providerId);
+                throw new IllegalStateException("web search provider not found: " + effectiveId);
             }
             WebSearchProviderParams params = mergeProxyFromWebSearchConfig(
                     entity.getParameters(), cfg);
@@ -113,6 +120,21 @@ public class WebSearchService {
             }
         }
         throw new IllegalStateException("no web search provider configured");
+    }
+
+    /** 租户默认搜索源：取 isDefault 的第一个；查询失败或没配置时返回空串。 */
+    private String defaultProviderId(long tenantId) {
+        try {
+            for (WebSearchProviderEntity candidate : providerRepo.list(tenantId)) {
+                if (candidate != null && candidate.isDefault()
+                        && candidate.getId() != null && !candidate.getId().isEmpty()) {
+                    return candidate.getId();
+                }
+            }
+        } catch (RuntimeException ignored) {
+            // 查询失败按「没有默认源」处理，保持原有报错路径
+        }
+        return "";
     }
 
     /** mergeProxyFromWebSearchConfig：cfg 的 proxyUrl 非空时调用期覆盖。 */
