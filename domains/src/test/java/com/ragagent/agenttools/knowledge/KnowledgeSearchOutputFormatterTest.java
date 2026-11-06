@@ -30,6 +30,29 @@ class KnowledgeSearchOutputFormatterTest {
     }
 
     @Test
+    void rendersMediaBlockFromKnowledgeMetadata() {
+        ResultWithMeta base = chunkResult();
+        base.sr.metadata = Map.of("mediaRefs",
+                "{\"fileType\":\"mp4\",\"posterRef\":\"local://1/exports/c.jpg\","
+                        + "\"mediaRef\":\"local://1/exports/v.mp4\"}");
+
+        ToolResult result = formatter.formatOutput(List.of(base), List.of("kb1"), List.of("q"));
+
+        assertThat(result.getOutput())
+                .contains("<documents>")
+                .contains("<media type=\"video\">")
+                .contains("<poster>local://1/exports/c.jpg</poster>")
+                .contains("<play>local://1/exports/v.mp4</play>");
+    }
+
+    @Test
+    void omitsDocumentsBlockWhenNothingToShow() {
+        ToolResult result = formatter.formatOutput(List.of(chunkResult()), List.of("kb1"), List.of("q"));
+
+        assertThat(result.getOutput()).doesNotContain("<documents>");
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     void rendersChunkXmlAndData() {
         ToolResult result = formatter.formatOutput(List.of(chunkResult()), List.of("kb1"), List.of("q"));

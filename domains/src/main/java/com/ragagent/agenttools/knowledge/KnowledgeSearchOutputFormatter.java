@@ -9,6 +9,8 @@ import com.ragagent.contract.knowledge.FaqChunkMetadata;
 import com.ragagent.contract.tool.ToolResult;
 import com.ragagent.platform.knowledge.DocChunkSupport;
 import com.ragagent.platform.knowledge.DocChunkSupport.ImageInfoRow;
+import com.ragagent.platform.web.JsonMappers;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -19,6 +21,11 @@ import java.util.Set;
 
 
 final class KnowledgeSearchOutputFormatter {
+
+    private static final Set<String> VIDEO_TYPES =
+            Set.of("mp4", "mov", "m4v", "webm", "mkv", "avi");
+    private static final Set<String> AUDIO_TYPES =
+            Set.of("mp3", "wav", "m4a", "flac", "ogg", "aac");
 
 
     private final KnowledgeSearchTool tool;
@@ -50,35 +57,97 @@ final class KnowledgeSearchOutputFormatter {
         return meta;
     }
 
-    /** 文档级 custom metadata 头（每文档一次，仅当非空）。 */
+    /**
+     * 文档级头信息（每文档一次）：用户自定义元数据 + 媒体引用。
+     *
+     * <p>媒体块是 Agent「主动发视频/图片」的唯一依据：工具输出里没有它，模型就只能
+     * 描述“有一个视频”，无法给出可渲染的封面与播放链接。</p>
+     */
     static void writeKnowledgeMetadataHeader(StringBuilder ob, List<ResultWithMeta> results) {
         Set<String> seen = new LinkedHashSet<>();
-        boolean hasMetadata = false;
+        boolean hasHeader = false;
         StringBuilder documents = new StringBuilder();
         for (ResultWithMeta result : results) {
-            if (result == null || result.sr == null || nz(result.sr.knowledgeId).isEmpty()
-                    || nz(result.sr.knowledgeCustomMetadata).isEmpty()) {
+            if (result == null || result.sr == null || nz(result.sr.knowledgeId).isEmpty()) {
+                continue;
+            }
+            String media = mediaXml(result.sr);
+            boolean hasCustom = !nz(result.sr.knowledgeCustomMetadata).isEmpty();
+            if (media.isEmpty() && !hasCustom) {
                 continue;
             }
             if (!seen.add(result.sr.knowledgeId)) {
                 continue;
             }
-            hasMetadata = true;
+            hasHeader = true;
             documents.append(String.format(Locale.ROOT,
                     "<document knowledgeId=\"%s\" knowledgeBaseId=\"%s\" title=\"%s\">\n",
                     FaqSnippet.xmlEscape(result.sr.knowledgeId),
                     FaqSnippet.xmlEscape(result.sr.knowledgeBaseId),
                     FaqSnippet.xmlEscape(result.sr.knowledgeTitle)));
-            documents.append(String.format(Locale.ROOT, "<metadata>%s</metadata>\n",
-                    FaqSnippet.xmlEscape(result.sr.knowledgeCustomMetadata)));
+            if (hasCustom) {
+                documents.append(String.format(Locale.ROOT, "<metadata>%s</metadata>\n",
+                        FaqSnippet.xmlEscape(result.sr.knowledgeCustomMetadata)));
+            }
+            if (!media.isEmpty()) {
+                documents.append(media);
+            }
             documents.append("</document>\n");
         }
-        if (!hasMetadata) {
+        if (!hasHeader) {
             return;
         }
         ob.append("<documents>\n");
         ob.append(documents);
         ob.append("</documents>\n");
+    }
+
+    /** 从 metadata.mediaRefs 渲染 {@code <media>} 块；没有或不合法时返回空串。 */
+    static String mediaXml(KnowledgeSearchTool.SearchResultView sr) {
+        if (sr.metadata == null) {
+            return "";
+        }
+        String raw = sr.metadata.get("mediaRefs");
+        if (raw == null || raw.isBlank()) {
+            return "";
+        }
+        JsonNode node;
+        try {
+            node = JsonMappers.lenient().readTree(raw);
+        } catch (IOException e) {
+            return "";
+        }
+        if (node == null || !node.isObject()) {
+            return "";
+        }
+        String poster = node.path("posterRef").asText("");
+        String play = node.path("mediaRef").asText("");
+        if (poster.isEmpty() && play.isEmpty()) {
+            return "";
+        }
+        String kind = mediaKind(node.path("fileType").asText(""));
+        StringBuilder b = new StringBuilder();
+        b.append(String.format(Locale.ROOT, "<media type=\"%s\">\n", FaqSnippet.xmlEscape(kind)));
+        if (!poster.isEmpty()) {
+            b.append(String.format(Locale.ROOT, "<poster>%s</poster>\n", FaqSnippet.xmlEscape(poster)));
+        }
+        if (!play.isEmpty()) {
+            b.append(String.format(Locale.ROOT, "<play>%s</play>\n", FaqSnippet.xmlEscape(play)));
+        }
+        b.append("</media>\n");
+        return b.toString();
+    }
+
+    /** 扩展名 → 媒体类型（video / audio / image）。 */
+    static String mediaKind(String fileType) {
+        String ext = fileType == null ? "" : fileType.toLowerCase(Locale.ROOT);
+        if (VIDEO_TYPES.contains(ext)) {
+            return "video";
+        }
+        if (AUDIO_TYPES.contains(ext)) {
+            return "audio";
+        }
+        return "image";
     }
 
     /** 工具输出渲染。 */

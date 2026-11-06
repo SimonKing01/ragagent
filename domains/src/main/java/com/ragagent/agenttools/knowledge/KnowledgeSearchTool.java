@@ -145,6 +145,8 @@ public class KnowledgeSearchTool extends BaseTool {
         public String parentChunkId;
         public String imageInfo;
         public String knowledgeCustomMetadata;
+        /** 知识条目 metadata（含 mediaRefs），供工具输出渲染媒体块。 */
+        public Map<String, String> metadata;
         public String knowledgeSource;
         public int startAt;
         public int endAt;
@@ -163,6 +165,7 @@ public class KnowledgeSearchTool extends BaseTool {
             c.parentChunkId = parentChunkId;
             c.imageInfo = imageInfo;
             c.knowledgeCustomMetadata = knowledgeCustomMetadata;
+            c.metadata = metadata;
             c.knowledgeSource = knowledgeSource;
             c.startAt = startAt;
             c.endAt = endAt;

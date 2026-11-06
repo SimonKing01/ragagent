@@ -533,6 +533,7 @@ final class AgentToolKbBackends {
         v.parentChunkId = AgentToolBackends.nz(r.getParentChunkId());
         v.imageInfo = AgentToolBackends.nz(r.getImageInfo());
         v.knowledgeCustomMetadata = AgentToolBackends.nz(r.getKnowledgeCustomMetadata());
+        v.metadata = r.getMetadata();
         v.knowledgeSource = AgentToolBackends.nz(r.getKnowledgeSource());
         v.startAt = r.getStartAt();
         v.endAt = r.getEndAt();
