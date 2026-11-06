@@ -7,6 +7,15 @@
  *   3. 就绪 → 真实内容接管；存量会话被判定失效时回落迎宾骨架。
  * 所有形态共用 `.eb-skel` 底块与尺寸，骨架切真实内容时不跳。
  */
+/* widget 是独立入口，不加载主站字体：显式声明系统 sans 栈，
+   否则 Safari 会回落到默认衬线（中文即宋体）。 */
+html,
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    sans-serif;
+}
+
 /* 骨架宿主：形态由调用方（embed.html 内联脚本 / EmbedBootSkeleton 的 variant）决定 */
 .embed-boot {
   display: flex;

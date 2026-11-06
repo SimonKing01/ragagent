@@ -442,6 +442,10 @@ watch(headerTitle, (title) => {
   background: var(--td-bg-color-container, #fff);
   overflow: hidden;
   position: relative;
+  /* 入口不加载主站字体，这里显式给系统 sans 栈（否则 Safari 回落宋体） */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    sans-serif;
 
   /* 渠道主题色由 pageStyle 内联写入 --td-brand-color*；未配置时继承全局主题色。 */
 

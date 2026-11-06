@@ -24,7 +24,9 @@
       class="embed-input-box__textarea"
       :class="{ 'has-images': uploadedImages.length > 0 }"
       :placeholder="t('input.placeholder')"
-      :autosize="{ minRows: 1, maxRows: 6 }"
+      :autosize="false"
+      :rows="1"
+      @input="syncTextareaHeight"
       @keydown="onKeydown"
       @compositionstart="isComposing = true"
       @compositionend="isComposing = false"
@@ -114,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { embedToast } from '@/utils/embedToast'
 import { isEmbedImageFile } from '@/utils/embedFile'
@@ -146,11 +148,48 @@ const getTextareaEl = (): HTMLTextAreaElement | null => {
   return inner instanceof HTMLTextAreaElement ? inner : null
 }
 
+/**
+ * 输入框高度自管（不用 TDesign 的 autosize）。
+ *
+ * Safari 在首帧会用未稳定样式算出偏大的 scrollHeight 写进内联 height，
+ * 表现为「打开时输入框特别高，一输入就缩回正常」；而且它的 resize 观察者
+ * 还会在布局稳定后再写一次错误值。这里直接按 scrollHeight 自己算，
+ * 上限 192px（6 行），超出内部滚动。
+ */
+const TEXTAREA_MAX_HEIGHT = 192
+
+const syncTextareaHeight = () => {
+  const el = getTextareaEl()
+  if (!el) return
+  // rows 固定成 1：否则 textarea 自带 2 行基线，空状态会被算成 108px
+  if (el.rows !== 1) el.rows = 1
+  el.style.height = 'auto'
+  const next = Math.min(el.scrollHeight, TEXTAREA_MAX_HEIGHT)
+  el.style.height = `${next}px`
+  el.style.overflowY = el.scrollHeight > TEXTAREA_MAX_HEIGHT ? 'auto' : 'hidden'
+}
+
+// 值变化（含程序化清空）后同步一次高度
+watch(query, () => nextTick(syncTextareaHeight))
+
 onMounted(() => {
   nextTick(() => {
     textareaReady.value = true
+    nextTick(syncTextareaHeight)
+    requestAnimationFrame(syncTextareaHeight)
+    // Safari 的布局/字体在 load 之后还会再稳一次，这里多兜几次
+    window.setTimeout(syncTextareaHeight, 120)
+    window.setTimeout(syncTextareaHeight, 400)
+    // 中文字体加载完行高才最终确定
+    document.fonts?.ready.then(syncTextareaHeight).catch(() => {})
   })
 })
+
+onUnmounted(() => {
+  window.removeEventListener('resize', syncTextareaHeight)
+})
+
+window.addEventListener('resize', syncTextareaHeight)
 const imageInputRef = ref<HTMLInputElement | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const uploadedImages = ref<Array<{ file: File; preview: string }>>([])
@@ -270,7 +309,7 @@ onUnmounted(() => {
   background: var(--td-bg-color-container, #fff);
   border-radius: 12px;
   border: 0.5px solid var(--td-component-border, #e7e7e7);
-  box-shadow: 0 6px 6px rgba(0, 0, 0, 0.04), 0 12px 12px -1px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 6px rgba(0, 0, 0, 0.04), 0 6px 6px -1px rgba(0, 0, 0, 0.08);
   transition: border-color 0.15s ease;
 
   &:focus-within {
@@ -302,6 +341,9 @@ onUnmounted(() => {
       font-size: 14px;
       line-height: 1.5;
       min-height: 90px !important;
+      /* 上限 = 6 行 × 21 + 上下 padding(66)；超出内部滚动，避免撑破面板 */
+      max-height: 192px;
+      overflow-y: auto;
       resize: none;
     }
 
