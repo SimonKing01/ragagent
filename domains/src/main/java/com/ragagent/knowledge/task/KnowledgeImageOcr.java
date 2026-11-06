@@ -242,7 +242,7 @@ final class KnowledgeImageOcr {
         if (index < 0) {
             return markdown;
         }
-        String insertion = needle + "\n\n（图内文字）\n" + text + "\n";
+        String insertion = needle + "\n\n## image text\n\n" + text + "\n";
         return markdown.substring(0, index) + insertion
                 + markdown.substring(index + needle.length());
     }

@@ -6,8 +6,9 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # 健康检查要发 HTTP（只探 TCP 会在 Spring 上下文起来之前就通过）。
+# curl 供健康检查；ffmpeg/ffprobe 供音视频入库（抽音轨转写、抽帧当封面）
 RUN apt-get update -qq \
-    && apt-get install -y -qq --no-install-recommends curl \
+    && apt-get install -y -qq --no-install-recommends curl ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd -m -s /bin/bash --uid 1001 ragagent

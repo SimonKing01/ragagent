@@ -14,6 +14,7 @@ import com.ragagent.knowledge.storage.TenantFileStorage;
 import com.ragagent.knowledge.support.HtmlMainContent;
 import com.ragagent.knowledge.support.ProcessOverridesResolver;
 import com.ragagent.platform.knowledge.ImageRefRewriter;
+import com.ragagent.platform.text.ContentTypeByFilename;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -35,6 +36,8 @@ final class KnowledgeTextExtractor {
     private final DocReaderClient docReader;
     private final KnowledgeBaseRepository kbRepository;
     private final KnowledgeImageOcr imageOcr;
+    /** 音视频分支：DocReader 不认视频，这两类走抽音轨 + ASR。 */
+    private final KnowledgeMediaTranscriber mediaTranscriber;
     private final SpanTracker spanTracker;
 
     KnowledgeTextExtractor(TenantFileStorage fileStorage,
@@ -42,12 +45,14 @@ final class KnowledgeTextExtractor {
             DocReaderClient docReader,
             KnowledgeBaseRepository kbRepository,
             KnowledgeImageOcr imageOcr,
+            KnowledgeMediaTranscriber mediaTranscriber,
             SpanTracker spanTracker) {
         this.fileStorage = fileStorage;
         this.extractedImageStore = extractedImageStore;
         this.docReader = docReader;
         this.kbRepository = kbRepository;
         this.imageOcr = imageOcr;
+        this.mediaTranscriber = mediaTranscriber;
         this.spanTracker = spanTracker;
     }
 
@@ -56,6 +61,26 @@ final class KnowledgeTextExtractor {
             String content = k.getMetadata() != null && k.getMetadata().hasNonNull("content")
                     ? k.getMetadata().get("content").asText() : "";
             return imageOcr.enrich(k, content, attempt, knowledgeId, resolveOcrEnabled(k));
+        }
+        if (mediaTranscriber != null && mediaTranscriber.supports(k)) {
+            byte[] mediaBytes = fileStorage.read(
+                    k.getTenantId() == null ? 0L : k.getTenantId(), k.getFilePath());
+            SpanTracker.SpanHandle mediaSpan = beginStageSpan(attempt, knowledgeId,
+                    KnowledgeProcessingSpan.STAGE_DOC_READER,
+                    Map.of(
+                            "file_type", k.getFileType() == null ? "" : k.getFileType(),
+                            "file_name", k.getFileName() == null ? "" : k.getFileName(),
+                            "parser", "media"));
+            String mediaMarkdown;
+            try {
+                mediaMarkdown = mediaTranscriber.render(k, mediaBytes);
+            } catch (RuntimeException e) {
+                failStageSpan(mediaSpan, "MEDIA_TRANSCRIBE_FAILED",
+                        e.getMessage() == null ? e.toString() : e.getMessage(), e);
+                throw e;
+            }
+            endStageSpan(mediaSpan, Map.of("chars", mediaMarkdown.length()));
+            return mediaMarkdown;
         }
         SpanTracker.SpanHandle docSpan = beginStageSpan(attempt, knowledgeId,
                 KnowledgeProcessingSpan.STAGE_DOC_READER,
@@ -77,6 +102,8 @@ final class KnowledgeTextExtractor {
                     : parsed.imageRefs().stream().map(r -> new ImageRefRewriter.RefRow(
                             r.originalRef(), r.filename(), r.mimeType(), r.imageData())).toList();
             markdown = extractedImageStore.storeAndRewrite(k, rows, parsed.markdown());
+            // 图片文档补一级标题：与音视频分块结构对齐（标题 → 图片 → 图内文字）
+            markdown = withTitleHeading(k, markdown);
         } catch (RuntimeException e) {
             failStageSpan(docSpan, "DOCREADER_FAILED",
                     e.getMessage() == null ? e.toString() : e.getMessage(), e);
@@ -84,6 +111,21 @@ final class KnowledgeTextExtractor {
         }
         endStageSpan(docSpan, Map.of("chars", markdown.length()));
         return imageOcr.enrich(k, markdown, attempt, knowledgeId, resolveOcrEnabled(k));
+    }
+
+    /** 图片类文档：正文最前面补 `# {标题}`（已有标题则不动）。 */
+    private static String withTitleHeading(Knowledge k, String markdown) {
+        if (markdown == null || markdown.isBlank()
+                || !ContentTypeByFilename.isImageExt(k.getFileType())) {
+            return markdown;
+        }
+        if (markdown.stripLeading().startsWith("# ")) {
+            return markdown;
+        }
+        String title = k.getTitle() == null || k.getTitle().isBlank()
+                ? (k.getFileName() == null ? "image" : k.getFileName())
+                : k.getTitle().trim();
+        return "# " + title + "\n\n" + markdown;
     }
 
     /**

@@ -74,7 +74,8 @@ public class ParserEngineCatalog implements ParserEngineCatalogPort {
                 List.of("docx", "doc", "pdf", "md", "markdown", "xlsx", "xls",
                         "pptx", "ppt", "epub", "html", "htm", "mhtml", "xmind",
                         "jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp",
-                        "mp3", "wav", "m4a", "flac", "ogg"),
+                        "mp3", "wav", "m4a", "flac", "ogg",
+                        "mp4", "mov", "m4v", "webm", "mkv", "avi"),
                 docreaderConnected,
                 docreaderConnected ? "" : "DocReader service not connected",
                 result);
@@ -83,7 +84,8 @@ public class ParserEngineCatalog implements ParserEngineCatalogPort {
         engine(SIMPLE, "Simple format & image parsing (no external service required)",
                 List.of("md", "markdown", "txt", "csv", "json",
                         "jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp",
-                        "mp3", "wav", "m4a", "flac", "ogg"),
+                        "mp3", "wav", "m4a", "flac", "ogg",
+                        "mp4", "mov", "m4v", "webm", "mkv", "avi"),
                 true, "", result);
 
         // anydoc — 构建期绑定；本项目构建未启用 → 恒 false，恒走此分支。

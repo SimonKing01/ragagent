@@ -12,6 +12,7 @@ import com.ragagent.contract.knowledge.KnowledgeBaseGateway;
 import com.ragagent.contract.knowledge.KnowledgeBaseProvisioner;
 import com.ragagent.contract.knowledge.KnowledgeBaseSearchFacts;
 import com.ragagent.contract.knowledge.KnowledgeBaseSearchGateway;
+import com.ragagent.contract.knowledge.config.AsrConfigView;
 import com.ragagent.contract.retrieval.IndexEngineResolver;
 import com.ragagent.contract.retrieval.RetrieveEngineException;
 import com.ragagent.contract.storage.StorageBackendPort;
@@ -29,6 +30,7 @@ import com.ragagent.knowledge.repository.KnowledgeBaseRepository;
 import com.ragagent.knowledge.repository.KnowledgeRepository;
 import com.ragagent.knowledge.repository.UserKbPinRepository;
 import com.ragagent.knowledge.support.KnowledgeBaseConfigCodec;
+import com.ragagent.knowledge.support.KnowledgeBaseConfigMaps;
 import com.ragagent.platform.access.TenantContext;
 import com.ragagent.platform.config.RetrievalDriverProperties;
 import com.ragagent.platform.security.LogSanitizer;
@@ -565,6 +567,13 @@ public class KnowledgeBaseService
         }
         if (config.hasNonNull("autoTagConfig")) {
             kb.setAutoTagConfig(config.get("autoTagConfig"));
+        }
+        // 音视频转写依赖 KB 的 ASR 配置（编辑器里的「音频处理」）：漏掉这里，
+        // 表单能改但保存后仍是空配置，解析时只能退回租户默认模型。
+        if (config.hasNonNull("asrConfig")) {
+            AsrConfigView asr = JsonMappers.lenient()
+                    .convertValue(config.get("asrConfig"), AsrConfigView.class);
+            kb.setAsrConfig(KnowledgeBaseConfigMaps.toDomain(asr));
         }
         // indexingStrategy：引用语义 null=不变；hasAnyIndexing 为 false → 400
         if (config.has("indexingStrategy") && config.get("indexingStrategy") != null

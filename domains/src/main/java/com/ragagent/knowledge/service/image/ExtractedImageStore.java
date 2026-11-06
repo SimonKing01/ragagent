@@ -199,6 +199,26 @@ public class ExtractedImageStore {
     }
 
     /** 单张落盘 + 登记 + 绑定，返回正文引用（provider 形态）。 */
+    /**
+     * 音视频管线复用同一套落点：写 exports → 登记资源 → 绑定本篇知识。
+     *
+     * <p>不登记绑定的话，知识库文件代理的双条件只满足一半，取图/取视频会被拒。</p>
+     */
+    public String storeFor(Knowledge k, byte[] data, String fileName, String mimeType, String kind) {
+        if (k == null || data == null || data.length == 0) {
+            return "";
+        }
+        long tenantId = k.getTenantId() == null ? 0L : k.getTenantId();
+        if (tenantId == 0) {
+            return "";
+        }
+        String ref = fileStorage.saveExportBytes(tenantId, fileName, data);
+        String handle = resourceCatalog.register(tenantId, ref,
+                new ResourceCatalogPort.ResourceMeta(kind, mimeType, fileName, data.length, "", false));
+        resourceCatalog.bind(handle, "knowledge", k.getId(), "attachment");
+        return ref;
+    }
+
     private String storeOne(long tenantId, String knowledgeId, byte[] data,
             String fileName, String mimeType) {
         String ref = fileStorage.saveExportBytes(tenantId, fileName, data);

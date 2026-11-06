@@ -50,7 +50,7 @@ final class KnowledgeProcessWorkerFixture {
             ObjectProvider<QuestionGenerationTaskQueue> questionQueue) {
         KnowledgeTextExtractor textExtractor = new KnowledgeTextExtractor(
                 fileStorage, extractedImageStore, docReader, kbRepository,
-                new KnowledgeImageOcr(fileStorage, ocrProperties, spanTracker), spanTracker);
+                new KnowledgeImageOcr(fileStorage, ocrProperties, spanTracker), null, spanTracker);
         KnowledgeIngestPipeline pipeline = new KnowledgeIngestPipeline(
                 textExtractor,
                 new KnowledgeChunkWriter(chunkRepository, spanTracker),

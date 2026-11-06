@@ -43,7 +43,7 @@ class KnowledgeImageOcrTest {
                 .enrich(knowledge(), markdown, 0, "kid");
 
         assertThat(result).contains("第一行\n第二行");
-        assertThat(result).contains("（图内文字）");
+        assertThat(result).contains("## image text");
         assertThat(result.indexOf("第一行")).isGreaterThan(result.indexOf(IMAGE_REF));
         assertThat(result).contains("正文");
     }

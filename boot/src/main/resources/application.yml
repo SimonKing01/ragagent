@@ -104,6 +104,12 @@ knowledge:
     concurrency: ${OCR_CONCURRENCY:2}
     # 送识别前的最长边上限（等比缩小，控制服务端内存与耗时）
     max-image-side: ${OCR_MAX_IMAGE_SIDE:1600}
+  # 音视频入库：抽音轨 → ASR 转写。超过时长的直接判失败，避免堵住解析队列。
+  media:
+    max-duration-seconds: ${MEDIA_MAX_DURATION_SECONDS:600}
+    # 二进制路径：生产镜像由 Dockerfile.app 安装 ffmpeg
+    ffmpeg-path: ${FFMPEG_PATH:ffmpeg}
+    ffprobe-path: ${FFPROBE_PATH:ffprobe}
 
 # memory 蒸馏队列：缺省进程内队列（单实例语义）；true = Redis 共享任务表
 # （跨实例执行 + 崩溃回收重投；重复触发由租约保证不重复蒸馏，启动时 ping 一次）。

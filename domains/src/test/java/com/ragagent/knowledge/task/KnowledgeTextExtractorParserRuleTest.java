@@ -18,7 +18,7 @@ class KnowledgeTextExtractorParserRuleTest {
 
     private final KnowledgeBaseRepository kbRepository = mock(KnowledgeBaseRepository.class);
     private final KnowledgeTextExtractor extractor =
-            new KnowledgeTextExtractor(null, null, null, kbRepository, null, null);
+            new KnowledgeTextExtractor(null, null, null, kbRepository, null, null, null);
 
     private static Knowledge knowledge(String kbId, String fileType) {
         Knowledge k = new Knowledge();
