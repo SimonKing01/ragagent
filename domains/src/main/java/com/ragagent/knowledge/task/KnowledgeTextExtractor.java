@@ -104,6 +104,10 @@ final class KnowledgeTextExtractor {
             markdown = extractedImageStore.storeAndRewrite(k, rows, parsed.markdown());
             // 图片文档补一级标题：与音视频分块结构对齐（标题 → 图片 → 图内文字）
             markdown = withTitleHeading(k, markdown);
+            // 图片引用登记到 metadata.mediaRefs，检索时随结果带给模型
+            if (mediaTranscriber != null) {
+                mediaTranscriber.recordImageRefs(k, markdown);
+            }
         } catch (RuntimeException e) {
             failStageSpan(docSpan, "DOCREADER_FAILED",
                     e.getMessage() == null ? e.toString() : e.getMessage(), e);

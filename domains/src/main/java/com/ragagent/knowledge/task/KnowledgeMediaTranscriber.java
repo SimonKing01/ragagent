@@ -1,21 +1,23 @@
 package com.ragagent.knowledge.task;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.contract.model.AsrTranscriber;
-import com.ragagent.contract.model.ModelCatalogPort;
 import com.ragagent.contract.model.ModelCatalogPort.ModelRowView;
-import com.ragagent.contract.model.ModelRuntime;
 import com.ragagent.knowledge.domain.Knowledge;
 import com.ragagent.knowledge.domain.KnowledgeBase;
 import com.ragagent.knowledge.domain.KnowledgeBaseAsrConfig;
-import com.ragagent.knowledge.repository.KnowledgeBaseRepository;
 import com.ragagent.knowledge.service.image.ExtractedImageStore;
 import com.ragagent.knowledge.support.FfmpegMedia;
 import com.ragagent.knowledge.support.MediaFileTypes;
+import com.ragagent.knowledge.support.MediaPipelineDeps;
+import com.ragagent.platform.web.JsonMappers;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,27 +41,11 @@ public class KnowledgeMediaTranscriber {
     private static final String KIND_FILE = "file";
 
     private final ExtractedImageStore imageStore;
-    private final ModelCatalogPort modelCatalog;
-    private final ModelRuntime modelRuntime;
-    private final AsrTranscriber asrTranscriber;
-    private final KnowledgeBaseRepository kbRepository;
-    private final FfmpegMedia media;
-    private final int maxDurationSeconds;
+    private final MediaPipelineDeps deps;
 
-    public KnowledgeMediaTranscriber(ExtractedImageStore imageStore,
-            ModelCatalogPort modelCatalog,
-            ModelRuntime modelRuntime,
-            AsrTranscriber asrTranscriber,
-            KnowledgeBaseRepository kbRepository,
-            FfmpegMedia media,
-            int maxDurationSeconds) {
+    public KnowledgeMediaTranscriber(ExtractedImageStore imageStore, MediaPipelineDeps deps) {
         this.imageStore = imageStore;
-        this.modelCatalog = modelCatalog;
-        this.modelRuntime = modelRuntime;
-        this.asrTranscriber = asrTranscriber;
-        this.kbRepository = kbRepository;
-        this.media = media;
-        this.maxDurationSeconds = maxDurationSeconds;
+        this.deps = deps;
     }
 
     /** 该文档是否由本类处理（音视频）。 */
@@ -74,10 +60,10 @@ public class KnowledgeMediaTranscriber {
     public String render(Knowledge k, byte[] content) throws Exception {
         Path mediaFile = FfmpegMedia.writeTemp(content, k.getFileType());
         try {
-            FfmpegMedia.Probe probe = media.probe(mediaFile);
-            if (probe.durationSeconds() > maxDurationSeconds) {
+            FfmpegMedia.Probe probe = deps.media().probe(mediaFile);
+            if (probe.durationSeconds() > deps.maxDurationSeconds()) {
                 throw new IllegalStateException("音视频时长超过上限（"
-                        + (int) probe.durationSeconds() + "s > " + maxDurationSeconds + "s）");
+                        + (int) probe.durationSeconds() + "s > " + deps.maxDurationSeconds() + "s）");
             }
             String title = displayTitle(k);
             boolean video = MediaFileTypes.isVideo(k.getFileType());
@@ -88,6 +74,7 @@ public class KnowledgeMediaTranscriber {
                     : (video
                             ? "This video has no audio track; no transcript is available."
                             : "This audio file has no recognizable speech track.");
+            recordMediaRefs(k, k.getFileType(), coverRef, mediaRef, probe.durationSeconds());
             return buildMarkdown(title, k.getFileName(), video, coverRef, mediaRef,
                     transcript, probe.durationSeconds());
         } finally {
@@ -145,8 +132,8 @@ public class KnowledgeMediaTranscriber {
         if (modelId.isEmpty()) {
             throw new IllegalStateException("未配置语音识别（ASR）模型，无法转写音视频");
         }
-        byte[] audio = this.media.extractAudioMp3(mediaFile);
-        ModelRowView model = modelRuntime.getAsrModel(modelId);
+        byte[] audio = deps.media().extractAudioMp3(mediaFile);
+        ModelRowView model = deps.modelRuntime().getAsrModel(modelId);
         var params = model.parameters();
         AsrTranscriber.AsrConfig config = new AsrTranscriber.AsrConfig(
                 params == null ? "" : params.getBaseUrl(),
@@ -156,7 +143,7 @@ public class KnowledgeMediaTranscriber {
                 resolveLanguage(k),
                 params == null ? null : params.getCustomHeaders());
         AsrTranscriber.TranscriptionResult result =
-                asrTranscriber.transcribe(config, audio, "audio.mp3");
+                deps.asrTranscriber().transcribe(config, audio, "audio.mp3");
         return formatSegments(result);
     }
 
@@ -195,10 +182,61 @@ public class KnowledgeMediaTranscriber {
 
     // ── 媒体落盘 ────────────────────────────────────────────────────────
 
+    /** 图片文档的引用（正文里第一张 exports 图）记进 mediaRefs，供检索结果与提示词使用。 */
+    private static final Pattern IMAGE_REF =
+            Pattern.compile("!\\[[^\\]]*\\]\\((local://[^)\\s]+)");
+
+    public void recordImageRefs(Knowledge k, String markdown) {
+        if (k == null || markdown == null || markdown.isEmpty()) {
+            return;
+        }
+        Matcher m = IMAGE_REF.matcher(markdown);
+        if (!m.find()) {
+            return;
+        }
+        recordMediaRefs(k, k.getFileType(), m.group(1), "", null);
+    }
+
+    /**
+     * 把媒体引用写进 {@code knowledge.metadata.mediaRefs}（内部字段，非用户自定义元数据）。
+     *
+     * <p>检索时随 SearchResult.metadata 一起带给模型，模型才有东西可输出；没写过就保持原样。</p>
+     */
+    private void recordMediaRefs(Knowledge k, String fileType, String posterRef,
+            String mediaRef, Double durationSeconds) {
+        if (k == null || k.getId() == null || k.getId().isBlank()) {
+            return;
+        }
+        JsonNode existing = k.getMetadata();
+        ObjectNode root;
+        if (existing != null && existing.isObject()) {
+            root = ((ObjectNode) existing).deepCopy();
+        } else {
+            root = JsonMappers.lenient().createObjectNode();
+        }
+        ObjectNode refs = root.putObject("mediaRefs");
+        refs.put("fileType", fileType == null ? "" : fileType);
+        if (posterRef != null && !posterRef.isEmpty()) {
+            refs.put("posterRef", posterRef);
+        }
+        if (mediaRef != null && !mediaRef.isEmpty()) {
+            refs.put("mediaRef", mediaRef);
+        }
+        if (durationSeconds != null) {
+            refs.put("durationSeconds", Math.round(durationSeconds));
+        }
+        k.setMetadata(root);
+        try {
+            deps.knowledgeRepository().updateMetadataOnly(k.getId(), root);
+        } catch (RuntimeException e) {
+            log.warn("persist mediaRefs failed for knowledge {}", k.getId(), e);
+        }
+    }
+
     /** 封面取**首帧**（0s），与用户预期一致。 */
     private String storeCover(Knowledge k, Path mediaFile) {
         try {
-            byte[] cover = media.extractCoverJpeg(mediaFile, 0d);
+            byte[] cover = deps.media().extractCoverJpeg(mediaFile, 0d);
             if (cover.length == 0) {
                 return "";
             }
@@ -327,7 +365,7 @@ public class KnowledgeMediaTranscriber {
         String kbId = k.getKnowledgeBaseId();
         if (kbId != null && !kbId.isBlank()) {
             try {
-                KnowledgeBase kb = kbRepository.findByIdOnly(kbId);
+                KnowledgeBase kb = deps.kbRepository().findByIdOnly(kbId);
                 KnowledgeBaseAsrConfig asr = kb == null ? null : kb.getAsrConfig();
                 if (asr != null && asr.isEnabled() && asr.getModelId() != null
                         && !asr.getModelId().isBlank()) {
@@ -337,11 +375,11 @@ public class KnowledgeMediaTranscriber {
                 log.warn("resolve kb asr config failed for {}", kbId, e);
             }
         }
-        if (modelCatalog == null) {
+        if (deps.modelCatalog() == null) {
             return "";
         }
         try {
-            for (ModelRowView model : modelCatalog.listModels()) {
+            for (ModelRowView model : deps.modelCatalog().listModels()) {
                 if (model != null && "ASR".equalsIgnoreCase(model.type())) {
                     return model.id();
                 }
@@ -362,7 +400,7 @@ public class KnowledgeMediaTranscriber {
             return "";
         }
         try {
-            KnowledgeBase kb = kbRepository.findByIdOnly(kbId);
+            KnowledgeBase kb = deps.kbRepository().findByIdOnly(kbId);
             KnowledgeBaseAsrConfig asr = kb == null ? null : kb.getAsrConfig();
             return asr == null || asr.getLanguage() == null ? "" : asr.getLanguage();
         } catch (RuntimeException e) {

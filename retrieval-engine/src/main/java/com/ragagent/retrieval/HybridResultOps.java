@@ -197,17 +197,18 @@ final class HybridResultOps {
         if (meta == null || meta.isNull()) {
             r.setMetadata(new LinkedHashMap<>());
         } else if (meta.isObject()) {
+            // 容器值（如 mediaRefs）序列化成 JSON 字符串：以前只要有一个非字符串键
+            // 就整包丢弃，媒体引用永远到不了模型上下文。
             Map<String, String> m = new LinkedHashMap<>();
-            boolean allStrings = true;
             for (var it = meta.fields(); it.hasNext(); ) {
                 var e = it.next();
-                if (e.getValue() == null || !e.getValue().isTextual()) {
-                    allStrings = false;
-                    break;
+                var v = e.getValue();
+                if (v == null || v.isNull()) {
+                    continue;
                 }
-                m.put(e.getKey(), e.getValue().asText());
+                m.put(e.getKey(), v.isContainerNode() ? v.toString() : v.asText());
             }
-            r.setMetadata(allStrings ? m : null);
+            r.setMetadata(m.isEmpty() ? new LinkedHashMap<>() : m);
         } else {
             r.setMetadata(null);
         }

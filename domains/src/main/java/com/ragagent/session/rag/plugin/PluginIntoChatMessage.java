@@ -1,20 +1,25 @@
 package com.ragagent.session.rag.plugin;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ragagent.contract.retrieval.ChunkTypes;
 import com.ragagent.contract.retrieval.RetrievalObsRows;
 import com.ragagent.contract.retrieval.SearchResult;
 import com.ragagent.platform.prompt.AgentPromptPlaceholders;
 import com.ragagent.platform.prompt.MessageAttachmentsPrompt;
 import com.ragagent.platform.security.InputSanitizer;
+import com.ragagent.platform.web.JsonMappers;
 import com.ragagent.session.rag.PipelineEventType;
 import com.ragagent.session.rag.PipelineLog;
 import com.ragagent.session.rag.PipelineMessageStore;
 import com.ragagent.session.rag.PipelineState;
 import com.ragagent.session.rag.support.ReferencesSupport;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * INTO_CHAT_MESSAGE 阶段插件：
@@ -256,8 +261,66 @@ public final class PluginIntoChatMessage implements Plugin {
     }
 
     /** &lt;documents&gt; 元数据头（title/desc/metadata 转义）。 */
+    /**
+     * 文档级媒体块：检索结果的 metadata 里带 {@code mediaRefs} 时，把它翻成模型能照抄的
+     * {@code <media>} 段（poster / play 都是内部引用，前端可渲染）。
+     *
+     * <p>只有图片/视频/音频文档才有这段，且按知识条目去重，不会每个分块重复。</p>
+     */
+    private static final Set<String> VIDEO_TYPES =
+            Set.of("mp4", "mov", "m4v", "webm", "mkv", "avi");
+    private static final Set<String> AUDIO_TYPES =
+            Set.of("mp3", "wav", "m4a", "flac", "ogg", "aac");
+
+    static String mediaBlock(SearchResult r) {
+        if (r.getMetadata() == null) {
+            return "";
+        }
+        String raw = r.getMetadata().get("mediaRefs");
+        if (raw == null || raw.isBlank()) {
+            return "";
+        }
+        JsonNode node;
+        try {
+            node = JsonMappers.lenient().readTree(raw);
+        } catch (IOException e) {
+            return "";
+        }
+        if (node == null || !node.isObject()) {
+            return "";
+        }
+        String poster = node.path("posterRef").asText("");
+        String play = node.path("mediaRef").asText("");
+        if (poster.isEmpty() && play.isEmpty()) {
+            return "";
+        }
+        String kind = mediaKind(node.path("fileType").asText(""));
+        StringBuilder b = new StringBuilder();
+        b.append(String.format("<media type=\"%s\">\n", escapeHtml(kind)));
+        if (!poster.isEmpty()) {
+            b.append(String.format("<poster>%s</poster>\n", escapeHtml(poster)));
+        }
+        if (!play.isEmpty()) {
+            b.append(String.format("<play>%s</play>\n", escapeHtml(play)));
+        }
+        b.append("</media>\n");
+        return b.toString();
+    }
+
+    /** 扩展名 → 媒体类型（video / audio / image）。 */
+    static String mediaKind(String fileType) {
+        String ext = fileType == null ? "" : fileType.toLowerCase(Locale.ROOT);
+        if (VIDEO_TYPES.contains(ext)) {
+            return "video";
+        }
+        if (AUDIO_TYPES.contains(ext)) {
+            return "audio";
+        }
+        return "image";
+    }
+
     public static String buildDocumentHeader(List<SearchResult> results) {
-        record DocMeta(String title, String description, String metadata) {}
+        record DocMeta(String title, String description, String metadata, String media) {}
 
         Map<String, Boolean> seen = new LinkedHashMap<>();
         List<DocMeta> docs = new ArrayList<>();
@@ -280,7 +343,8 @@ public final class PluginIntoChatMessage implements Plugin {
             }
             docs.add(new DocMeta(title,
                     r.getKnowledgeDescription() == null ? "" : r.getKnowledgeDescription(),
-                    r.getKnowledgeCustomMetadata() == null ? "" : r.getKnowledgeCustomMetadata()));
+                    r.getKnowledgeCustomMetadata() == null ? "" : r.getKnowledgeCustomMetadata(),
+                    mediaBlock(r)));
         }
 
         if (docs.isEmpty()) {
@@ -297,6 +361,9 @@ public final class PluginIntoChatMessage implements Plugin {
             }
             if (!d.metadata().isEmpty()) {
                 b.append(String.format("<metadata>%s</metadata>\n", escapeHtml(d.metadata())));
+            }
+            if (!d.media().isEmpty()) {
+                b.append(d.media());
             }
             b.append("</document>\n");
         }

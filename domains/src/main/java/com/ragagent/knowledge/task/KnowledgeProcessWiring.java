@@ -17,6 +17,7 @@ import com.ragagent.knowledge.repository.KnowledgeRepository;
 import com.ragagent.knowledge.service.image.ExtractedImageStore;
 import com.ragagent.knowledge.storage.TenantFileStorage;
 import com.ragagent.knowledge.support.FfmpegMedia;
+import com.ragagent.knowledge.support.MediaPipelineDeps;
 import com.ragagent.wiki.service.DefaultWikiKnowledgeFinalizer;
 import com.ragagent.wiki.service.ingest.WikiIngestService;
 import org.springframework.beans.factory.ObjectProvider;
@@ -60,9 +61,10 @@ public class KnowledgeProcessWiring {
         KnowledgeTextExtractor textExtractor = new KnowledgeTextExtractor(
                 fileStorage, extractedImageStore, docReader, kbRepository,
                 new KnowledgeImageOcr(fileStorage, ocrProperties, spanTracker),
-                new KnowledgeMediaTranscriber(extractedImageStore, modelCatalog,
-                        modelRuntimeAssembler, asrTranscriber, kbRepository,
-                        new FfmpegMedia(ffmpegPath, ffprobePath), mediaMaxDurationSeconds),
+                new KnowledgeMediaTranscriber(extractedImageStore,
+                        new MediaPipelineDeps(modelCatalog, modelRuntimeAssembler, asrTranscriber,
+                                kbRepository, knowledgeRepository,
+                                new FfmpegMedia(ffmpegPath, ffprobePath), mediaMaxDurationSeconds)),
                 spanTracker);
         KnowledgeChunkWriter chunkWriter = new KnowledgeChunkWriter(chunkRepository, spanTracker);
         KnowledgeIndexStage indexStage = new KnowledgeIndexStage(

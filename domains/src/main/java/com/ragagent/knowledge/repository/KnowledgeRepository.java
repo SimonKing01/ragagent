@@ -83,6 +83,20 @@ public class KnowledgeRepository {
                 .set(Knowledge::getUpdatedAt, k.getUpdatedAt() == null ? OffsetDateTime.now(ZoneOffset.UTC) : k.getUpdatedAt()));
     }
 
+    /**
+     * 只写 metadata（解析收尾用）：媒体引用这类信息在分块之外，不影响解析状态列，
+     * 走全列写会把并发中的 parse_status 打回旧值。
+     */
+    public void updateMetadataOnly(String id, JsonNode metadata) {
+        knowledgeMapper.update(null, new LambdaUpdateWrapper<Knowledge>()
+                .eq(Knowledge::getId, id)
+                .set(Knowledge::getMetadata, metadata == null
+                                ? JsonNodeFactory.instance.objectNode()
+                                : metadata,
+                        "typeHandler=com.ragagent.platform.persistence.PgJsonTypeHandler")
+                .set(Knowledge::getUpdatedAt, OffsetDateTime.now(ZoneOffset.UTC)));
+    }
+
     /** 全列写（DeletedAt/PendingSubtasksCount 除外；零值也落库）—— 由 KnowledgeFileService 归位。 */
     public void updateRow(Knowledge k, JsonNode metadata) {
         knowledgeMapper.update(null, new LambdaUpdateWrapper<Knowledge>()
