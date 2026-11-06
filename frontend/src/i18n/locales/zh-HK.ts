@@ -2163,7 +2163,7 @@ export default {
     allowFileUploadDesc: '啟用後，訪客可上傳圖片與文件附件。需要綁定的智能代理支援圖片上傳。',
     webhookUrl: 'Webhook URL',
     webhookUrlPlaceholder: 'https://your-server.example.com/weknora/embed-events',
-    webhookUrlDesc: '選用。WeKnora 會將 message_sent / message_received 事件 POST 到這個 HTTPS 端點。',
+    webhookUrlDesc: '選用。RagAgent 會將 message_sent / message_received 事件 POST 到這個 HTTPS 端點。',
     webhookSecret: 'Webhook secret',
     webhookSecretPlaceholder: 'HMAC-SHA256 secret (X-WeKnora-Signature header)',
     webhookSecretKeep: '留空則保留已儲存的密鑰',

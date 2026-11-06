@@ -2163,7 +2163,7 @@ export default {
     allowFileUploadDesc: 'Cuando está activado, los visitantes pueden subir imágenes y anexos de documentos. Requiere que el agente vinculado admita la subida de imágenes.',
     webhookUrl: 'URL del webhook',
     webhookUrlPlaceholder: 'https://your-server.example.com/weknora/embed-events',
-    webhookUrlDesc: 'Opcional. WeKnora envía eventos message_sent / message_received por POST a este endpoint HTTPS.',
+    webhookUrlDesc: 'Opcional. RagAgent envía eventos message_sent / message_received por POST a este endpoint HTTPS.',
     webhookSecret: 'Secreto del webhook',
     webhookSecretPlaceholder: 'Secreto HMAC-SHA256 (cabecera X-WeKnora-Signature)',
     webhookSecretKeep: 'Deje en blanco para mantener el secreto guardado',

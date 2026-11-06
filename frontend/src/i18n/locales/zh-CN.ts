@@ -3996,7 +3996,7 @@ export default {
     allowFileUploadDesc: '开启后，访客可上传图片与文档附件。仅当绑定的智能体已启用图片上传时才会生效。',
     webhookUrl: 'Webhook 地址',
     webhookUrlPlaceholder: 'https://your-server.example.com/weknora/embed-events',
-    webhookUrlDesc: '可选。访客发消息与助手回复完成时，WeKnora 会向该 HTTPS 地址 POST 事件（message_sent / message_received）。',
+    webhookUrlDesc: '可选。访客发消息与助手回复完成时，RagAgent 会向该 HTTPS 地址 POST 事件（message_sent / message_received）。',
     webhookSecret: 'Webhook 签名密钥',
     webhookSecretPlaceholder: '用于 HMAC-SHA256 签名（X-WeKnora-Signature）',
     webhookSecretKeep: '留空表示不修改已保存的密钥',

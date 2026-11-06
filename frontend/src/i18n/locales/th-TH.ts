@@ -2163,7 +2163,7 @@ export default {
     allowFileUploadDesc: 'เมื่อเปิดใช้ ผู้เยี่ยมชมสามารถอัปโหลดรูปภาพและไฟล์เอกสารได้ ต้องการให้เอเจนต์ที่ผูกไว้รองรับการอัปโหลดรูปภาพ',
     webhookUrl: 'Webhook URL',
     webhookUrlPlaceholder: 'https://your-server.example.com/weknora/embed-events',
-    webhookUrlDesc: 'ตัวเลือก WeKnora จะ POST เหตุการณ์ message_sent / message_received ไปยังเอนด์พอยต์ HTTPS นี้',
+    webhookUrlDesc: 'ตัวเลือก RagAgent จะ POST เหตุการณ์ message_sent / message_received ไปยังเอนด์พอยต์ HTTPS นี้',
     webhookSecret: 'Webhook secret',
     webhookSecretPlaceholder: 'HMAC-SHA256 secret (ส่วนหัว X-WeKnora-Signature)',
     webhookSecretKeep: 'เว้นว่างเพื่อเก็บ secret ที่บันทึกไว้',
