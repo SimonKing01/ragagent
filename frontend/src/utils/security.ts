@@ -5,6 +5,14 @@
 import DOMPurify from 'dompurify';
 import { applyProtectedFile, responseFileName, RESOURCE_PREVIEW_EVENT, type LoadedProtectedFile } from './protectedResource.ts';
 import { findPosterImage, upgradeProtectedMediaRefs } from './protectedMedia.ts';
+import {
+  type ProtectedFileLoadResult,
+  protectedFileBlobCache,
+  protectedFileBySource,
+  protectedFileFailureCache,
+  protectedFileInflight,
+  protectedFileMissingSources,
+} from './protectedFileCache.ts';
 import type { Config, NodeHook } from 'dompurify';
 import {
   domPurifySecurityHooks,
@@ -432,52 +440,6 @@ export function createSafeImage(src: string, alt: string = '', title: string = '
   return `<img src="${safeSrc}" alt="${safeAlt}" title="${safeTitle}" class="markdown-image" style="max-width: 100%; height: auto;">`;
 }
 
-type ProtectedFileLoadResult =
-  | ({ status: 'loaded' } & LoadedProtectedFile)
-  | { status: 'missing' }
-  | { status: 'failed' };
-
-type ProtectedFileCacheState = {
-  blobByRequest: Map<string, LoadedProtectedFile>;
-  fileBySource: Map<string, LoadedProtectedFile>;
-  missingSources: Set<string>;
-  failures: Map<string, number>;
-  inflight: Map<string, Promise<ProtectedFileLoadResult>>;
-};
-
-// Keep object URLs alive across Vite hot updates. A hot update replaces this
-// module but not the page document, so module-local Maps would forget valid
-// blob URLs and make already-loaded images fall back to the 1x1 placeholder.
-const protectedFileCacheState = (() => {
-  const fresh = (): ProtectedFileCacheState => ({
-    blobByRequest: new Map(),
-    fileBySource: new Map(),
-    missingSources: new Set(),
-    failures: new Map(),
-    inflight: new Map(),
-  });
-  if (typeof window === 'undefined') return fresh();
-  const scope = window as typeof window & {
-    __weknoraProtectedFileCacheV3__?: ProtectedFileCacheState;
-  };
-  scope.__weknoraProtectedFileCacheV3__ ||= fresh();
-  return scope.__weknoraProtectedFileCacheV3__;
-})();
-
-const protectedFileBlobCache = protectedFileCacheState.blobByRequest;
-// File keyed by the protected source URL (e.g. `resource://...`). Once an
-// image or download card has been hydrated, re-renders of the same markdown
-// can emit the blob src / card HTML directly instead of the placeholder.
-const protectedFileBySource = protectedFileCacheState.fileBySource;
-const protectedFileMissingSources = protectedFileCacheState.missingSources;
-// Throttle retries of failed file fetches. During streaming the same markdown
-// is re-rendered on every chunk, producing brand-new <img> elements (so the
-// per-element `authHydrated` flag is reset each time). Without throttling a
-// not-yet-generated file (404) would be re-requested on every chunk. We record
-// the last failure time per URL and skip re-fetching within a cooldown window,
-// while still allowing a later attempt once the file becomes available.
-const protectedFileFailureCache = protectedFileCacheState.failures;
-const protectedFileInflight = protectedFileCacheState.inflight;
 const PROTECTED_FILE_RETRY_COOLDOWN_MS = 5000;
 
 /**
@@ -579,7 +541,9 @@ async function hydrateProtectedMedia(
             if (resp.ok) {
               const blob = await resp.blob();
               const blobURL = URL.createObjectURL(blob);
-              protectedFileBlobCache.set(posterKey, { blobURL, blob, fileName: 'poster.jpg' });
+              const posterFile = { blobURL, blob, fileName: 'poster.jpg' };
+              protectedFileBlobCache.set(posterKey, posterFile);
+              protectedFileBySource.set(posterRef, posterFile);
               video.poster = blobURL;
               return;
             }
@@ -615,6 +579,9 @@ async function hydrateProtectedMedia(
         fileName: responseFileName(resp.headers.get('Content-Disposition'), sourceURL),
       };
       protectedFileBlobCache.set(requestKey, file);
+      // 同时记到 bySource：下次渲染（流式每个 chunk 都会重渲染）可以直接带上 blob，
+      // 否则新元素总是「空白 → 加载」闪一下。
+      protectedFileBySource.set(sourceURL, file);
       video.src = blobURL;
       video.dataset.authHydrated = '1';
       await applyPoster();

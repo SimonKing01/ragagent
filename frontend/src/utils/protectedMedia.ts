@@ -6,6 +6,8 @@
  */
 
 /** 受保护音视频引用：local://…/exports/xxx.mp4（含 storage://backend/local://…）。 */
+import { getCachedProtectedFile } from './protectedFileCache';
+
 export const PROTECTED_VIDEO_REF =
   /^(?:local|resource|storage|minio|cos|tos|s3|oss|ks3|obs):\/\/.*\.(?:mp4|mov|m4v|webm|mkv)(?:[?#].*)?$/i;
 
@@ -37,8 +39,19 @@ export function posterRefFromTitle(title: string | null | undefined): string | n
   return match ? match[1] : null;
 }
 
-/** 构造播放器元素：src 由后续的鉴权水合填（data-protected-src）。 */
-export function createProtectedVideo(doc: Document, href: string, posterRef?: string | null): HTMLVideoElement {
+/** 已经渲染过的 blob（渲染期直接复用，避免流式重渲染时闪一下）。 */
+export interface CachedMediaSources {
+  src?: string;
+  poster?: string;
+}
+
+/** 构造播放器元素：没有缓存时 src 由后续的鉴权水合填（data-protected-src）。 */
+export function createProtectedVideo(
+  doc: Document,
+  href: string,
+  posterRef?: string | null,
+  cached?: CachedMediaSources,
+): HTMLVideoElement {
   const video = doc.createElement('video');
   video.setAttribute('controls', '');
   video.setAttribute('preload', 'metadata');
@@ -49,6 +62,14 @@ export function createProtectedVideo(doc: Document, href: string, posterRef?: st
   video.setAttribute('data-protected-src', decodeProtectedRef(href));
   if (posterRef) {
     video.setAttribute('data-poster-src', decodeProtectedRef(posterRef));
+  }
+  if (cached?.src) {
+    // 命中缓存：一次性给出完整播放器，流式重渲染不会再出现「空白→加载」
+    video.setAttribute('src', cached.src);
+    video.dataset.authHydrated = '1';
+  }
+  if (cached?.poster) {
+    video.setAttribute('poster', cached.poster);
   }
   return video;
 }
@@ -87,10 +108,15 @@ export function upgradeProtectedMediaRefs(root: ParentNode | null | undefined): 
     if (!isProtectedVideoHref(href)) {
       return;
     }
+    const posterRef = posterRefFromTitle(anchor.getAttribute('title'));
     const video = createProtectedVideo(
       anchor.ownerDocument,
       href,
-      posterRefFromTitle(anchor.getAttribute('title')),
+      posterRef,
+      {
+        src: getCachedProtectedFile(decodeProtectedRef(href))?.blobURL,
+        poster: posterRef ? getCachedProtectedFile(decodeProtectedRef(posterRef))?.blobURL : undefined,
+      },
     );
     anchor.replaceWith(video);
     // 封面 ref 只为当 poster 用：播放器自带封面，不再重复显示一张图
@@ -98,10 +124,10 @@ export function upgradeProtectedMediaRefs(root: ParentNode | null | undefined): 
       return;
     }
     const poster = findPosterImage(video);
-    const posterRef = poster
+    const posterSource = poster
       ? poster.getAttribute('data-protected-src') || poster.getAttribute('src') || ''
       : '';
-    if (poster && /cover-/i.test(posterRef)) {
+    if (poster && /cover-/i.test(posterSource)) {
       poster.setAttribute('data-media-poster', '1');
       poster.style.display = 'none';
     }

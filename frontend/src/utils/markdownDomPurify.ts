@@ -1,4 +1,5 @@
-import { createProtectedVideo, isProtectedVideoHref, posterRefFromTitle } from './protectedMedia';
+import { createProtectedVideo, decodeProtectedRef, isProtectedVideoHref, posterRefFromTitle } from './protectedMedia';
+import { getCachedProtectedFile } from './protectedFileCache';
 
 export const domPurifyForbidTags = ['script', 'style', 'object', 'embed', 'form', 'input'] as const;
 export const domPurifyForbidAttr = ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur'] as const;
@@ -62,10 +63,17 @@ export const markdownDomPurifySecurityHooks = {
       const href = element.getAttribute('href') || '';
       // 受保护的音视频引用（local://…/xxx.mp4）：渲染成播放器，而不是普通链接
       if (isProtectedVideoHref(href)) {
+        const posterRef = posterRefFromTitle(element.getAttribute('title'));
         element.replaceWith(createProtectedVideo(
           element.ownerDocument,
           href,
-          posterRefFromTitle(element.getAttribute('title')),
+          posterRef,
+          {
+            src: getCachedProtectedFile(decodeProtectedRef(href))?.blobURL,
+            poster: posterRef
+              ? getCachedProtectedFile(decodeProtectedRef(posterRef))?.blobURL
+              : undefined,
+          },
         ));
         return;
       }
