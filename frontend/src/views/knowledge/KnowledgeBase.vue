@@ -568,25 +568,43 @@ let tagSearchDebounce: number | null = null;
 let docSearchDebounce: number | null = null;
 const docSearchKeyword = ref('');
 const selectedFileType = ref('');
-const fileTypeOptions = computed(() => [
-  { label: t('knowledgeBase.allFileTypes'), value: '' },
-  { label: 'PDF', value: 'pdf' },
-  { label: 'DOCX', value: 'docx' },
-  { label: 'DOC', value: 'doc' },
-  { label: 'PPTX', value: 'pptx' },
-  { label: 'PPT', value: 'ppt' },
-  { label: 'EPUB', value: 'epub' },
-  { label: 'MHTML', value: 'mhtml' },
-  { label: 'TXT', value: 'txt' },
-  { label: 'MD', value: 'md' },
-  { label: 'URL', value: 'url' },
-  { label: t('knowledgeBase.typeManual'), value: 'manual' },
-  { label: 'MP3', value: 'mp3' },
-  { label: 'WAV', value: 'wav' },
-  { label: 'M4A', value: 'm4a' },
-  { label: 'FLAC', value: 'flac' },
-  { label: 'OGG', value: 'ogg' },
-]);
+// 类型筛选：按“文档 → 图片 → 音频 → 视频”的固定顺序展示，实际可用项以引擎清单
+// （supportedFileTypes）为准；清单还没加载时用下面这份兜底，避免下拉只剩“全部”。
+const FILE_TYPE_FILTER_ORDER = [
+  'pdf', 'docx', 'doc', 'pptx', 'ppt', 'xlsx', 'xls', 'csv', 'txt', 'md', 'json',
+  'epub', 'mhtml', 'html', 'htm', 'xmind',
+  // 图片
+  'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp',
+  // 音频
+  'mp3', 'wav', 'm4a', 'flac', 'ogg', 'aac',
+  // 视频
+  'mp4', 'mov', 'm4v', 'webm', 'mkv', 'avi',
+];
+
+const fileTypeOptions = computed(() => {
+  const supported = supportedFileTypes.value;
+  const available = supported.size > 0 ? supported : new Set(FILE_TYPE_FILTER_ORDER);
+  const options = [{ label: t('knowledgeBase.allFileTypes'), value: '' }];
+  const listed = new Set<string>(['url', 'manual', 'markdown']);
+  for (const type of FILE_TYPE_FILTER_ORDER) {
+    if (!available.has(type)) {
+      continue;
+    }
+    options.push({ label: type.toUpperCase(), value: type });
+    listed.add(type);
+  }
+  // 引擎里新增、但没进固定顺序的类型也补上（保持可用，不至于漏筛）
+  for (const type of available) {
+    if (listed.has(type)) {
+      continue;
+    }
+    options.push({ label: type.toUpperCase(), value: type });
+  }
+  // 虚拟类型（URL / 手工录入）放在扩展名之后，与后端 type 列的两条特殊值对应
+  options.push({ label: 'URL', value: 'url' });
+  options.push({ label: t('knowledgeBase.typeManual'), value: 'manual' });
+  return options;
+});
 const selectedParseStatus = ref('');
 const parseStatusOptions = computed(() => [
   { label: t('knowledgeBase.allParseStatuses'), value: '' },
