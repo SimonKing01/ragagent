@@ -405,7 +405,7 @@
         </div>
 
         <!-- 全部空状态：保留「新建知识库」CTA，因为是空间没有任何 KB 的真空场景 -->
-        <div v-if="spaceSelection === 'all' && filteredKnowledgeBases.length === 0 && !loading" class="empty-state">
+        <div v-if="spaceSelection === 'all' && filteredKnowledgeBases.length === 0 && hasLoaded && !loading" class="empty-state">
           <img class="empty-img" src="@/assets/img/upload.svg" alt="">
           <span class="empty-txt">{{ $t('knowledgeList.empty.title') }}</span>
           <span class="empty-desc">{{ $t('knowledgeList.empty.description') }}</span>
@@ -418,7 +418,7 @@
 
         <!-- 收藏空状态：不放创建按钮——「没有收藏」 ≠ 「没有知识库」，
              正确引导是「去星标一下」，不是「再建一个」。 -->
-        <div v-if="spaceSelection === 'favorites' && filteredKnowledgeBases.length === 0 && !loading"
+        <div v-if="spaceSelection === 'favorites' && filteredKnowledgeBases.length === 0 && hasLoaded && !loading"
           class="empty-state">
           <t-icon name="star" size="48px" class="empty-icon" />
           <span class="empty-txt">{{ $t('knowledgeList.empty.favoritesTitle') }}</span>
@@ -426,14 +426,14 @@
         </div>
 
         <!-- 最近空状态：同理，引导是「去打开一个」。 -->
-        <div v-if="spaceSelection === 'recents' && filteredKnowledgeBases.length === 0 && !loading" class="empty-state">
+        <div v-if="spaceSelection === 'recents' && filteredKnowledgeBases.length === 0 && hasLoaded && !loading" class="empty-state">
           <t-icon name="history" size="48px" class="empty-icon" />
           <span class="empty-txt">{{ $t('knowledgeList.empty.recentsTitle') }}</span>
           <span class="empty-desc">{{ $t('knowledgeList.empty.recentsDescription') }}</span>
         </div>
 
         <!-- 我的知识库空状态 -->
-        <div v-if="spaceSelection === 'mine' && kbs.length === 0 && !loading" class="empty-state">
+        <div v-if="spaceSelection === 'mine' && kbs.length === 0 && hasLoaded && !loading" class="empty-state">
           <img class="empty-img" src="@/assets/img/upload.svg" alt="">
           <span class="empty-txt">{{ $t('knowledgeList.empty.title') }}</span>
           <span class="empty-desc">{{ $t('knowledgeList.empty.description') }}</span>
@@ -557,7 +557,9 @@ interface KB {
 }
 
 const kbs = ref<KB[]>([])
-const loading = ref(false)
+const loading = ref(true)
+/** 列表是否已完成过一次加载：首帧/失败重试期间不显示「暂无」空态 */
+const hasLoaded = ref(false)
 const deleteVisible = ref(false)
 const deletingKb = ref<KB | null>(null)
 const currentMoreIndex = ref<number>(-1)
@@ -765,7 +767,10 @@ const fetchList = (force = false) => {
   return chatResources
     .fetchKnowledgeBasesForList({ creator: creatorFilter.value }, force)
     .then(applyKbListData)
-    .finally(() => { loading.value = false })
+    .finally(() => {
+      loading.value = false
+      hasLoaded.value = true
+    })
 }
 
 // 兼容旧链接：空间分享裁撤后 scope 只剩伪 scope；历史的 "shared" 或

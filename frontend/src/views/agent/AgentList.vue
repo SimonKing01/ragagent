@@ -408,7 +408,7 @@
 
 
         <!-- 空状态：全部（保留创建 CTA） -->
-        <div v-if="spaceSelection === 'all' && filteredAgents.length === 0 && !loading" class="empty-state">
+        <div v-if="spaceSelection === 'all' && filteredAgents.length === 0 && hasLoaded && !loading" class="empty-state">
           <img class="empty-img" src="@/assets/img/upload.svg" alt="">
           <span class="empty-txt">{{ $t('agent.empty.title') }}</span>
           <span class="empty-desc">{{ $t('agent.empty.description') }}</span>
@@ -438,18 +438,18 @@
         </div>
 
         <!-- 空状态：收藏 / 最近 — 不放创建按钮，参见 KnowledgeBaseList 的同处理由 -->
-        <div v-if="spaceSelection === 'favorites' && filteredAgents.length === 0 && !loading" class="empty-state">
+        <div v-if="spaceSelection === 'favorites' && filteredAgents.length === 0 && hasLoaded && !loading" class="empty-state">
           <t-icon name="star" size="48px" class="empty-icon" />
           <span class="empty-txt">{{ $t('agent.empty.favoritesTitle') }}</span>
           <span class="empty-desc">{{ $t('agent.empty.favoritesDescription') }}</span>
         </div>
-        <div v-if="spaceSelection === 'recents' && filteredAgents.length === 0 && !loading" class="empty-state">
+        <div v-if="spaceSelection === 'recents' && filteredAgents.length === 0 && hasLoaded && !loading" class="empty-state">
           <t-icon name="history" size="48px" class="empty-icon" />
           <span class="empty-txt">{{ $t('agent.empty.recentsTitle') }}</span>
           <span class="empty-desc">{{ $t('agent.empty.recentsDescription') }}</span>
         </div>
         <!-- 空状态：我的 -->
-        <div v-if="spaceSelection === 'mine' && agents.length === 0 && !loading" class="empty-state">
+        <div v-if="spaceSelection === 'mine' && agents.length === 0 && hasLoaded && !loading" class="empty-state">
           <img class="empty-img" src="@/assets/img/upload.svg" alt="">
           <span class="empty-txt">{{ $t('agent.empty.title') }}</span>
           <span class="empty-desc">{{ $t('agent.empty.description') }}</span>
@@ -637,7 +637,9 @@ const sortedMineAgents = computed(() => {
   return [...builtin, ...own, ...teammate]
 })
 
-const loading = ref(false)
+const loading = ref(true)
+/** 列表是否已完成过一次加载：首帧/失败重试期间不显示「暂无」空态 */
+const hasLoaded = ref(false)
 const deleteVisible = ref(false)
 const deletingAgent = ref<AgentWithUI | null>(null)
 const editorVisible = ref(false)
@@ -679,7 +681,10 @@ const fetchList = (force = false) => {
   return chatResources
     .fetchAgentsForList({ creator: creatorFilter.value }, force)
     .then(applyAgentListData)
-    .finally(() => { loading.value = false })
+    .finally(() => {
+      loading.value = false
+      hasLoaded.value = true
+    })
     .then(() => {
       void checkAndOpenEditModal()
     })

@@ -127,6 +127,10 @@ const recalcUploadPercent = () => {
 };
 const kbLoading = ref(false);
 const docListLoading = ref(true);
+/** 文档列表是否已完成过一次加载：避免首次/过期请求收尾时先闪一下空态 */
+const docListLoaded = ref(false);
+/** 加载令牌：只有最新一次请求负责关闭 loading（旧请求会被 getKnowled 丢弃） */
+let docListLoadToken = 0;
 const isFAQ = computed(() => (kbInfo.value?.type || '') === 'faq');
 const isWiki = computed(() => !!kbInfo.value?.indexingStrategy?.wikiEnabled);
 const validTabs = ['documents', 'wiki', 'graph'] as const
@@ -346,6 +350,7 @@ const showKbDetailContextualGuide = computed(() => {
   return Boolean(kbId.value)
     && !isFAQ.value
     && canEdit.value
+    && docListLoaded.value
     && !docListLoading.value
     && cardList.value.length === 0;
 });
@@ -766,6 +771,7 @@ const getTagName = (tagId?: string | number) => {
 
 const loadKnowledgeFiles = (kbIdValue: string): Promise<void> => {
   if (!kbIdValue) return Promise.resolve();
+  const requestToken = ++docListLoadToken;
   if (!isFAQ.value) {
     docListLoading.value = true;
   }
@@ -777,9 +783,13 @@ const loadKnowledgeFiles = (kbIdValue: string): Promise<void> => {
     },
     kbIdValue,
   ).finally(() => {
+    // 过期请求（切换知识库 / 并发刷新）不负责收尾，否则会把 loading 提前关掉，
+    // 于是「骨架 → 空态 → 列表」中间闪一下暂无数据。
+    if (requestToken !== docListLoadToken) return;
     if (isCurrentKb(kbIdValue) && !isFAQ.value) {
       docListLoading.value = false;
     }
+    docListLoaded.value = true;
   });
 };
 
@@ -2635,7 +2645,7 @@ const handleKBEditorSuccess = (kbIdValue: string) => {
               </div>
               <div class="doc-scroll-container"
                 :class="{
-                  'is-empty': !cardList.length && !currentChildFolders.length && !docListLoading,
+                  'is-empty': docListLoaded && !cardList.length && !currentChildFolders.length && !docListLoading,
                   'is-marquee-active': docMarqueeVisible,
                 }"
                 ref="knowledgeScroll" @scroll="handleScroll" @mousedown="onDocMarqueeMouseDown">
@@ -2713,7 +2723,7 @@ const handleKBEditorSuccess = (kbIdValue: string) => {
                     @update:move-mode="(mode: any) => moveMode = mode"
                     @reset-move-state="moveMenuMode = 'normal'" />
                 </template>
-                <template v-else-if="!docListLoading">
+                <template v-else-if="docListLoaded && !docListLoading">
                   <div class="doc-empty-state">
                     <p v-if="selectedFolderPath || isFiltering" class="doc-empty-folder">
                       {{ isFiltering
