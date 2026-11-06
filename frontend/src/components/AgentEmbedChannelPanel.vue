@@ -226,11 +226,11 @@
             <p class="form-desc">{{ $t('embedPublish.pageTitleDesc') }}</p>
           </div>
 
-          <div class="form-item">
+          <!-- <div class="form-item">
             <label class="form-label">{{ $t('embedPublish.headerTitleMode') }}</label>
             <t-select v-model="form.headerTitleMode" :disabled="!isAdmin" :options="headerTitleModeOptions" />
             <p class="form-desc">{{ $t('embedPublish.headerTitleModeDesc') }}</p>
-          </div>
+          </div> -->
 
           <div class="form-item">
             <label class="form-label">{{ $t('embedPublish.widgetPosition') }}</label>

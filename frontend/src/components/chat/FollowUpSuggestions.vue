@@ -66,13 +66,10 @@ const dismiss = () => {
 @import (reference) '../css/suggested-questions.less';
 
 .follow-ups {
-  width: 100%;
   max-width: 720px;
-  margin: -4px 0 28px;
-  margin-right: auto;
+  margin: 16px 0;
   padding: 12px;
-  border: 1px solid var(--td-component-stroke);
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--td-bg-color-secondarycontainer);
 }
 .follow-ups__header {
