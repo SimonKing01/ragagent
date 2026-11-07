@@ -84,14 +84,16 @@ final class FeishuCardStreamOps {
 
         int seq = 0;
         String summary = null;
+        String finalContent = "";
         if (state != null) {
             seq = state.nextSeq();
-            String preview;
             synchronized (state.lock) {
-                preview = cardSummaryPreview(state.content.toString());
-            }
-            if (!preview.isEmpty()) {
-                summary = preview;
+                String body = state.content.toString();
+                finalContent = body;
+                String preview = cardSummaryPreview(body);
+                if (!preview.isEmpty()) {
+                    summary = preview;
+                }
             }
         }
         // 始终关 streaming_mode（CardKit 拒绝顶层 streaming_mode 字段）；
@@ -100,6 +102,18 @@ final class FeishuCardStreamOps {
             cardkitSetStreaming(accessToken, streamId, false, summary, seq);
         } catch (Exception e) {
             log.warn("[{}] Failed to disable streaming_mode", service.region.label(), e);
+        }
+        // 关掉流式后再回填一次正文：流式状态下 markdown 图片（image_key）不会被渲染，
+        // 只在流式中更新的图片会一直停在加载占位（生产实测 14 张图全部上传成功却都不显示）。
+        if (state != null && !finalContent.isBlank()) {
+            try {
+                String content = service.resolveMarkdownImages(accessToken, finalContent);
+                cardkitUpdateElement(accessToken, streamId, STREAMING_ELEMENT_ID, content,
+                        state.nextSeq());
+            } catch (Exception e) {
+                log.warn("[{}] Failed to re-apply final content after streaming",
+                        service.region.label(), e);
+            }
         }
         log.info("[{}] Streaming ended: card_id={}", service.region.label(), streamId);
     }
