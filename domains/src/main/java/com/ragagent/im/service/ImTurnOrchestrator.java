@@ -514,8 +514,16 @@ public class ImTurnOrchestrator implements AgentChannelCleaner {
         return outboundFormatter.formatIMOutboundAnswerOrFallback(raw);
     }
 
+    String formatIMOutboundAnswerOrFallback(String raw, boolean rendersImages) {
+        return outboundFormatter.formatIMOutboundAnswerOrFallback(raw, rendersImages);
+    }
+
     String cleanIMContent(String content) {
         return outboundFormatter.cleanIMContent(content);
+    }
+
+    String cleanIMContent(String content, boolean rendersImages) {
+        return outboundFormatter.cleanIMContent(content, rendersImages);
     }
 
 

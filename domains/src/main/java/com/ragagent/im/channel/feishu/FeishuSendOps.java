@@ -2,6 +2,7 @@ package com.ragagent.im.channel.feishu;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ragagent.im.runtime.ImFormat;
 import com.ragagent.im.runtime.ImTypes;
 import com.ragagent.im.runtime.IncomingMessage;
 import com.ragagent.im.runtime.ReplyMessage;
@@ -35,8 +36,10 @@ final class FeishuSendOps {
 
     public void sendReply(IncomingMessage incoming, ReplyMessage reply) throws Exception {
         String accessToken = service.getTenantAccessToken();
-        String content = FeishuAdapter.MAPPER.writeValueAsString(Map.of("text",
-                reply.content == null ? "" : reply.content));
+        // 纯文本消息不渲染 markdown 图片：降级成可点链接，别把 ![]() 原样丢给用户
+        String text = reply.content == null ? "" : reply.content;
+        text = ImFormat.degradeMarkdownImages(text);
+        String content = FeishuAdapter.MAPPER.writeValueAsString(Map.of("text", text));
 
         Map<String, Object> replyPayload = new LinkedHashMap<>();
         replyPayload.put("msg_type", "text");

@@ -34,6 +34,16 @@ public final class AdapterInterfaces {
 
         /** 处理平台的 URL verification 挑战；是验证请求且已处理返回 true。 */
         boolean handleURLVerification(CallbackExchange exchange);
+
+        /**
+         * 平台能否渲染 markdown 图片（{@code ![alt](https://…)}）。
+         *
+         * <p>默认 false：出站会把图片降级成链接，避免聊天里出现一串
+         * `![poster](https://…)` 原始语法。能渲染的实现覆盖为 true。</p>
+         */
+        default boolean rendersMarkdownImages() {
+            return false;
+        }
     }
 
     /**
@@ -66,6 +76,7 @@ public final class AdapterInterfaces {
 
         /** 结束流式回复。 */
         void endStream(IncomingMessage incoming, String streamId) throws Exception;
+
     }
 
     /**

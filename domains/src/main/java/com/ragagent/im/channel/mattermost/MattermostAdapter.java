@@ -49,6 +49,12 @@ public class MattermostAdapter implements AdapterInterfaces.Adapter,
         AdapterInterfaces.StreamSender, AdapterInterfaces.FileDownloader {
 
     private static final Logger log = LoggerFactory.getLogger(MattermostAdapter.class);
+
+    /** Mattermost 客户端按标准 markdown 渲染外链图片。 */
+    @Override
+    public boolean rendersMarkdownImages() {
+        return true;
+    }
     private static final ObjectMapper MAPPER = JsonMappers.lenient();
 
     static final String EXTRA_THREAD_ROOT = "thread_root_id";

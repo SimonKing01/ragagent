@@ -107,7 +107,8 @@ final class ImQaRunner {
                 log.error("[IM] QA failed: {}, sending fallback reply", outcome.error());
                 answer = ImFormat.imQAFailureReply(outcome.error());
             }
-            String display = service.formatIMOutboundAnswerOrFallback(answer);
+            String display = service.formatIMOutboundAnswerOrFallback(answer,
+                    attach.adapter().rendersMarkdownImages());
             service.sendReplyQuiet(attach.adapter(), msg, new ReplyMessage(display, false, true));
             log.info("[IM] Reply sent: channel={} platform={} user={} answer_len={}",
                     attach.channelId(), msg.platform, msg.userId, answer.length());
@@ -138,7 +139,8 @@ final class ImQaRunner {
             log.error("[IM] Full-output QA failed: {}, sending fallback reply", outcome.error());
             answer = ImFormat.imQAFailureReply(outcome.error());
         }
-        String finalContent = service.formatIMOutboundAnswerOrFallback(answer);
+        String finalContent = service.formatIMOutboundAnswerOrFallback(answer,
+                attach.adapter().rendersMarkdownImages());
         Exception finalizeErr = null;
         try {
             streamer.finalizeStream(msg, streamId, finalContent);
@@ -163,7 +165,8 @@ final class ImQaRunner {
         if (outcome.error() != null) {
             answer = ImFormat.imQAFailureReply(outcome.error());
         }
-        String display = service.formatIMOutboundAnswerOrFallback(answer);
+        String display = service.formatIMOutboundAnswerOrFallback(answer,
+                attach.adapter().rendersMarkdownImages());
         service.sendReplyQuiet(attach.adapter(), attach.msg(), new ReplyMessage(display, false, true));
     }
 

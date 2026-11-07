@@ -35,6 +35,75 @@ public final class ImFormat {
     private static final Pattern IMAGE_ORIGINAL_RE = Pattern.compile("<imageOriginal>(.*?)</imageOriginal>");
 
     /** 移除 s 里的 &lt;kb .../&gt; 与 &lt;web .../&gt; 行内引用标签。 */
+    /** markdown 图片：{@code ![alt](url)}。 */
+    private static final java.util.regex.Pattern MD_IMAGE =
+            java.util.regex.Pattern.compile("!\\[([^\\]]*)\\]\\(([^)\\s]+)\\)");
+
+    /** markdown 链接：{@code [label](url)}（url 允许尖括号包裹）。 */
+    private static final java.util.regex.Pattern MD_LINK =
+            java.util.regex.Pattern.compile("\\[([^\\]]*)\\]\\(<?([^)\\s>]+)>?\\)");
+
+    /** 视频/音频媒体扩展名（出现在链接目标里即视为媒体链接）。 */
+    private static final java.util.regex.Pattern MEDIA_EXT = java.util.regex.Pattern.compile(
+            "(?i).*\\.(?:mp4|mov|m4v|webm|mkv|avi|mp3|wav|m4a|flac|ogg)(?:[?#].*)?$");
+
+    /** 播放类链接文案（不受扩展名影响：经过 /r/{token} 的链接已没有后缀）。 */
+    private static final java.util.regex.Pattern PLAY_LABEL =
+            java.util.regex.Pattern.compile("(?i)^\\s*(?:▶\\s*)?play\\s*(?:video|audio)\\s*$");
+
+    private static final java.util.regex.Pattern VIDEO_TAG =
+            java.util.regex.Pattern.compile("(?is)<video\\b[^>]*>(?:.*?</video>)?");
+    private static final java.util.regex.Pattern AUDIO_TAG =
+            java.util.regex.Pattern.compile("(?is)<audio\\b[^>]*>(?:.*?</audio>)?");
+
+    /**
+     * 去掉音视频引用：IM 渠道目前不发视频/音频（平台限制），出站一律剥除，
+     * 免得聊天里出现点不开的 `[play video](local://…)`。
+     */
+    public static String stripAudioVideoLinks(String s) {
+        if (s == null || s.isEmpty()) {
+            return s;
+        }
+        String out = VIDEO_TAG.matcher(s).replaceAll("");
+        out = AUDIO_TAG.matcher(out).replaceAll("");
+        java.util.regex.Matcher m = MD_LINK.matcher(out);
+        StringBuilder sb = new StringBuilder();
+        while (m.find()) {
+            String label = m.group(1);
+            String url = m.group(2);
+            boolean media = PLAY_LABEL.matcher(label).matches() || MEDIA_EXT.matcher(url).matches();
+            m.appendReplacement(sb, java.util.regex.Matcher.quoteReplacement(media ? "" : m.group()));
+        }
+        m.appendTail(sb);
+        return sb.toString().replaceAll("\\n{3,}", "\\n\\n").strip();
+    }
+
+    /**
+     * markdown 图片降级：平台渲染不了 {@code ![](url)} 时改成可点的 {@code [alt](url)}；
+     * 链接目标不是 http(s)（未配置 APP_EXTERNAL_URL 等）时只留 alt 文本。
+     */
+    public static String degradeMarkdownImages(String s) {
+        if (s == null || !s.contains("![")) {
+            return s;
+        }
+        java.util.regex.Matcher m = MD_IMAGE.matcher(s);
+        StringBuilder sb = new StringBuilder();
+        while (m.find()) {
+            String alt = m.group(1);
+            String url = m.group(2);
+            String replacement;
+            if (url.regionMatches(true, 0, "http://", 0, 7)
+                    || url.regionMatches(true, 0, "https://", 0, 8)) {
+                replacement = "[" + (alt.isEmpty() ? "image" : alt) + "](" + url + ")";
+            } else {
+                replacement = alt;
+            }
+            m.appendReplacement(sb, java.util.regex.Matcher.quoteReplacement(replacement));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
     public static String stripImCitationTags(String s) {
         return CITATION_TAG_RE.matcher(s).replaceAll("");
     }

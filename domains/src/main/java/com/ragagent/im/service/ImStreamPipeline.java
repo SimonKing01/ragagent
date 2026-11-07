@@ -13,6 +13,7 @@ import com.ragagent.contract.event.payload.ErrorData;
 import com.ragagent.contract.session.MessageView;
 import com.ragagent.contract.session.QaRequestPayload;
 import com.ragagent.contract.session.SessionView;
+import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.AdapterInterfaces.StreamSender;
 import com.ragagent.im.runtime.ImFormat;
 import com.ragagent.im.runtime.IncomingMessage;
@@ -133,7 +134,8 @@ final class ImStreamPipeline {
         Exception finalErr = buf.qaErr;
         boolean noVisibleContent = !buf.streamedAny && resolvedAnswer.strip().isEmpty();
 
-        String finalDisplay = service.cleanIMContent(ThinkDisplay.formatIMFinalFromParts(parts));
+        String finalDisplay = service.cleanIMContent(
+                ThinkDisplay.formatIMFinalFromParts(parts), rendersImages(streamer));
         if (noVisibleContent || finalDisplay.isEmpty()) {
             String fallback = finalErr != null ? ImFormat.imQAFailureReply(finalErr)
                     : ImFormat.IM_NO_ANSWER_FALLBACK;
@@ -414,11 +416,17 @@ final class ImStreamPipeline {
         if (cut < displaySource.length()) {
             displaySource = displaySource.substring(0, cut);
         }
-        String display = service.cleanIMContent(displaySource);
+        String display = service.cleanIMContent(displaySource, rendersImages(streamer));
         try {
             streamer.updateStreamContent(msg, streamId, display);
         } catch (Exception e) {
             log.warn("[IM] UpdateStreamContent failed", e);
         }
+    }
+
+    /** 流式发送器是否声明能渲染 markdown 图片（默认 false → 出站降级成链接）。 */
+    private static boolean rendersImages(Object streamer) {
+        return streamer instanceof AdapterInterfaces.Adapter adapter
+                && adapter.rendersMarkdownImages();
     }
 }

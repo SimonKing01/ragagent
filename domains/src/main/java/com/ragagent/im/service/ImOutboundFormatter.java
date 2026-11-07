@@ -36,19 +36,37 @@ final class ImOutboundFormatter {
     // ── 出站内容整形 ─────────────────────────────────────────────────────
 
     String cleanIMContent(String content) {
+        return cleanIMContent(content, false);
+    }
+
+    /**
+     * 出站整形：先把存储引用换成公网 URL，再按渠道能力处理媒体。
+     *
+     * <p>视频/音频在 IM 一律剥除（平台不支持，留着就是点不开的死链）；图片在
+     * 不支持 markdown 的渠道降级成可点链接。</p>
+     */
+    String cleanIMContent(String content, boolean rendersImages) {
         content = ImFormat.stripImageXMLTags(content);
         content = ImFormat.stripImCitationTags(content);
         if (service.storageResolver != null) {
             content = new Rewriter(service.storageResolver, "IM")
                     .rewrite(content);
         }
+        content = ImFormat.stripAudioVideoLinks(content);
+        if (!rendersImages) {
+            content = ImFormat.degradeMarkdownImages(content);
+        }
         return content;
     }
 
 
     String formatIMOutboundAnswerOrFallback(String raw) {
+        return formatIMOutboundAnswerOrFallback(raw, false);
+    }
+
+    String formatIMOutboundAnswerOrFallback(String raw, boolean rendersImages) {
         String content = cleanIMContent(ThinkDisplay.formatIMDisplayContent(raw,
-                ThinkDisplay.STREAM_DISPLAY_FINAL));
+                ThinkDisplay.STREAM_DISPLAY_FINAL), rendersImages);
         if (content.strip().isEmpty()) {
             return ImFormat.IM_NO_ANSWER_FALLBACK;
         }

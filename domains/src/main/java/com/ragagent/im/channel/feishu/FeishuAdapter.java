@@ -57,6 +57,15 @@ public class FeishuAdapter implements AdapterInterfaces.Adapter,
 
     static final ObjectMapper MAPPER = JsonMappers.lenient();
 
+    /**
+     * 卡片 markdown 会把图片换 image_key 上传（{@code FeishuMediaOps}），所以保留
+     * {@code ![](url)} 交给它处理；纯文本回退路径由 {@code FeishuSendOps} 自行降级。
+     */
+    @Override
+    public boolean rendersMarkdownImages() {
+        return true;
+    }
+
     /** 可回落错误码。 */
     static final Set<Integer> FALLBACK_ELIGIBLE = Set.of(230019, 230054, 230071);
 
