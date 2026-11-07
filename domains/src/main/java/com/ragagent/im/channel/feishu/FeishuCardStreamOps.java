@@ -171,60 +171,38 @@ final class FeishuCardStreamOps {
     }
 
     /**
-     * 含图回答的图片：用 **post 富文本**里的 img 元素发送（文字已在流式卡片里落定）。
+     * 含图回答的图片：逐张作为**独立 image 消息**发送。
      *
-     * <p>卡片 markdown 图片在生产上一直是占位（流式不渲染、关流式后更新被拒），
-     * post 的 {@code img} 元素是最稳的图文形态。</p>
+     * <p>卡片 markdown 与 post 的 img 元素在生产上都停在加载占位；image 消息是飞书最基础
+     * 的发图能力，先用它把图片送到用户面前，再考虑更好的排版。</p>
      */
     private void sendFinalCard(IncomingMessage incoming, String accessToken, String finalContent) {
-        try {
-            String postJson = buildPostContent(accessToken, finalContent);
-            if (postJson.isEmpty()) {
-                return;
-            }
-            String[] receive = FeishuSendOps.resolveReceiveId(incoming);
-            Map<String, Object> replyPayload = new LinkedHashMap<>();
-            replyPayload.put("msg_type", "post");
-            replyPayload.put("content", postJson);
-            Map<String, Object> fallbackPayload = new LinkedHashMap<>();
-            fallbackPayload.put("receive_id", receive[1]);
-            fallbackPayload.put("msg_type", "post");
-            fallbackPayload.put("content", postJson);
-            service.sendOps.sendWithFallback(accessToken, incoming, replyPayload, fallbackPayload,
-                    receive[0]);
-            log.info("[{}] final images post sent", service.region.label());
-        } catch (Exception e) {
-            log.warn("[{}] send final images failed", service.region.label(), e);
-        }
-    }
-
-    /** 从正文里抽出全部图片 → post 富文本（每条图片一个 img 段落）；无图返回空串。 */
-    String buildPostContent(String accessToken, String content) throws Exception {
-        ObjectNode root = FeishuAdapter.MAPPER.createObjectNode();
-        ObjectNode zh = root.putObject("zh_cn");
-        zh.put("title", "");
-        ArrayNode paragraphs = zh.putArray("content");
-
-        Matcher matcher = FeishuAdapter.MD_IMAGE_RE.matcher(content == null ? "" : content);
-        int images = 0;
+        Matcher matcher = FeishuAdapter.MD_IMAGE_RE.matcher(finalContent == null ? "" : finalContent);
+        int sent = 0;
         while (matcher.find()) {
             String url = matcher.group(2);
             try {
                 String imageKey = service.mediaOps.imageKeyForUrl(accessToken, url);
-                ArrayNode paragraph = paragraphs.addArray();
-                ObjectNode img = paragraph.addObject();
-                img.put("tag", "img");
-                img.put("image_key", imageKey);
-                images++;
+                String content = FeishuAdapter.MAPPER.writeValueAsString(
+                        Map.of("image_key", imageKey));
+                String[] receive = FeishuSendOps.resolveReceiveId(incoming);
+                Map<String, Object> replyPayload = new LinkedHashMap<>();
+                replyPayload.put("msg_type", "image");
+                replyPayload.put("content", content);
+                Map<String, Object> fallbackPayload = new LinkedHashMap<>();
+                fallbackPayload.put("receive_id", receive[1]);
+                fallbackPayload.put("msg_type", "image");
+                fallbackPayload.put("content", content);
+                service.sendOps.sendWithFallback(accessToken, incoming, replyPayload,
+                        fallbackPayload, receive[0]);
+                sent++;
             } catch (Exception e) {
-                log.warn("[{}] post image upload failed: url={}", service.region.label(), url, e);
-                ArrayNode paragraph = paragraphs.addArray();
-                ObjectNode node = paragraph.addObject();
-                node.put("tag", "text");
-                node.put("text", matcher.group(1) + " " + url);
+                log.warn("[{}] send image message failed: url={}", service.region.label(), url, e);
             }
         }
-        return images == 0 ? "" : FeishuAdapter.MAPPER.writeValueAsString(root);
+        if (sent > 0) {
+            log.info("[{}] final images sent as messages: {}", service.region.label(), sent);
+        }
     }
 
     /** POST cardkit/v1/cards（type=card_json）→ card_id。 */
