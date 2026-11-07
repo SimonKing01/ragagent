@@ -500,6 +500,15 @@ function applyHydratedProtectedImage(root: ParentNode, sourceURL: string, file: 
  * 受保护音视频（local://…/xxx.mp4）与图片同一条链路：带鉴权取 blob，塞回 <video src>。
  * 视频不重试占位，失败就保持 controls 不可用。
  */
+/**
+ * 媒体（视频/封面）的在途下载表。
+ *
+ * <p>图片有 {@code protectedFileInflight} 去重，视频没有——同一页面里两个 watcher
+ * 同时水合、或流式重渲染时，会各起一次 fetch，同一个 4MB 视频被下载 4 次。
+ * 这里按请求键共享同一个 Promise，后来者只等结果复用 blob。</p>
+ */
+const mediaInflight = new Map<string, Promise<LoadedProtectedFile | null>>();
+
 const VIDEO_SHELL_CLASS = 'chunk-video-shell';
 const VIDEO_OVERLAY_CLASS = 'chunk-video-overlay';
 
@@ -549,6 +558,56 @@ function markVideoFailed(shell: HTMLElement, onRetry: () => void): void {
 }
 
 /** 读流式响应并回报进度（拿不到 Content-Length 时退化为不定进度）。 */
+/**
+ * 取一份受保护媒体（视频或封面），同一请求键只下载一次。
+ *
+ * @param onProgress 仅首个发起者会收到进度回调；并发等待者直接复用结果
+ */
+function loadProtectedMediaOnce(
+  requestKey: string,
+  requestURL: string,
+  headers: Record<string, string>,
+  sourceRef: string,
+  fileNameHint: string,
+  onProgress?: (percent: number) => void,
+): Promise<LoadedProtectedFile | null> {
+  const existing = mediaInflight.get(requestKey);
+  if (existing) {
+    return existing;
+  }
+  const task = (async (): Promise<LoadedProtectedFile | null> => {
+    try {
+      // raw-fetch-ok: 取的是二进制（视频/封面），响应体不是 JSON
+      const resp = await fetch(requestURL, { method: 'GET', headers, credentials: 'include' });
+      if (!resp.ok) {
+        protectedFileFailureCache.set(requestKey, Date.now());
+        return null;
+      }
+      const blob = onProgress
+        ? await readBlobWithProgress(resp, onProgress)
+        : await resp.blob();
+      const blobURL = URL.createObjectURL(blob);
+      const file: LoadedProtectedFile = {
+        blobURL,
+        blob,
+        fileName: responseFileName(resp.headers.get('Content-Disposition'), fileNameHint),
+      };
+      protectedFileBlobCache.set(requestKey, file);
+      protectedFileBySource.set(sourceRef, file);
+      protectedFileFailureCache.delete(requestKey);
+      return file;
+    } catch (error) {
+      protectedFileFailureCache.set(requestKey, Date.now());
+      console.warn('[security] load protected media failed:', error);
+      return null;
+    } finally {
+      mediaInflight.delete(requestKey);
+    }
+  })();
+  mediaInflight.set(requestKey, task);
+  return task;
+}
+
 async function readBlobWithProgress(
   resp: Response,
   onProgress: (percent: number) => void,
@@ -648,27 +707,11 @@ async function hydrateProtectedMedia(
             video.poster = cachedPoster.blobURL;
             return;
           }
-          try {
-            // raw-fetch-ok: 取的是封面图二进制（blob），响应体不是 JSON
-            const resp = await fetch(posterRequest.url, {
-              method: 'GET',
-              headers: posterRequest.headers,
-              credentials: 'include',
-            });
-            if (resp.ok) {
-              const blob = await resp.blob();
-              const blobURL = URL.createObjectURL(blob);
-              const posterFile = { blobURL, blob, fileName: 'poster.jpg' };
-              protectedFileBlobCache.set(posterKey, posterFile);
-              protectedFileBySource.set(posterRef, posterFile);
-              protectedFileFailureCache.delete(posterKey);
-              video.poster = blobURL;
-              return;
-            }
-            protectedFileFailureCache.set(posterKey, Date.now());
-          } catch (error) {
-            protectedFileFailureCache.set(posterKey, Date.now());
-            console.warn('[security] load video poster failed:', error);
+          const posterFile = await loadProtectedMediaOnce(posterKey, posterRequest.url,
+              posterRequest.headers, posterRef, 'poster.jpg');
+          if (posterFile) {
+            video.poster = posterFile.blobURL;
+            return;
           }
         }
       }
@@ -688,41 +731,25 @@ async function hydrateProtectedMedia(
       }
       return;
     }
-    try {
-      // raw-fetch-ok: 取的是二进制（视频流），响应体不是 JSON
-      const resp = await fetch(requestURL, { method: 'GET', headers, credentials: 'include' });
-      if (!resp.ok) {
-        if (shell) {
-          markVideoFailed(shell, retry);
-        }
-        return;
-      }
-      const blob = await readBlobWithProgress(resp, (percent) => {
-        const node = shell ? videoOverlay(shell) : null;
-        if (node) {
-          node.textContent = tText('chat.videoLoading', { percent });
-        }
-      });
-      const blobURL = URL.createObjectURL(blob);
-      const file = {
-        blobURL,
-        blob,
-        fileName: responseFileName(resp.headers.get('Content-Disposition'), sourceURL),
-      };
-      protectedFileBlobCache.set(requestKey, file);
-      // 同时记到 bySource：下次渲染（流式每个 chunk 都会重渲染）可以直接带上 blob，
-      // 否则新元素总是「空白 → 加载」闪一下。
-      protectedFileBySource.set(sourceURL, file);
-      video.src = blobURL;
-      video.dataset.authHydrated = '1';
-      await applyPoster();
-      markReadyOnPlayable();
-    } catch (error) {
-      console.warn('[security] hydrateProtectedMedia failed:', error);
+    // 同一请求键全页只下 1 次：两个 watcher / 多次重渲染并发水合时共享同一个 Promise，
+    // 否则一个 4MB 视频会被下 4 次（每次还各自造一个 blob URL）。
+    const file = await loadProtectedMediaOnce(requestKey, requestURL, headers, sourceURL,
+        sourceURL, (percent) => {
+          const node = shell ? videoOverlay(shell) : null;
+          if (node) {
+            node.textContent = tText('chat.videoLoading', { percent });
+          }
+        });
+    if (!file) {
       if (shell) {
         markVideoFailed(shell, retry);
       }
+      return;
     }
+    video.src = file.blobURL;
+    video.dataset.authHydrated = '1';
+    await applyPoster();
+    markReadyOnPlayable();
   }));
 }
 
