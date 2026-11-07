@@ -40,12 +40,16 @@ final class ResourceCatalogFileService implements WritableFileContentService {
         String physical = resolved.physicalPath();
         boolean isResource = resolved.resource() != null;
         String externalURL = StorageFileResolver.env("APP_EXTERNAL_URL").replaceAll("/+$", "");
-        if (isResource && !externalURL.isEmpty()) {
+        if (!externalURL.isEmpty()) {
+            // 不只是 resource://：历史/规范的 local://… 也要签成能力链接，
+            // 否则 IM（飞书/企微）拿到的是 local://，下载不到图只能退化成文件名。
             var token = catalog.createAccessGrant(filePath, Duration.ofHours(2));
             if (token.isPresent()) {
                 return externalURL + "/r/" + token.get();
             }
-            throw new IllegalStateException("failed to allocate resource access token");
+            if (isResource) {
+                throw new IllegalStateException("failed to allocate resource access token");
+            }
         }
         return inner.getFileURL(physical);
     }

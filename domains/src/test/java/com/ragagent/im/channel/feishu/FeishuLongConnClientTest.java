@@ -120,7 +120,7 @@ class FeishuLongConnClientTest {
     }
 
     @Test
-    @DisplayName("card 帧照 Go 忽略（不回执）；处理器异常回 code=500；未知事件类型仍回 200")
+    @DisplayName("card 帧照 Go 忽略（不回执）；处理器异常不影响回执（先 ack 再处理）；未知事件类型回 200")
     void handlesCardAndErrors() {
         List<IncomingMessage> received = new CopyOnWriteArrayList<>();
         FeishuLongConnClient c = client(received);
@@ -147,7 +147,8 @@ class FeishuLongConnClientTest {
                 "{\"header\":{\"event_type\":\"im.message.receive_v1\"},\"event\":"
                         + "{\"message\":{\"message_id\":\"m2\",\"message_type\":\"text\","
                         + "\"content\":\"{\\\"text\\\":\\\"x\\\"}\"}}}"));
-        assertEquals(500, codeOf(failSink.frames.get(0)));
+        // 先 ack 再处理：业务异常只记日志，回执仍是 200（飞书 3 秒内要 ack）
+        assertEquals(200, codeOf(failSink.frames.get(0)));
     }
 
     @Test

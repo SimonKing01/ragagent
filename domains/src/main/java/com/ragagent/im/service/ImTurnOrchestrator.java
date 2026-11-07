@@ -214,6 +214,12 @@ public class ImTurnOrchestrator implements AgentChannelCleaner {
             log.info("[IM] Skipping duplicate message: {}", msg.messageId);
             return;
         }
+        String contentKey = msg.platform + "|" + channelId + "|" + msg.userId + "|" + msg.chatId
+                + "|" + msg.content;
+        if (inboundGuard.isDuplicateContent(contentKey)) {
+            log.info("[IM] Skipping duplicate content within 5s: user={} chat={}", msg.userId, msg.chatId);
+            return;
+        }
         // 限长（按 code point 计）
         if (msg.content.codePointCount(0, msg.content.length()) > ImFormat.MAX_CONTENT_LENGTH) {
             log.warn("[IM] Message too long, truncating to {}", ImFormat.MAX_CONTENT_LENGTH);

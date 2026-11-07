@@ -406,18 +406,29 @@ public class FeishuLongConnClient {
         }
 
         long start = System.currentTimeMillis();
-        int code = 200;
+        IncomingMessage message;
         try {
-            IncomingMessage message = LarkEventConverter.convert(region, payload);
-            if (message != null && msgHandler != null) {
-                msgHandler.accept(message, channelId);
-            }
+            message = LarkEventConverter.convert(region, payload);
         } catch (Exception e) {
-            log.error("[{}] handle event failed", region.label(), e);
-            code = 500;
+            log.error("[{}] convert event failed", region.label(), e);
+            sendAck(frame, start, 500);
+            return;
         }
-        long elapsed = System.currentTimeMillis() - start;
+        // 先回执再处理：飞书要求 3 秒内 ack，而业务处理（查渠道/会话、入队）可能更久；
+        // 超时会被平台重推——即使有 messageId 去重，也会白跑一次解析与入队。
+        sendAck(frame, start, 200);
+        if (message != null && msgHandler != null) {
+            try {
+                msgHandler.accept(message, channelId);
+            } catch (Exception e) {
+                log.error("[{}] handle event failed", region.label(), e);
+            }
+        }
+    }
 
+    /** 同帧回执（带 biz_rt）。 */
+    private void sendAck(LarkFrame frame, long start, int code) {
+        long elapsed = System.currentTimeMillis() - start;
         LarkFrame ack = LarkFrame.decode(frame.encode());
         ack.addHeader(HEADER_BIZ_RT, String.valueOf(elapsed));
         ack.payload = ("{\"code\":" + code + "}").getBytes(StandardCharsets.UTF_8);

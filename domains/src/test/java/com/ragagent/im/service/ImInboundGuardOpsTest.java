@@ -34,6 +34,17 @@ class ImInboundGuardOpsTest {
     }
 
     @Test
+    @DisplayName("内容级兜底：同一人同内容 5 秒内只放行一次，换内容不受影响")
+    void duplicateContentWithinShortWindow() {
+        ImInboundGuardOps ops = singleInstance(60, 10);
+        String key = "feishu|ch1|u1|c1|你好";
+
+        assertFalse(ops.isDuplicateContent(key), "首次出现不算重复");
+        assertTrue(ops.isDuplicateContent(key), "5 秒内同内容应判重");
+        assertFalse(ops.isDuplicateContent("feishu|ch1|u1|c1|在吗"), "内容不同不拦");
+    }
+
+    @Test
     @DisplayName("限流（单实例）：窗口内配额用尽即拒，且与 key 绑定")
     void rateLimitWithinWindow() {
         ImInboundGuardOps ops = singleInstance(60, 2);

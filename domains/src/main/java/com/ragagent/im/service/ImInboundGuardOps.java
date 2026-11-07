@@ -35,6 +35,29 @@ final class ImInboundGuardOps {
 
     /** 去重（进程内分支）：messageId → epoch 秒。 */
     private final Map<String, Long> processedMsgs = new ConcurrentHashMap<>();
+    /** 内容级兜底去重：同一人 5 秒内重复发送同一句只答一次（有的平台重推会换 id）。 */
+    private static final long CONTENT_DEDUP_WINDOW_MS = 5_000;
+    private final Map<String, Long> recentContent = new ConcurrentHashMap<>();
+
+    /**
+     * 内容级兜底：{@code platform|channel|user|chat|content} 在 5 秒内出现两次即视为重复。
+     *
+     * <p>覆盖「同一条消息被平台重推、但 messageId 变了」的情形（飞书换 id 的重推、
+     * 客户端连点两次发送）。只拦极短窗口内的完全相同内容，正常连发两句一样的话不受影响。</p>
+     */
+    boolean isDuplicateContent(String key) {
+        long now = System.currentTimeMillis();
+        Long prev = recentContent.putIfAbsent(key, now);
+        if (prev != null && now - prev < CONTENT_DEDUP_WINDOW_MS) {
+            return true;
+        }
+        recentContent.put(key, now);
+        if (recentContent.size() > 5_000) {
+            recentContent.entrySet().removeIf(e -> now - e.getValue() > CONTENT_DEDUP_WINDOW_MS);
+        }
+        return false;
+    }
+
     /** 限流的本地滑动窗口（Redis 故障时回落）。 */
     private final Map<String, List<Long>> rateWindows = new ConcurrentHashMap<>();
 
