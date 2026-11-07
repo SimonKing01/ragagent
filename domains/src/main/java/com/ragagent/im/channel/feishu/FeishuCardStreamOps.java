@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,19 +75,6 @@ final class FeishuCardStreamOps {
 
     public void finalizeStream(IncomingMessage incoming, String streamId, String finalContent)
             throws Exception {
-        FeishuAdapter.StreamState state = FeishuAdapter.STREAMS.get(streamId);
-        // 含图片的回答不走流式卡片：CardKit 流式模式下 markdown 图片只显示占位，
-        // 而关流式后又拒绝更新元素（code=300309），只能整条改用非流式卡片发。
-        if (state != null && finalContent != null && finalContent.contains("![")) {
-            // 图片用后续的 post 富文本发；卡片里只落定**纯文字**（不留任何提示语）
-            state.pendingCard = finalContent;
-            String textOnly = FeishuAdapter.MD_IMAGE_RE.matcher(finalContent).replaceAll("")
-                    .replaceAll("\n{3,}", "\n\n").strip();
-            if (!textOnly.isEmpty()) {
-                updateStreamContent(incoming, streamId, textOnly);
-            }
-            return;
-        }
         updateStreamContent(incoming, streamId, finalContent);
     }
 
@@ -98,16 +84,14 @@ final class FeishuCardStreamOps {
 
         int seq = 0;
         String summary = null;
-        String finalContent = "";
         if (state != null) {
             seq = state.nextSeq();
+            String preview;
             synchronized (state.lock) {
-                String body = state.content.toString();
-                finalContent = body;
-                String preview = cardSummaryPreview(body);
-                if (!preview.isEmpty()) {
-                    summary = preview;
-                }
+                preview = cardSummaryPreview(state.content.toString());
+            }
+            if (!preview.isEmpty()) {
+                summary = preview;
             }
         }
         // 始终关 streaming_mode（CardKit 拒绝顶层 streaming_mode 字段）；
@@ -118,11 +102,6 @@ final class FeishuCardStreamOps {
             log.warn("[{}] Failed to disable streaming_mode", service.region.label(), e);
         }
         log.info("[{}] Streaming ended: card_id={}", service.region.label(), streamId);
-
-        // 含图回答的成品卡：流式卡片只留一句提示，正文与图片在这里一次成型
-        if (state != null && state.pendingCard != null && !state.pendingCard.isBlank()) {
-            sendFinalCard(incoming, accessToken, state.pendingCard);
-        }
     }
 
     /** 惰性清掉超过 TTL 的孤儿流。 */
@@ -168,41 +147,6 @@ final class FeishuCardStreamOps {
         card.set("body", FeishuAdapter.MAPPER.createObjectNode().set("elements", elements));
 
         return FeishuAdapter.MAPPER.writeValueAsString(card);
-    }
-
-    /**
-     * 含图回答的图片：逐张作为**独立 image 消息**发送。
-     *
-     * <p>卡片 markdown 与 post 的 img 元素在生产上都停在加载占位；image 消息是飞书最基础
-     * 的发图能力，先用它把图片送到用户面前，再考虑更好的排版。</p>
-     */
-    private void sendFinalCard(IncomingMessage incoming, String accessToken, String finalContent) {
-        Matcher matcher = FeishuAdapter.MD_IMAGE_RE.matcher(finalContent == null ? "" : finalContent);
-        int sent = 0;
-        while (matcher.find()) {
-            String url = matcher.group(2);
-            try {
-                String imageKey = service.mediaOps.imageKeyForUrl(accessToken, url);
-                String content = FeishuAdapter.MAPPER.writeValueAsString(
-                        Map.of("image_key", imageKey));
-                String[] receive = FeishuSendOps.resolveReceiveId(incoming);
-                Map<String, Object> replyPayload = new LinkedHashMap<>();
-                replyPayload.put("msg_type", "image");
-                replyPayload.put("content", content);
-                Map<String, Object> fallbackPayload = new LinkedHashMap<>();
-                fallbackPayload.put("receive_id", receive[1]);
-                fallbackPayload.put("msg_type", "image");
-                fallbackPayload.put("content", content);
-                service.sendOps.sendWithFallback(accessToken, incoming, replyPayload,
-                        fallbackPayload, receive[0]);
-                sent++;
-            } catch (Exception e) {
-                log.warn("[{}] send image message failed: url={}", service.region.label(), url, e);
-            }
-        }
-        if (sent > 0) {
-            log.info("[{}] final images sent as messages: {}", service.region.label(), sent);
-        }
     }
 
     /** POST cardkit/v1/cards（type=card_json）→ card_id。 */

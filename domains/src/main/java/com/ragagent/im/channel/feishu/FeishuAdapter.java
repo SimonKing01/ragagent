@@ -84,8 +84,6 @@ public class FeishuAdapter implements AdapterInterfaces.Adapter,
         final long createdAt = System.currentTimeMillis();
         final Object lock = new Object();
         final StringBuilder content = new StringBuilder();
-        /** 含图片的最终内容：交给 endStream 用**非流式卡片**单独发（流式卡片不渲染图片）。 */
-        volatile String pendingCard;
         long contentSeq;
         long seq;
 
