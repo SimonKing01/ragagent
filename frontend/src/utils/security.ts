@@ -5,6 +5,7 @@
 import DOMPurify from 'dompurify';
 import { applyProtectedFile, responseFileName, RESOURCE_PREVIEW_EVENT, type LoadedProtectedFile } from './protectedResource.ts';
 import { findPosterImage, upgradeProtectedMediaRefs } from './protectedMedia.ts';
+import { tText } from './activeI18n';
 import {
   type ProtectedFileLoadResult,
   protectedFileBlobCache,
@@ -499,6 +500,83 @@ function applyHydratedProtectedImage(root: ParentNode, sourceURL: string, file: 
  * 受保护音视频（local://…/xxx.mp4）与图片同一条链路：带鉴权取 blob，塞回 <video src>。
  * 视频不重试占位，失败就保持 controls 不可用。
  */
+const VIDEO_SHELL_CLASS = 'chunk-video-shell';
+const VIDEO_OVERLAY_CLASS = 'chunk-video-overlay';
+
+/** 视频外层容器（带状态位），用于展示加载遮罩/进度。 */
+function ensureVideoShell(video: HTMLVideoElement): HTMLElement | null {
+  const parent = video.parentElement;
+  if (parent && parent.classList.contains(VIDEO_SHELL_CLASS)) {
+    return parent;
+  }
+  const doc = video.ownerDocument;
+  const shell = doc.createElement('span');
+  // 精简 DOM 替身（单测里）没有完整 Element 能力：退化为不包裹，逻辑照常跑。
+  if (typeof shell.setAttribute !== 'function' || typeof video.replaceWith !== 'function') {
+    return null;
+  }
+  shell.className = VIDEO_SHELL_CLASS;
+  shell.setAttribute('data-media-state', 'loading');
+  video.replaceWith(shell);
+  shell.appendChild(video);
+  const overlay = doc.createElement('span');
+  overlay.className = VIDEO_OVERLAY_CLASS;
+  overlay.setAttribute('role', 'status');
+  overlay.textContent = tText('chat.videoLoadingHint');
+  shell.appendChild(overlay);
+  return shell;
+}
+
+function videoOverlay(shell: HTMLElement): HTMLElement | null {
+  return shell.querySelector<HTMLElement>('.' + VIDEO_OVERLAY_CLASS);
+}
+
+/** 置为可播放：移除遮罩。 */
+function markVideoReady(shell: HTMLElement): void {
+  shell.setAttribute('data-media-state', 'ready');
+  videoOverlay(shell)?.remove();
+}
+
+/** 置为失败：遮罩换成可点重试。 */
+function markVideoFailed(shell: HTMLElement, onRetry: () => void): void {
+  shell.setAttribute('data-media-state', 'failed');
+  const overlay = videoOverlay(shell);
+  if (!overlay) {
+    return;
+  }
+  overlay.textContent = tText('chat.videoLoadFailed');
+  overlay.addEventListener('click', onRetry, { once: true });
+}
+
+/** 读流式响应并回报进度（拿不到 Content-Length 时退化为不定进度）。 */
+async function readBlobWithProgress(
+  resp: Response,
+  onProgress: (percent: number) => void,
+): Promise<Blob> {
+  const total = Number(resp.headers.get('content-length') || 0);
+  const reader = resp.body?.getReader?.();
+  if (!reader || total <= 0) {
+    return resp.blob();
+  }
+  const chunks: Uint8Array[] = [];
+  let received = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+    if (value) {
+      chunks.push(value);
+      received += value.length;
+      // 100% 留给“可播放”时刻，避免进度停在 100% 却还要等解码
+      onProgress(Math.min(99, Math.round((received / total) * 100)));
+    }
+  }
+  return new Blob(chunks as BlobPart[], {
+    type: resp.headers.get('content-type') || 'video/mp4',
+  });
+}
+
 async function hydrateProtectedMedia(
   root: ParentNode,
   access?: ProtectedFileAccessContext,
@@ -519,6 +597,38 @@ async function hydrateProtectedMedia(
     }
     const { url: requestURL, headers } = request;
     const requestKey = JSON.stringify([requestURL, headers]);
+    const shell = ensureVideoShell(video);
+    const overlay = shell ? videoOverlay(shell) : null;
+    const retry = () => {
+      video.dataset.authHydrated = '0';
+      if (!shell) {
+        void hydrateProtectedMedia(video, access);
+        return;
+      }
+      shell.setAttribute('data-media-state', 'loading');
+      if (overlay) {
+        overlay.textContent = tText('chat.videoLoadingHint');
+        overlay.onclick = null;
+      }
+      void hydrateProtectedMedia(shell, access);
+    };
+    // 元数据到手即可点播：这时移除遮罩，剩下的缓冲交给浏览器
+    const markReadyOnPlayable = () => {
+      if (!shell) {
+        return;
+      }
+      const done = () => markVideoReady(shell);
+      if (video.readyState >= 1) {
+        done();
+        return;
+      }
+      video.addEventListener('loadedmetadata', done, { once: true });
+      video.addEventListener('error', () => {
+        if (shell) {
+          markVideoFailed(shell, retry);
+        }
+      }, { once: true });
+    };
     const applyPoster = async () => {
       // 优先用链接 title 里带的封面（新格式），回退到同块里的封面图（老分块）
       const posterRef = (video.getAttribute('data-poster-src') || '').trim();
@@ -526,6 +636,13 @@ async function hydrateProtectedMedia(
         const posterRequest = buildProtectedFileRequest(posterRef, resolvedAccess);
         if (posterRequest) {
           const posterKey = JSON.stringify([posterRequest.url, posterRequest.headers]);
+          // 封面 404 后短时冷却：流式/多次渲染会重复挂同一个播放器，
+          // 没冷却就会每帧都打一次不存在的文件（控制台刷屏、白白占并发）。
+          const posterFailedAt = protectedFileFailureCache.get(posterKey);
+          if (posterFailedAt !== undefined
+              && Date.now() - posterFailedAt < PROTECTED_FILE_RETRY_COOLDOWN_MS) {
+            return;
+          }
           const cachedPoster = protectedFileBlobCache.get(posterKey);
           if (cachedPoster) {
             video.poster = cachedPoster.blobURL;
@@ -544,10 +661,13 @@ async function hydrateProtectedMedia(
               const posterFile = { blobURL, blob, fileName: 'poster.jpg' };
               protectedFileBlobCache.set(posterKey, posterFile);
               protectedFileBySource.set(posterRef, posterFile);
+              protectedFileFailureCache.delete(posterKey);
               video.poster = blobURL;
               return;
             }
+            protectedFileFailureCache.set(posterKey, Date.now());
           } catch (error) {
+            protectedFileFailureCache.set(posterKey, Date.now());
             console.warn('[security] load video poster failed:', error);
           }
         }
@@ -563,15 +683,26 @@ async function hydrateProtectedMedia(
       video.src = cached.blobURL;
       video.dataset.authHydrated = '1';
       await applyPoster();
+      if (shell) {
+        markVideoReady(shell);
+      }
       return;
     }
     try {
       // raw-fetch-ok: 取的是二进制（视频流），响应体不是 JSON
       const resp = await fetch(requestURL, { method: 'GET', headers, credentials: 'include' });
       if (!resp.ok) {
+        if (shell) {
+          markVideoFailed(shell, retry);
+        }
         return;
       }
-      const blob = await resp.blob();
+      const blob = await readBlobWithProgress(resp, (percent) => {
+        const node = shell ? videoOverlay(shell) : null;
+        if (node) {
+          node.textContent = tText('chat.videoLoading', { percent });
+        }
+      });
       const blobURL = URL.createObjectURL(blob);
       const file = {
         blobURL,
@@ -585,8 +716,12 @@ async function hydrateProtectedMedia(
       video.src = blobURL;
       video.dataset.authHydrated = '1';
       await applyPoster();
+      markReadyOnPlayable();
     } catch (error) {
       console.warn('[security] hydrateProtectedMedia failed:', error);
+      if (shell) {
+        markVideoFailed(shell, retry);
+      }
     }
   }));
 }

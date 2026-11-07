@@ -2885,6 +2885,9 @@ export default {
     }
   },
   chat: {
+    videoLoading: 'Loading {percent}%',
+    videoLoadingHint: 'Loading video…',
+    videoLoadFailed: 'Video failed to load. Tap to retry.',
     memoryUsedCount: 'Used {count} memories',
     memoryForget: 'Delete this memory',
     memoryForgotten: 'Memory deleted',

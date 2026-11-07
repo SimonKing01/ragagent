@@ -96,6 +96,9 @@ export default {
     tokenRequiredForPreview: '需要發佈 Token 才能預覽。請先建立渠道，或點擊「輪換 Token」取得新 Token。'
   },
   chat: {
+    videoLoading: '載入中 {percent}%',
+    videoLoadingHint: '影片載入中…',
+    videoLoadFailed: '影片載入失敗，點擊重試。',
     suggestedQuestions: '為您推薦',
     defaultGreeting: '嗨，有什麼可以幫你的？',
     followUpQuestions: '繼續追問',

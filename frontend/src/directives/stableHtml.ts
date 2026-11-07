@@ -4,10 +4,46 @@ function imageIdentity(img: HTMLImageElement): string {
   return (img.getAttribute('data-protected-src') || img.currentSrc || img.src || '').trim();
 }
 
+/** 已水合的视频外壳（span.chunk-video-shell > video）。 */
+function shellVideo(shell: Element): HTMLVideoElement | null {
+  return shell.querySelector<HTMLVideoElement>('video[data-protected-src]');
+}
+
+function sameVideoSource(current: Element, next: Element): boolean {
+  const src = current.getAttribute('data-protected-src');
+  return Boolean(src) && src === next.getAttribute('data-protected-src');
+}
+
 function canMorph(current: Node, next: Node): boolean {
   if (current.nodeType !== next.nodeType) return false;
   if (current.nodeType !== Node.ELEMENT_NODE) return true;
-  return (current as Element).tagName === (next as Element).tagName;
+  const currentElement = current as Element;
+  const nextElement = next as Element;
+  if (currentElement.tagName === nextElement.tagName) return true;
+  // 水合后播放器被外壳包着，新渲染的 HTML 里还是裸 <video>：
+  // 同源时保留已水合的外壳，否则每个流式 tick 都会重建播放器（闪黑）。
+  if (currentElement.classList.contains('chunk-video-shell')
+      && nextElement instanceof HTMLVideoElement) {
+    const video = shellVideo(currentElement);
+    return !!video && sameVideoSource(video, nextElement);
+  }
+  return false;
+}
+
+function morphVideo(current: HTMLVideoElement, next: HTMLVideoElement): void {
+  const keepDecoded = sameVideoSource(current, next)
+    && (current.dataset.authHydrated === '1' || Boolean(current.src));
+  if (keepDecoded) {
+    // 保留已加载的 blob src / poster / 水合标记，只同步其它属性
+    syncAttributes(current, next, new Set([
+      'src',
+      'poster',
+      'data-auth-hydrated',
+      'data-media-state',
+    ]));
+    return;
+  }
+  syncAttributes(current, next);
 }
 
 function syncAttributes(current: Element, next: Element, preserved: Set<string> = new Set()): void {
@@ -82,6 +118,16 @@ function morphNode(current: Node, next: Node): void {
 
   const currentElement = current as Element;
   const nextElement = next as Element;
+  // 已水合的外壳 vs 新一轮渲染的裸播放器：外壳内部已是最新内容，整棵保留
+  if (currentElement.classList.contains('chunk-video-shell')
+      && nextElement instanceof HTMLVideoElement
+      && sameVideoSource(shellVideo(currentElement) as Element, nextElement)) {
+    return;
+  }
+  if (currentElement instanceof HTMLVideoElement && nextElement instanceof HTMLVideoElement) {
+    morphVideo(currentElement, nextElement);
+    return;
+  }
   if (currentElement instanceof HTMLImageElement && nextElement instanceof HTMLImageElement) {
     morphImage(currentElement, nextElement);
     return;

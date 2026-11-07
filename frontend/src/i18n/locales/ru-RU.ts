@@ -3051,6 +3051,9 @@ export default {
     }
   },
   chat: {
+    videoLoading: 'Загрузка {percent}%',
+    videoLoadingHint: 'Загрузка видео…',
+    videoLoadFailed: 'Не удалось загрузить видео. Нажмите, чтобы повторить.',
     memoryUsedCount: 'Использовано записей памяти: {count}',
     memoryForget: 'Удалить эту запись',
     memoryForgotten: 'Запись удалена',

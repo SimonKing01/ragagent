@@ -96,6 +96,9 @@ export default {
     tokenRequiredForPreview: 'Se necesita un token de publicación para la vista previa. Cree un canal o rote el token primero.'
   },
   chat: {
+    videoLoading: 'Cargando {percent}%',
+    videoLoadingHint: 'Cargando vídeo…',
+    videoLoadFailed: 'No se pudo cargar el vídeo. Toca para reintentar.',
     suggestedQuestions: 'Recomendado para ti',
     defaultGreeting: '¡Hola! ¿En qué puedo ayudarte?',
     followUpQuestions: 'Seguir preguntando',

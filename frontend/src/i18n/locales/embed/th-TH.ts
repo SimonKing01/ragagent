@@ -96,6 +96,9 @@ export default {
     tokenRequiredForPreview: 'ต้องมีโทเคนเผยแพร่จึงจะดูตัวอย่างได้ สร้างช่องหรือหมุนเวียนโทเคนก่อน'
   },
   chat: {
+    videoLoading: 'กำลังโหลด {percent}%',
+    videoLoadingHint: 'กำลังโหลดวิดีโอ…',
+    videoLoadFailed: 'โหลดวิดีโอไม่สำเร็จ แตะเพื่อลองใหม่',
     suggestedQuestions: 'แนะนำสำหรับคุณ',
     defaultGreeting: 'สวัสดี มีอะไรให้ช่วยไหม?',
     followUpQuestions: 'ถามต่อ',

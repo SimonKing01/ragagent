@@ -2885,6 +2885,9 @@ export default {
     }
   },
   chat: {
+    videoLoading: '載入中 {percent}%',
+    videoLoadingHint: '影片載入中…',
+    videoLoadFailed: '影片載入失敗，點擊重試。',
     memoryUsedCount: '已使用 {count} 條記憶',
     memoryForget: '刪除此記憶',
     memoryForgotten: '記憶已刪除',

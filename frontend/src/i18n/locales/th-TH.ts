@@ -2885,6 +2885,9 @@ export default {
     }
   },
   chat: {
+    videoLoading: 'กำลังโหลด {percent}%',
+    videoLoadingHint: 'กำลังโหลดวิดีโอ…',
+    videoLoadFailed: 'โหลดวิดีโอไม่สำเร็จ แตะเพื่อลองใหม่',
     memoryUsedCount: 'ใช้ความจำ {count} รายการ',
     memoryForget: 'ลบความจำนี้',
     memoryForgotten: 'ลบความจำแล้ว',

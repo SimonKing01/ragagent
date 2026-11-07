@@ -592,6 +592,64 @@
   }
 
   /* 音视频分块里的播放器：与图片同样的宽度与圆角 */
+  /* 视频外层：承载加载遮罩与进度（水合完成前点播放没有反应，要给可见反馈） */
+  /* 壳只负责定位遮罩：尺寸跟随播放器，保持原有「自然宽度 + 左对齐」 */
+  :deep(.chunk-video-shell) {
+    position: relative;
+    /* block + fit-content：不受父级 text-align 影响，永远左对齐、宽度仍由播放器决定 */
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    margin: 1.25em auto 1.25em 0;
+  }
+
+  /* 壳内播放器不再自带外边距（否则遮罩上下会多出一条灰带） */
+  :deep(.chunk-video-shell video.chunk-video) {
+    margin: 0;
+  }
+
+  :deep(.chunk-video-overlay) {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.2;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  :deep(.chunk-video-shell[data-media-state='loading'] video) {
+    pointer-events: none;
+  }
+
+  :deep(.chunk-video-shell[data-media-state='loading'] .chunk-video-overlay::before) {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: chunk-video-spin 0.9s linear infinite;
+  }
+
+  :deep(.chunk-video-shell[data-media-state='failed'] .chunk-video-overlay) {
+    pointer-events: auto;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  @keyframes chunk-video-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
   :deep(video.chunk-video) {
     display: block;
     max-width: 100%;

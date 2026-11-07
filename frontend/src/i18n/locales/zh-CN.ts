@@ -3053,6 +3053,9 @@ export default {
     }
   },
   chat: {
+    videoLoading: '加载中 {percent}%',
+    videoLoadingHint: '视频加载中…',
+    videoLoadFailed: '视频加载失败，点击重试。',
     memoryUsedCount: '本次使用了 {count} 条记忆',
     memoryForget: '删除这条记忆',
     memoryForgotten: '已删除这条记忆',

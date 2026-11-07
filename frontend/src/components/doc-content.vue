@@ -2186,6 +2186,59 @@ const handleChunkPageChange = (pageInfo: { current: number }) => {
 </template>
 <style scoped lang="less">
 /* 分块正文里的音视频播放器：与聊天侧保持一致的观感 */
+.doc-content :deep(.chunk-video-shell) {
+  position: relative;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 1em auto 1em 0;
+}
+
+.doc-content :deep(.chunk-video-shell video.chunk-video) {
+  margin: 0;
+}
+
+.doc-content :deep(.chunk-video-overlay) {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.doc-content :deep(.chunk-video-shell[data-media-state='loading'] video) {
+  pointer-events: none;
+}
+
+.doc-content :deep(.chunk-video-shell[data-media-state='loading'] .chunk-video-overlay::before) {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: chunk-video-spin 0.9s linear infinite;
+}
+
+.doc-content :deep(.chunk-video-shell[data-media-state='failed'] .chunk-video-overlay) {
+  pointer-events: auto;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+@keyframes chunk-video-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .doc-content :deep(video.chunk-video) {
   display: block;
   max-width: 100%;

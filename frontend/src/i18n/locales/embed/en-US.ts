@@ -95,6 +95,9 @@ export default {
     tokenRequiredForPreview: 'A publish token is required to preview. Create a channel or rotate the token first.'
   },
   chat: {
+    videoLoading: 'Loading {percent}%',
+    videoLoadingHint: 'Loading video…',
+    videoLoadFailed: 'Video failed to load. Tap to retry.',
     title: 'Chat',
     newChat: 'New Chat',
     suggestedQuestions: 'Recommended for you',

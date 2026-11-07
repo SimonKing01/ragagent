@@ -95,6 +95,9 @@ export default {
     tokenRequiredForPreview: '需要发布 Token 才能预览。请先创建渠道，或点击「轮换 Token」获取新 Token。'
   },
   chat: {
+    videoLoading: '加载中 {percent}%',
+    videoLoadingHint: '视频加载中…',
+    videoLoadFailed: '视频加载失败，点击重试。',
     title: '对话',
     newChat: '新对话',
     suggestedQuestions: '为您推荐',

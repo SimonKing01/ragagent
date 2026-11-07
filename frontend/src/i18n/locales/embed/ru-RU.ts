@@ -95,6 +95,9 @@ export default {
     tokenRequiredForPreview: 'A publish token is required to preview. Create a channel or rotate the token first.'
   },
   chat: {
+    videoLoading: 'Загрузка {percent}%',
+    videoLoadingHint: 'Загрузка видео…',
+    videoLoadFailed: 'Не удалось загрузить видео. Нажмите, чтобы повторить.',
     title: 'Chat',
     newChat: 'New Chat',
     suggestedQuestions: 'Рекомендуем',

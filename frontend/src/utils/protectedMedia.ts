@@ -7,6 +7,7 @@
 
 /** 受保护音视频引用：local://…/exports/xxx.mp4（含 storage://backend/local://…）。 */
 import { getCachedProtectedFile } from './protectedFileCache';
+import { tText } from './activeI18n';
 
 export const PROTECTED_VIDEO_REF =
   /^(?:local|resource|storage|minio|cos|tos|s3|oss|ks3|obs):\/\/.*\.(?:mp4|mov|m4v|webm|mkv)(?:[?#].*)?$/i;
@@ -51,7 +52,7 @@ export function createProtectedVideo(
   href: string,
   posterRef?: string | null,
   cached?: CachedMediaSources,
-): HTMLVideoElement {
+): HTMLElement {
   const video = doc.createElement('video');
   video.setAttribute('controls', '');
   video.setAttribute('preload', 'metadata');
@@ -71,7 +72,23 @@ export function createProtectedVideo(
   if (cached?.poster) {
     video.setAttribute('poster', cached.poster);
   }
-  return video;
+  // 首帧就带上外壳与遮罩：水合时不再二次包裹，避免「裸播放器 → 包壳」闪一下
+  const shell = doc.createElement('span');
+  shell.className = 'chunk-video-shell';
+  if (cached?.src) {
+    shell.setAttribute('data-media-state', 'ready');
+  } else {
+    shell.setAttribute('data-media-state', 'loading');
+    const overlay = doc.createElement('span');
+    overlay.className = 'chunk-video-overlay';
+    overlay.setAttribute('role', 'status');
+    overlay.textContent = tText('chat.videoLoadingHint');
+    shell.appendChild(video);
+    shell.appendChild(overlay);
+    return shell;
+  }
+  shell.appendChild(video);
+  return shell;
 }
 
 /**

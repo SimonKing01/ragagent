@@ -2885,6 +2885,9 @@ export default {
     }
   },
   chat: {
+    videoLoading: 'Cargando {percent}%',
+    videoLoadingHint: 'Cargando vídeo…',
+    videoLoadFailed: 'No se pudo cargar el vídeo. Toca para reintentar.',
     memoryUsedCount: 'Usados {count} recuerdos',
     memoryForget: 'Eliminar este recuerdo',
     memoryForgotten: 'Recuerdo eliminado',

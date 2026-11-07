@@ -2885,6 +2885,9 @@ export default {
     }
   },
   chat: {
+    videoLoading: 'Carregando {percent}%',
+    videoLoadingHint: 'Carregando vídeo…',
+    videoLoadFailed: 'Falha ao carregar o vídeo. Toque para tentar novamente.',
     memoryUsedCount: '{count} memórias usadas',
     memoryForget: 'Excluir esta memória',
     memoryForgotten: 'Memória excluída',
