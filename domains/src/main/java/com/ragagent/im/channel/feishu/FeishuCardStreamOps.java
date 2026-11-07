@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.im.runtime.IncomingMessage;
+import com.ragagent.im.runtime.ReplyMessage;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -75,6 +76,14 @@ final class FeishuCardStreamOps {
 
     public void finalizeStream(IncomingMessage incoming, String streamId, String finalContent)
             throws Exception {
+        FeishuAdapter.StreamState state = FeishuAdapter.STREAMS.get(streamId);
+        // 含图片的回答不走流式卡片：CardKit 流式模式下 markdown 图片只显示占位，
+        // 而关流式后又拒绝更新元素（code=300309），只能整条改用非流式卡片发。
+        if (state != null && finalContent != null && finalContent.contains("![")) {
+            state.pendingCard = finalContent;
+            updateStreamContent(incoming, streamId, "✅ 已生成回答，详见下方卡片");
+            return;
+        }
         updateStreamContent(incoming, streamId, finalContent);
     }
 
@@ -103,19 +112,12 @@ final class FeishuCardStreamOps {
         } catch (Exception e) {
             log.warn("[{}] Failed to disable streaming_mode", service.region.label(), e);
         }
-        // 关掉流式后再回填一次正文：流式状态下 markdown 图片（image_key）不会被渲染，
-        // 只在流式中更新的图片会一直停在加载占位（生产实测 14 张图全部上传成功却都不显示）。
-        if (state != null && !finalContent.isBlank()) {
-            try {
-                String content = service.resolveMarkdownImages(accessToken, finalContent);
-                cardkitUpdateElement(accessToken, streamId, STREAMING_ELEMENT_ID, content,
-                        state.nextSeq());
-            } catch (Exception e) {
-                log.warn("[{}] Failed to re-apply final content after streaming",
-                        service.region.label(), e);
-            }
-        }
         log.info("[{}] Streaming ended: card_id={}", service.region.label(), streamId);
+
+        // 含图回答的成品卡：流式卡片只留一句提示，正文与图片在这里一次成型
+        if (state != null && state.pendingCard != null && !state.pendingCard.isBlank()) {
+            sendFinalCard(incoming, accessToken, state.pendingCard);
+        }
     }
 
     /** 惰性清掉超过 TTL 的孤儿流。 */
@@ -160,6 +162,49 @@ final class FeishuCardStreamOps {
         elements.add(element);
         card.set("body", FeishuAdapter.MAPPER.createObjectNode().set("elements", elements));
 
+        return FeishuAdapter.MAPPER.writeValueAsString(card);
+    }
+
+    /** 含图回答的成品卡片：一次成型，图片以 image_key 内嵌（非流式，客户端会渲染）。 */
+    private void sendFinalCard(IncomingMessage incoming, String accessToken, String finalContent) {
+        String resolved;
+        try {
+            resolved = service.resolveMarkdownImages(accessToken, finalContent);
+        } catch (Exception e) {
+            log.warn("[{}] resolve images for final card failed", service.region.label(), e);
+            resolved = finalContent;
+        }
+        try {
+            String cardId = cardkitCreate(accessToken, buildContentCardJson(resolved));
+            sendCardByCardId(accessToken, incoming, cardId);
+            log.info("[{}] final card sent: card_id={}", service.region.label(), cardId);
+            return;
+        } catch (Exception e) {
+            log.warn("[{}] send final card failed, falling back to text", service.region.label(), e);
+        }
+        try {
+            service.sendOps.sendReply(incoming, new ReplyMessage(finalContent, false, true));
+        } catch (Exception e) {
+            log.warn("[{}] send final card fallback failed", service.region.label(), e);
+        }
+    }
+
+    /** 非流式卡片：正文即最终 markdown（含 img_key）。 */
+    static String buildContentCardJson(String content) throws Exception {
+        ObjectNode card = FeishuAdapter.MAPPER.createObjectNode();
+        card.put("schema", "2.0");
+
+        ObjectNode config = FeishuAdapter.MAPPER.createObjectNode();
+        config.put("streaming_mode", false);
+        card.set("config", config);
+
+        ObjectNode element = FeishuAdapter.MAPPER.createObjectNode();
+        element.put("tag", "markdown");
+        element.put("content", content == null ? "" : content);
+        element.put("text_size", "normal");
+        ArrayNode elements = FeishuAdapter.MAPPER.createArrayNode();
+        elements.add(element);
+        card.set("body", FeishuAdapter.MAPPER.createObjectNode().set("elements", elements));
         return FeishuAdapter.MAPPER.writeValueAsString(card);
     }
 
