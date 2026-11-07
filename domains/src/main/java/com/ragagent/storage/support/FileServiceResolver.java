@@ -124,6 +124,12 @@ public class FileServiceResolver implements Resolver {
      * </ol>
      */
     private FileUrlPort buildFileServiceForProvider(String provider, FileUrlPort defaultSvc) {
+        // local 优先用**进程级**服务：它带着 APP_EXTERNAL_URL，能把引用签成 /r/{token}；
+        // 而按租户配置临时构造的实例通常没有 externalURL，只会把引用回退成 local://
+        // （IM 出站因此永远换不出公网地址，飞书里图片退化成文件名）。
+        if (defaultSvc != null && "local".equalsIgnoreCase(provider)) {
+            return defaultSvc;
+        }
         try {
             JsonNode sec = JsonMappers.toJsonNode(tenant == null ? null : tenant.storageEngineConfig());
             StorageEngineConfig typed = sec == null ? new StorageEngineConfig()
