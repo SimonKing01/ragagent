@@ -46,7 +46,13 @@ public class MessageReferenceRewriter {
      * 调用方因此能保住原对象（例如来自 service 缓存的那些）。禁用时原样返回。
      */
     public List<Message> rewriteMessagesResponse(List<Message> messages) {
-        if (!rewriter.enabled() || messages == null || messages.isEmpty()) {
+        if (messages == null || messages.isEmpty()) {
+            return messages;
+        }
+        // 媒体校正与 URL 重写解耦：没有配置外链（rewriter 关闭）时也要跑，
+        // 否则模型写错的封面/播放路径不会被修，前端一直 404；
+        // 但真的没有要改的内容时保持原对象（调用方可能持有缓存实体）。
+        if (!rewriter.enabled() && !needsMediaCorrection(messages)) {
             return messages;
         }
         List<Message> out = cloneMessages(messages);
@@ -77,7 +83,18 @@ public class MessageReferenceRewriter {
      * 客户端能直接加载的图片 URL。<b>就地改写</b>。
      */
     public void rewriteMessages(List<Message> messages) {
-        if (!rewriter.enabled() || messages == null) {
+        if (messages == null) {
+            return;
+        }
+        // 媒体校正与 URL 重写无关：即使没有配置外链（rewriter 关闭）也要跑，
+        // 否则模型写错的封面路径会一直 404。
+        for (Message message : messages) {
+            if (message == null) {
+                continue;
+            }
+            message.setContent(correctMediaRefs(message));
+        }
+        if (!rewriter.enabled()) {
             return;
         }
         for (Message message : messages) {
@@ -93,6 +110,141 @@ public class MessageReferenceRewriter {
             }
             message.setKnowledgeReferences(rewriter.copyReferences(message.getKnowledgeReferences()));
             rewriteAgentSteps(message.getAgentSteps());
+        }
+    }
+
+    /** 是否有消息的媒体引用需要校正（纯函数判定，不改动入参）。 */
+    private static boolean needsMediaCorrection(List<Message> messages) {
+        for (Message message : messages) {
+            if (message == null) {
+                continue;
+            }
+            String content = message.getContent();
+            if (content != null && !content.equals(correctMediaRefs(message))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** 媒体引用：{@code local://…/exports/xxx.mp4}（视频/音频）或图片。 */
+    private static final java.util.regex.Pattern MEDIA_TOKEN =
+            java.util.regex.Pattern.compile(
+                    "(?:storage://[0-9A-Za-z_-]+/)?(?:local|resource|minio|s3|cos|tos|oss|obs|ks3)://"
+                            + "[^\\s)\"'<>]+");
+
+    private static final java.util.regex.Pattern POSTER_TAG =
+            java.util.regex.Pattern.compile("(?is)<poster>([^<]+)</poster>");
+
+    private static final java.util.regex.Pattern PLAY_TAG =
+            java.util.regex.Pattern.compile("(?is)<play>([^<]+)</play>");
+
+    /** 媒体分块的元信息行：{@code - poster: local://… (internal ref)}。 */
+    private static final java.util.regex.Pattern POSTER_LINE =
+            java.util.regex.Pattern.compile("(?mi)^\\s*[-*]\\s*poster:\\s*(\\S+)");
+
+    /** 媒体分块的元信息行：{@code - media: local://… (internal ref)}。 */
+    private static final java.util.regex.Pattern MEDIA_LINE =
+            java.util.regex.Pattern.compile("(?mi)^\\s*[-*]\\s*media:\\s*(\\S+)");
+
+    private static final java.util.regex.Pattern MEDIA_EXT = java.util.regex.Pattern.compile(
+            "(?i).*\\.(?:mp4|mov|m4v|webm|mkv|avi|mp3|wav|m4a|flac|ogg)(?:[?#].*)?$");
+
+    private static final java.util.regex.Pattern IMAGE_EXT = java.util.regex.Pattern.compile(
+            "(?i).*\\.(?:jpg|jpeg|png|webp|gif|bmp)(?:[?#].*)?$");
+
+    /**
+     * 用检索工具输出里的**真实**媒体引用校正回答正文。
+     *
+     * <p>模型会照着分块里的 {@code poster=…} / 播放链接复述，但可能把文档句柄拼进文件名
+     * （例如把 {@code cover-839e….jpg} 写成 {@code cover-d1_….jpg}），导致前端 404、封面丢失。
+     * 这里以工具结果 {@code <media>} 块里的值为准：正文里同类型引用只要不是已知值，
+     * 且该类型只有一个候选，就替换成真实值；候选不唯一（多个视频/图片）时保持原样，
+     * 宁可不改也不猜错。</p>
+     */
+    static String correctMediaRefs(Message message) {
+        String content = message == null ? null : message.getContent();
+        if (content == null || content.isEmpty() || message.getAgentSteps() == null) {
+            return content == null ? "" : content;
+        }
+        java.util.Set<String> mediaRefs = new java.util.LinkedHashSet<>();
+        java.util.Set<String> posterRefs = new java.util.LinkedHashSet<>();
+        for (AgentStep step : message.getAgentSteps()) {
+            if (step == null || step.getToolCalls() == null) {
+                continue;
+            }
+            for (AgentToolCall call : step.getToolCalls()) {
+                if (call == null || call.getResult() == null) {
+                    continue;
+                }
+                String output = call.getResult().getOutput();
+                collect(output, POSTER_TAG, posterRefs);
+                collect(output, POSTER_LINE, posterRefs);
+                collect(output, PLAY_TAG, mediaRefs);
+                collect(output, MEDIA_LINE, mediaRefs);
+                // 工具结果的结构化 data 里也带分块正文（results[].content）
+                collectFromObject(call.getResult().getData(), posterRefs, mediaRefs);
+            }
+        }
+        if (mediaRefs.isEmpty() && posterRefs.isEmpty()) {
+            return content;
+        }
+        java.util.regex.Matcher m = MEDIA_TOKEN.matcher(content);
+        StringBuilder sb = new StringBuilder();
+        while (m.find()) {
+            String token = m.group();
+            String replacement = token;
+            if (MEDIA_EXT.matcher(token).matches()) {
+                if (!mediaRefs.contains(token) && mediaRefs.size() == 1) {
+                    replacement = mediaRefs.iterator().next();
+                }
+            } else if (IMAGE_EXT.matcher(token).matches()) {
+                if (!posterRefs.contains(token) && posterRefs.size() == 1) {
+                    replacement = posterRefs.iterator().next();
+                }
+            }
+            m.appendReplacement(sb, java.util.regex.Matcher.quoteReplacement(replacement));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
+    /** 结构化结果里递归找字符串，按同样的标签/元信息行收集媒体引用。 */
+    private static void collectFromObject(Object node, java.util.Set<String> posterRefs,
+            java.util.Set<String> mediaRefs) {
+        if (node == null) {
+            return;
+        }
+        if (node instanceof String text) {
+            collect(text, POSTER_TAG, posterRefs);
+            collect(text, POSTER_LINE, posterRefs);
+            collect(text, PLAY_TAG, mediaRefs);
+            collect(text, MEDIA_LINE, mediaRefs);
+            return;
+        }
+        if (node instanceof java.util.Map<?, ?> map) {
+            for (Object value : map.values()) {
+                collectFromObject(value, posterRefs, mediaRefs);
+            }
+            return;
+        }
+        if (node instanceof java.util.Collection<?> list) {
+            for (Object value : list) {
+                collectFromObject(value, posterRefs, mediaRefs);
+            }
+        }
+    }
+
+    private static void collect(String text, java.util.regex.Pattern tag, java.util.Set<String> out) {
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+        java.util.regex.Matcher m = tag.matcher(text);
+        while (m.find()) {
+            String value = m.group(1).trim();
+            if (!value.isEmpty()) {
+                out.add(value);
+            }
         }
     }
 

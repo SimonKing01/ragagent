@@ -116,6 +116,139 @@ class MessageReferenceRewriterTest {
     }
 
     /** 一条把每个被重写的字段都填上的助手消息。 */
+    /** 构造带 <media> 工具输出的消息；content 里的封面/播放路径由调用方给（可故意写错）。 */
+    private static Message messageWithMedia(String content) {
+        ToolResult toolResult = new ToolResult();
+        toolResult.setOutput("""
+                <document id="d1" kb="b1" title="aion">
+                <media type="video">
+                <poster>local://11/exports/cover-839ef624-018f-4096-8437-2b47afd242b7_509098126147583.jpg</poster>
+                <play>local://11/exports/aion-i60_509098283386166.mp4</play>
+                </media>
+                </document>
+                """);
+        AgentToolCall call = new AgentToolCall();
+        call.setResult(toolResult);
+        AgentStep step = new AgentStep();
+        step.setToolCalls(List.of(call));
+
+        Message message = new Message();
+        message.setContent(content);
+        message.setAgentSteps(new ArrayList<>(List.of(step)));
+        return message;
+    }
+
+    private static AgentToolCall callWith(ToolResult result) {
+        AgentToolCall call = new AgentToolCall();
+        call.setResult(result);
+        return call;
+    }
+
+    @Test
+    void correctsMangledPosterFromToolOutput() {
+        Message message = messageWithMedia(
+                "看这个 [play video](local://11/exports/aion-i60_509098283386166.mp4 "
+                        + "\"poster=local://11/exports/cover-d1_509098126147583.jpg\")");
+
+        String fixed = MessageReferenceRewriter.correctMediaRefs(message);
+
+        assertThat(fixed).contains("cover-839ef624-018f-4096-8437-2b47afd242b7_509098126147583.jpg");
+        assertThat(fixed).doesNotContain("cover-d1_509098126147583.jpg");
+    }
+
+    @Test
+    void correctsPosterFromMetadataLines() {
+        // 媒体分块的新格式：元信息行而不是 <media> XML
+        ToolResult toolResult = new ToolResult();
+        toolResult.setOutput("""
+                - file: aion i60.mp4
+                - duration: 00:36
+                - poster: local://11/exports/cover-839ef624-018f-4096-8437-2b47afd242b7_509098126147583.jpg (internal ref)
+                - media: local://11/exports/aion-i60_509098283386166.mp4 (internal ref)
+                """);
+        AgentToolCall call = new AgentToolCall();
+        call.setResult(toolResult);
+        AgentStep step = new AgentStep();
+        step.setToolCalls(List.of(call));
+
+        Message message = new Message();
+        message.setContent("[play video](local://11/exports/aion-i60_509098283386166.mp4 "
+                + "\"poster=local://11/exports/cover-d1_509098126147583.jpg\")");
+        message.setAgentSteps(new ArrayList<>(List.of(step)));
+
+        String fixed = MessageReferenceRewriter.correctMediaRefs(message);
+
+        assertThat(fixed).contains("cover-839ef624-018f-4096-8437-2b47afd242b7_509098126147583.jpg");
+        assertThat(fixed).doesNotContain("cover-d1_");
+    }
+
+    @Test
+    void correctsMediaRefsEvenWhenUrlRewriterIsDisabled() {
+        // 未配置 APP_EXTERNAL_URL 时 Rewriter 关闭，但媒体校正仍必须生效
+        MessageReferenceRewriter disabled = wrap(Rewriter.forRequest(Mode.HANDLE, null));
+        Message message = messageWithMedia(
+                "![poster](local://11/exports/cover-d1_509098126147583.jpg)");
+
+        String fixed = disabled.rewriteMessagesResponse(List.of(message)).get(0).getContent();
+
+        assertThat(fixed).contains("cover-839ef624-018f-4096-8437-2b47afd242b7_509098126147583.jpg");
+        assertThat(fixed).doesNotContain("cover-d1_");
+    }
+
+    @Test
+    void correctsPosterFromStructuredData() {
+        // 真实形态：媒体信息在 result.data.results[].content，而不是 output
+        java.util.Map<String, Object> chunk = new java.util.LinkedHashMap<>();
+        chunk.put("chunkId", "c1");
+        chunk.put("content", "- poster: local://11/exports/cover-839ef624-018f-4096-8437-2b47afd242b7_509098126147583.jpg (internal ref)\n"
+                + "- media: local://11/exports/aion-i60_509098283386166.mp4 (internal ref)");
+        java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
+        data.put("results", List.of(chunk));
+
+        ToolResult toolResult = new ToolResult();
+        toolResult.setData(data);
+        AgentToolCall call = new AgentToolCall();
+        call.setResult(toolResult);
+        AgentStep step = new AgentStep();
+        step.setToolCalls(List.of(call));
+
+        Message message = new Message();
+        message.setContent("![poster](local://11/exports/cover-d1_509098126147583.jpg)");
+        message.setAgentSteps(new ArrayList<>(List.of(step)));
+
+        String fixed = MessageReferenceRewriter.correctMediaRefs(message);
+
+        assertThat(fixed).contains("cover-839ef624-018f-4096-8437-2b47afd242b7_509098126147583.jpg");
+        assertThat(fixed).doesNotContain("cover-d1_");
+    }
+
+    @Test
+    void keepsValidMediaRefsUntouched() {
+        String play = "local://11/exports/aion-i60_509098283386166.mp4";
+        String poster = "local://11/exports/cover-839ef624-018f-4096-8437-2b47afd242b7_509098126147583.jpg";
+        Message message = messageWithMedia("[play video](" + play + " \"poster=" + poster + "\")");
+
+        assertThat(MessageReferenceRewriter.correctMediaRefs(message))
+                .contains(play).contains(poster);
+    }
+
+    @Test
+    void keepsRefsWhenCandidatesAreAmbiguous() {
+        ToolResult first = new ToolResult();
+        first.setOutput("<play>local://11/exports/a.mp4</play>");
+        ToolResult second = new ToolResult();
+        second.setOutput("<play>local://11/exports/b.mp4</play>");
+        AgentStep step = new AgentStep();
+        step.setToolCalls(List.of(callWith(first), callWith(second)));
+
+        Message message = new Message();
+        message.setContent("[play video](local://11/exports/broken.mp4)");
+        message.setAgentSteps(new ArrayList<>(List.of(step)));
+
+        // 两个候选时宁可不改，避免把 A 视频的链接换成 B
+        assertThat(MessageReferenceRewriter.correctMediaRefs(message)).contains("broken.mp4");
+    }
+
     private static Message fullMessage() {
         Message message = new Message();
         message.setContent("answer ![fig](resource://xifDo7NTSL300Lp1goVutw)");
