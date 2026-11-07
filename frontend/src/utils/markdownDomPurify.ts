@@ -67,6 +67,21 @@ function previousMediaImage(element: Element): Element | null {
   return null;
 }
 
+/** 同一段里紧跟着的后一张图片（跳过 <br> 这类无文字节点）。 */
+function nextMediaImage(element: Element): Element | null {
+  let next = element.nextElementSibling;
+  while (next) {
+    if (next.tagName === 'IMG') {
+      return next;
+    }
+    if ((next.textContent || '').trim()) {
+      return null;
+    }
+    next = next.nextElementSibling;
+  }
+  return null;
+}
+
 /** 紧邻播放链接的受保护图片引用（分块格式：封面行 + 播放行）。 */
 function adjacentProtectedImageRef(element: Element): string | null {
   const imageRef = (img: Element): string | null => {
@@ -76,58 +91,76 @@ function adjacentProtectedImageRef(element: Element): string | null {
       : null;
   };
 
-  const inline = previousMediaImage(element);
+  const inline = previousMediaImage(element) || nextMediaImage(element);
   if (inline) {
     const ref = imageRef(inline);
     if (ref) return ref;
   }
 
   const block = element.closest('p');
-  const prevBlock = block?.previousElementSibling;
-  if (prevBlock && !prevBlock.textContent?.trim()) {
-    const img = prevBlock.querySelector('img');
-    if (img) {
-      const ref = imageRef(img);
-      if (ref) return ref;
+  for (const sibling of [block?.previousElementSibling, block?.nextElementSibling]) {
+    if (sibling && !sibling.textContent?.trim()) {
+      const img = sibling.querySelector('img');
+      if (img) {
+        const ref = imageRef(img);
+        if (ref) return ref;
+      }
     }
   }
   return null;
 }
 
-/** 去掉与播放器封面重复的独立图片（同一张图不要在聊天里出现两次）。 */
+/**
+ * 去掉与播放器封面重复的独立图片（同一张图不要在聊天里出现两次）。
+ *
+ * <p>模型可能把封面行写在播放链接<b>前面、后面，甚至隔了一段文字</b>；
+ * 所以这里在整条消息（净化中的 DocumentFragment）里按引用找同一张图，
+ * 而不是只看紧邻的兄弟节点——只看邻接会漏掉“视频 → 推荐语 → 封面”这种排布。</p>
+ */
 function dropDuplicatePoster(shell: Element, posterRef: string): void {
   const target = decodeProtectedRef(posterRef);
-  const matches = (img: Element): boolean => {
-    const ref = img.getAttribute('data-protected-src')
-      || img.getAttribute('src')
-      || '';
-    return Boolean(ref) && decodeProtectedRef(ref) === target;
-  };
+  const imageRefOf = (img: Element): string => img.getAttribute('data-protected-src')
+    || img.getAttribute('src')
+    || '';
 
-  // 情况一：图片与播放链接在同一段（中间可能夹着 <br>）
-  const inline = previousMediaImage(shell);
-  if (inline && matches(inline)) {
-    inline.remove();
-    // 图片删掉后，紧贴播放器前面的 <br> 会留下一行空白，顺手清掉
-    let prev = shell.previousElementSibling;
-    while (prev && prev.tagName === 'BR') {
-      const before = prev.previousElementSibling;
-      prev.remove();
-      prev = before;
+  const root: ParentNode | null = shell.getRootNode() as ParentNode;
+  const images: Element[] = root && typeof root.querySelectorAll === 'function'
+    ? Array.from(root.querySelectorAll('img'))
+    : [];
+
+  for (const image of images) {
+    const ref = imageRefOf(image);
+    if (!ref || decodeProtectedRef(ref) !== target) {
+      continue;
     }
-    return;
+    removeImageNode(image);
   }
 
-  // 情况二：图片是上一段（通常只有这一张图）
-  const block = shell.closest('p') || shell;
-  const prevBlock = block.previousElementSibling;
-  if (!prevBlock || prevBlock.textContent?.trim()) {
+  // 删掉图片后，播放器所在段落末尾可能只剩换行（原来分隔图文的那条），一并清掉
+  const block = shell.closest('p');
+  block?.querySelectorAll(':scope > br:last-child').forEach((br) => br.remove());
+}
+
+/** 移除封面图：独占一段就整段删掉，否则只删图片本身与它旁边的换行。 */
+function removeImageNode(image: Element): void {
+  const block = image.closest('p');
+  // 只有「整段就是这一张图」才整段删；段里还有播放器/文字时只删图片本身
+  const onlyImage = block
+    && !Array.from(block.childNodes).some((node) => node.nodeType === Node.TEXT_NODE
+        && (node.nodeValue || '').trim())
+    && block.querySelectorAll('img').length === 1
+    && block.querySelectorAll('video, audio, .chunk-video-shell, a, table, pre, code, ul, ol')
+        .length === 0;
+  if (block && onlyImage) {
+    block.remove();
     return;
   }
-  const image = prevBlock.querySelector('img');
-  if (image && matches(image)) {
-    prevBlock.remove();
+  image.remove();
+  const parent = image.parentElement;
+  if (!parent) {
+    return;
   }
+  parent.querySelectorAll(':scope > br').forEach((br) => br.remove());
 }
 
 /** Chat markdown links must never replace the conversation page. */
