@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agent Iframe DEMO</title>
+  <style>
+    :root {
+      --page-bg: #eef1f5;
+      --frame-bg: #fff;
+      --thumb: rgba(0, 0, 0, 0.22);
+      --thumb-hover: rgba(0, 0, 0, 0.38);
+      --track: transparent;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      /* 手机宽度上限：模拟移动端聊天窗口，超宽屏两侧留白 */
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 10px;
+      overflow: hidden;
+      background: var(--page-bg);
+    }
+
+    /* 滚动条：细、圆角、悬停加深（Chromium / WebKit） */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--track);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--thumb);
+      border-radius: 999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--thumb-hover);
+    }
+
+    ::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
+    /* Firefox */
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: var(--thumb) var(--track);
+    }
+
+    .embed-frame {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 14px;
+      background: var(--frame-bg);
+      box-shadow:
+        0 12px 32px rgba(16, 24, 40, 0.12),
+        0 2px 8px rgba(16, 24, 40, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page-bg: #0f1115;
+        --frame-bg: #16181d;
+        --thumb: rgba(255, 255, 255, 0.24);
+        --thumb-hover: rgba(255, 255, 255, 0.4);
+      }
+    }
+  </style>
+</head>
+<body>
+  <iframe src="http://localhost:5173/embed/045bfd4b-81f6-4810-afdd-4df1256cb0de#token=em_Z6M7EjlaDa03lQ1WrSBba_ur_ml4R8wALJUIDtadx8Q" style="width:100%;height:100%;border:none;" allow="clipboard-write"></iframe>
+</body>
+</html>
