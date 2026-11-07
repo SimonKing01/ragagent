@@ -15,8 +15,10 @@ on:
 # action 版本（2026-10-10 B180）：原来全线 @v4 ⇒ CI 注解里堆了 3 条弃用提醒
 # （Node20 → Node24、setup-java@v4 弃用）。现升到各仓最新大版本（checkout v7 / setup-java v6 /
 # setup-node v7 / setup-java v6），仍按本仓惯例**浮动大版本** ⇒ 弃用提醒的根因去掉。
-# 注：`ubuntu-latest` 将于 2026-10-19 迁到 Ubuntu 26（GitHub 通知）；若届时 ParadeDB 容器 /
-# redis-server 安装等受影响，**退路＝钉 `ubuntu-24.04`** 再逐项适配。
+# 2026-11-07 钉 `ubuntu-24.04`：`ubuntu-latest` 迁到 Ubuntu 26 后，platform 的
+# 嵌入式 redis-server 在 initServer 阶段被杀（日志停在 "Running mode=standalone, port="，
+# 进程 alive=false，用例全报 "Redis command timed out"）。按此前的退路约定回钉 24.04，
+# 逐项适配 26 之后再放开。
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -25,7 +27,7 @@ concurrency:
 jobs:
   guards:
     name: 包结构守卫（环 / 分层棘轮）
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       # 守卫跑**同一份** scripts/run-guards.sh：本地 `bash scripts/run-guards.sh` 即 CI 同口径。
@@ -34,7 +36,7 @@ jobs:
         run: bash scripts/run-guards.sh
   backend:
     name: 后端 build + test + spotless
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     services:
       # 与 docker-compose.yml 同镜像同口令（dev 1:1，B158）。CI 也起真库的两条理由：
       #   ① 灌库守卫：V1__baseline.sql 必须能灌进**全新** ParadeDB（B156 那类只有真库才暴露的缺陷）；
@@ -98,7 +100,7 @@ jobs:
 
   docker:
     name: 服务端镜像构建（Dockerfile 防腐化）
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # 本 job 的由来（B212）：Dockerfile 长期只存在于仓库、不进任何 job ⇒ 里面写着**已裁撤的
     # `:server` 模块名**、漏拷三个模块与 proto 源目录，`docker build` 必然失败却没人知道。
     # 路径腐化只能靠"真构建一次"发现，文本扫描扫不出来。
@@ -117,7 +119,7 @@ jobs:
           'test -s /app/app.jar && test -s /app/build/generated-migrations/V1__baseline.sql'
   frontend:
     name: 前端 type-check + test + build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: frontend
@@ -139,7 +141,7 @@ jobs:
 
   integration:
     name: 真实驱动集成（Milvus/Weaviate，*IT）
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       # spotless 的 ratchetFrom('seed') 需要基线 tag 可达；浅克隆会报 No such reference 'seed'
       - uses: actions/checkout@v7
