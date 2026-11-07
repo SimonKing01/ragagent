@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ragagent.im.runtime.IncomingMessage;
-import com.ragagent.im.runtime.ReplyMessage;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -12,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,8 +80,13 @@ final class FeishuCardStreamOps {
         // 含图片的回答不走流式卡片：CardKit 流式模式下 markdown 图片只显示占位，
         // 而关流式后又拒绝更新元素（code=300309），只能整条改用非流式卡片发。
         if (state != null && finalContent != null && finalContent.contains("![")) {
+            // 图片用后续的 post 富文本发；卡片里只落定**纯文字**（不留任何提示语）
             state.pendingCard = finalContent;
-            updateStreamContent(incoming, streamId, "✅ 已生成回答，详见下方卡片");
+            String textOnly = FeishuAdapter.MD_IMAGE_RE.matcher(finalContent).replaceAll("")
+                    .replaceAll("\n{3,}", "\n\n").strip();
+            if (!textOnly.isEmpty()) {
+                updateStreamContent(incoming, streamId, textOnly);
+            }
             return;
         }
         updateStreamContent(incoming, streamId, finalContent);
@@ -165,47 +170,61 @@ final class FeishuCardStreamOps {
         return FeishuAdapter.MAPPER.writeValueAsString(card);
     }
 
-    /** 含图回答的成品卡片：一次成型，图片以 image_key 内嵌（非流式，客户端会渲染）。 */
+    /**
+     * 含图回答的图片：用 **post 富文本**里的 img 元素发送（文字已在流式卡片里落定）。
+     *
+     * <p>卡片 markdown 图片在生产上一直是占位（流式不渲染、关流式后更新被拒），
+     * post 的 {@code img} 元素是最稳的图文形态。</p>
+     */
     private void sendFinalCard(IncomingMessage incoming, String accessToken, String finalContent) {
-        String resolved;
         try {
-            resolved = service.resolveMarkdownImages(accessToken, finalContent);
+            String postJson = buildPostContent(accessToken, finalContent);
+            if (postJson.isEmpty()) {
+                return;
+            }
+            String[] receive = FeishuSendOps.resolveReceiveId(incoming);
+            Map<String, Object> replyPayload = new LinkedHashMap<>();
+            replyPayload.put("msg_type", "post");
+            replyPayload.put("content", postJson);
+            Map<String, Object> fallbackPayload = new LinkedHashMap<>();
+            fallbackPayload.put("receive_id", receive[1]);
+            fallbackPayload.put("msg_type", "post");
+            fallbackPayload.put("content", postJson);
+            service.sendOps.sendWithFallback(accessToken, incoming, replyPayload, fallbackPayload,
+                    receive[0]);
+            log.info("[{}] final images post sent", service.region.label());
         } catch (Exception e) {
-            log.warn("[{}] resolve images for final card failed", service.region.label(), e);
-            resolved = finalContent;
-        }
-        try {
-            String cardId = cardkitCreate(accessToken, buildContentCardJson(resolved));
-            sendCardByCardId(accessToken, incoming, cardId);
-            log.info("[{}] final card sent: card_id={}", service.region.label(), cardId);
-            return;
-        } catch (Exception e) {
-            log.warn("[{}] send final card failed, falling back to text", service.region.label(), e);
-        }
-        try {
-            service.sendOps.sendReply(incoming, new ReplyMessage(finalContent, false, true));
-        } catch (Exception e) {
-            log.warn("[{}] send final card fallback failed", service.region.label(), e);
+            log.warn("[{}] send final images failed", service.region.label(), e);
         }
     }
 
-    /** 非流式卡片：正文即最终 markdown（含 img_key）。 */
-    static String buildContentCardJson(String content) throws Exception {
-        ObjectNode card = FeishuAdapter.MAPPER.createObjectNode();
-        card.put("schema", "2.0");
+    /** 从正文里抽出全部图片 → post 富文本（每条图片一个 img 段落）；无图返回空串。 */
+    String buildPostContent(String accessToken, String content) throws Exception {
+        ObjectNode root = FeishuAdapter.MAPPER.createObjectNode();
+        ObjectNode zh = root.putObject("zh_cn");
+        zh.put("title", "");
+        ArrayNode paragraphs = zh.putArray("content");
 
-        ObjectNode config = FeishuAdapter.MAPPER.createObjectNode();
-        config.put("streaming_mode", false);
-        card.set("config", config);
-
-        ObjectNode element = FeishuAdapter.MAPPER.createObjectNode();
-        element.put("tag", "markdown");
-        element.put("content", content == null ? "" : content);
-        element.put("text_size", "normal");
-        ArrayNode elements = FeishuAdapter.MAPPER.createArrayNode();
-        elements.add(element);
-        card.set("body", FeishuAdapter.MAPPER.createObjectNode().set("elements", elements));
-        return FeishuAdapter.MAPPER.writeValueAsString(card);
+        Matcher matcher = FeishuAdapter.MD_IMAGE_RE.matcher(content == null ? "" : content);
+        int images = 0;
+        while (matcher.find()) {
+            String url = matcher.group(2);
+            try {
+                String imageKey = service.mediaOps.imageKeyForUrl(accessToken, url);
+                ArrayNode paragraph = paragraphs.addArray();
+                ObjectNode img = paragraph.addObject();
+                img.put("tag", "img");
+                img.put("image_key", imageKey);
+                images++;
+            } catch (Exception e) {
+                log.warn("[{}] post image upload failed: url={}", service.region.label(), url, e);
+                ArrayNode paragraph = paragraphs.addArray();
+                ObjectNode node = paragraph.addObject();
+                node.put("tag", "text");
+                node.put("text", matcher.group(1) + " " + url);
+            }
+        }
+        return images == 0 ? "" : FeishuAdapter.MAPPER.writeValueAsString(root);
     }
 
     /** POST cardkit/v1/cards（type=card_json）→ card_id。 */
