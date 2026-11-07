@@ -49,6 +49,11 @@ final class FeishuMediaOps {
             } catch (Exception e) {
                 log.warn("[{}] image upload failed, degrading to link: url={}", service.region.label(), rawUrl, e);
             }
+            if (imageKey != null && !imageKey.isEmpty()) {
+                // 图片已经在飞书侧落地：留一行可核对的日志（key 只留前缀，避免刷屏）
+                log.info("[{}] card image uploaded: src={} key={}…", service.region.label(),
+                        imageCacheKey(rawUrl), imageKey.substring(0, Math.min(12, imageKey.length())));
+            }
             String replacement;
             if (imageKey == null || imageKey.isEmpty()) {
                 String label = alt == null || alt.isEmpty() ? service.region.imageFallbackLabel() : alt;
