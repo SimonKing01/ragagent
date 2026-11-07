@@ -13,7 +13,6 @@ import com.ragagent.contract.event.payload.ErrorData;
 import com.ragagent.contract.session.MessageView;
 import com.ragagent.contract.session.QaRequestPayload;
 import com.ragagent.contract.session.SessionView;
-import com.ragagent.im.runtime.AdapterInterfaces;
 import com.ragagent.im.runtime.AdapterInterfaces.StreamSender;
 import com.ragagent.im.runtime.ImFormat;
 import com.ragagent.im.runtime.IncomingMessage;
@@ -64,6 +63,9 @@ final class ImStreamPipeline {
 
         AgentLookup.AgentView agent = attach.agent();
         boolean useAgent = agent != null && ImQaRequests.isAgentMode(agent.configJson());
+        // 能不能渲染 markdown 图片由**渠道适配器**决定（流式 sender 只是传输通道，
+        // 不是 Adapter；此前按 streamer 判能力恒为 false，飞书卡片被误降级成链接）
+        boolean rendersImages = attach.adapter().rendersMarkdownImages();
 
         subscribeStreamEvents(eventBus, buf, done, complete, useAgent);
 
@@ -110,7 +112,7 @@ final class ImStreamPipeline {
                     if (done.await(flushInterval, java.util.concurrent.TimeUnit.MILLISECONDS)) {
                         break;
                     }
-                    flushStream(msg, streamer, streamId, buf, useAgent);
+                    flushStream(msg, streamer, streamId, buf, useAgent, rendersImages);
                     if (System.currentTimeMillis() - start > deadlineWait) {
                         break;
                     }
@@ -135,7 +137,7 @@ final class ImStreamPipeline {
         boolean noVisibleContent = !buf.streamedAny && resolvedAnswer.strip().isEmpty();
 
         String finalDisplay = service.cleanIMContent(
-                ThinkDisplay.formatIMFinalFromParts(parts), rendersImages(streamer));
+                ThinkDisplay.formatIMFinalFromParts(parts), rendersImages);
         if (noVisibleContent || finalDisplay.isEmpty()) {
             String fallback = finalErr != null ? ImFormat.imQAFailureReply(finalErr)
                     : ImFormat.IM_NO_ANSWER_FALLBACK;
@@ -408,7 +410,7 @@ final class ImStreamPipeline {
 
     /** 冲刷一次中间帧。 */
     private void flushStream(IncomingMessage msg, StreamSender streamer, String streamId,
-            StreamBuffers buf, boolean useAgent) {
+            StreamBuffers buf, boolean useAgent, boolean rendersImages) {
         ThinkDisplay.IMStreamParts parts;
         boolean agentRunning;
         synchronized (buf) {
@@ -423,7 +425,7 @@ final class ImStreamPipeline {
         if (cut < displaySource.length()) {
             displaySource = displaySource.substring(0, cut);
         }
-        String display = service.cleanIMContent(displaySource, rendersImages(streamer));
+        String display = service.cleanIMContent(displaySource, rendersImages);
         try {
             streamer.updateStreamContent(msg, streamId, display);
         } catch (Exception e) {
@@ -431,9 +433,4 @@ final class ImStreamPipeline {
         }
     }
 
-    /** 流式发送器是否声明能渲染 markdown 图片（默认 false → 出站降级成链接）。 */
-    private static boolean rendersImages(Object streamer) {
-        return streamer instanceof AdapterInterfaces.Adapter adapter
-                && adapter.rendersMarkdownImages();
-    }
 }

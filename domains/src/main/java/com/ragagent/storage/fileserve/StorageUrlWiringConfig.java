@@ -2,6 +2,9 @@ package com.ragagent.storage.fileserve;
 
 
 import com.ragagent.contract.storage.support.FileUrlPort;
+import com.ragagent.contract.storage.support.Resolver;
+import com.ragagent.contract.storage.support.StorageBackendResolver;
+import com.ragagent.storage.support.FileServiceResolver;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +34,21 @@ public class StorageUrlWiringConfig {
      * （{@code weknora.storage.local-base-dir} → {@code LOCAL_STORAGE_BASE_DIR} →
      * {@code ${user.home}/ragagent-data/files}），避免两处对"根在哪"有分歧。</p>
      */
+    /**
+     * 进程级 {@link Resolver}：IM 出站的 {@code Rewriter} 靠它把 {@code local://…}
+     * 换成公网 {@code /r/{token}}。
+     *
+     * <p>此前只有 {@code FileUrlPort} 一个 bean，没有 {@code Resolver} ——
+     * {@code ImTurnOrchestrator} 用 {@code ObjectProvider} 取到空，
+     * 于是出站重写永远跳过：飞书里图片只能退化成文件名。</p>
+     */
+    @Bean
+    public Resolver storageUrlResolver(FileUrlPort storageUrlDefaultFileService,
+            org.springframework.beans.factory.ObjectProvider<StorageBackendResolver> storageBackends) {
+        return new FileServiceResolver(null, storageUrlDefaultFileService,
+                storageBackends.getIfAvailable());
+    }
+
     @Bean
     public FileUrlPort storageUrlDefaultFileService(
             StorageFileResolver resolver,
