@@ -1,5 +1,6 @@
 package com.ragagent.platform.stream;
 
+import io.lettuce.core.ClientOptions;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -67,14 +69,24 @@ public final class EmbeddedRedis implements AutoCloseable {
     private final StringRedisTemplate template;
     private final FileChannel portLockChannel;
     private final FileLock portLock;
+    /** redis-server 的输出（崩溃/启动失败时写进跳过原因，CI 才看得到真因）。 */
+    private final Path logFile;
 
     private EmbeddedRedis(Process process, String host, int port,
-            FileChannel portLockChannel, FileLock portLock) {
+            FileChannel portLockChannel, FileLock portLock, Path logFile) {
         this.process = process;
         this.portLockChannel = portLockChannel;
         this.portLock = portLock;
+        this.logFile = logFile;
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(host, port);
-        this.connectionFactory = new LettuceConnectionFactory(config);
+        // 命令超时压到 5s：CI 上实例假死时快速失败，而不是每个用例干等 60s（8 个 = 8 分钟）
+        LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
+                .commandTimeout(Duration.ofSeconds(5))
+                .clientOptions(ClientOptions.builder()
+                        .autoReconnect(true)
+                        .build())
+                .build();
+        this.connectionFactory = new LettuceConnectionFactory(config, clientConfig);
         this.connectionFactory.afterPropertiesSet();
         this.template = new StringRedisTemplate(connectionFactory);
         this.template.afterPropertiesSet();
@@ -91,7 +103,7 @@ public final class EmbeddedRedis implements AutoCloseable {
             int colon = external.lastIndexOf(':');
             String h = external.substring(0, colon);
             int p = Integer.parseInt(external.substring(colon + 1));
-            return new EmbeddedRedis(null, h, p, null, null);
+            return new EmbeddedRedis(null, h, p, null, null, null);
         }
 
         Path binary = findRedisServer();
@@ -126,9 +138,12 @@ public final class EmbeddedRedis implements AutoCloseable {
                 continue;
             }
 
-            Process process = start(binary, port);
+            Path logFile = Path.of(System.getProperty("java.io.tmpdir"),
+                    "ragagent-redis-" + port + ".log");
+            Process process = start(binary, port, logFile);
             if (process != null && awaitReady(process, "127.0.0.1", port, Duration.ofSeconds(10))) {
-                EmbeddedRedis instance = new EmbeddedRedis(process, "127.0.0.1", port, channel, lock);
+                EmbeddedRedis instance = new EmbeddedRedis(process, "127.0.0.1", port, channel, lock,
+                        logFile);
                 if (instance.ping()) {
                     return instance;
                 }
@@ -144,7 +159,7 @@ public final class EmbeddedRedis implements AutoCloseable {
         return null;
     }
 
-    private static Process start(Path binary, int port) {
+    private static Process start(Path binary, int port, Path logFile) {
         List<String> cmd = new ArrayList<>(List.of(
                 binary.toString(),
                 "--port", Integer.toString(port),
@@ -155,7 +170,7 @@ public final class EmbeddedRedis implements AutoCloseable {
                 "--daemonize", "no"));
         try {
             return new ProcessBuilder(cmd)
-                    .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                    .redirectOutput(logFile.toFile())
                     .redirectErrorStream(true)
                     .start();
         } catch (IOException e) {
@@ -175,6 +190,46 @@ public final class EmbeddedRedis implements AutoCloseable {
         } catch (RuntimeException e) {
             return false;
         }
+    }
+
+    /**
+     * 实例此刻还能执行命令吗？
+     *
+     * <p>CI 上出现过「启动时 PING 通、随后所有命令超时」的环境问题（实例假死）。
+     * 用例前先探一次，失败就带原因跳过，而不是 8 个用例各等 60 秒把 job 拖红。</p>
+     */
+    public boolean isResponsive() {
+        long deadline = System.nanoTime() + Duration.ofSeconds(5).toNanos();
+        while (System.nanoTime() < deadline) {
+            if (ping()) {
+                return true;
+            }
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+        return false;
+    }
+
+    /** 跳过原因用的现场信息：进程是否活着 + redis-server 最近输出。 */
+    public String diagnostics() {
+        StringBuilder b = new StringBuilder();
+        b.append("alive=").append(process != null && process.isAlive());
+        if (logFile != null) {
+            try {
+                String text = Files.exists(logFile) ? Files.readString(logFile) : "";
+                if (!text.isBlank()) {
+                    String tail = text.length() > 400 ? text.substring(text.length() - 400) : text;
+                    b.append("; log=").append(tail.strip().replace('\n', ' '));
+                }
+            } catch (IOException ignored) {
+                // 诊断读不到就只报 alive
+            }
+        }
+        return b.toString();
     }
 
     public StringRedisTemplate template() {

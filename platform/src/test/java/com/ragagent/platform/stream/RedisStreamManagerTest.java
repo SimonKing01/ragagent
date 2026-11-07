@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
@@ -32,6 +33,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
  * <p>TTL 相关的用例用"观察 TTL 被推回去"代替时间快进：
  * 真 Redis 不会快进，但把到期时间读出来一样能证明续期发生了，还更省时间。</p>
  */
+@Timeout(30)
 class RedisStreamManagerTest {
 
     private static final String PREFIX = "test";
@@ -56,6 +58,10 @@ class RedisStreamManagerTest {
 
     @BeforeEach
     void resetKeys() {
+        // CI 上出现过「启动时 PING 通、随后整类命令超时」的实例假死：先探活，
+        // 死了就带着 redis-server 的日志跳过（跳过原因进 CI 汇总，能看见真因）。
+        Assumptions.assumeTrue(redis.isResponsive(),
+                "嵌入式 Redis 无响应（命令超时）：" + redis.diagnostics());
         redis.flushAll();
     }
 
