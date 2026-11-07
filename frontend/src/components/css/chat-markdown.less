@@ -644,12 +644,6 @@
     background: rgba(0, 0, 0, 0.6);
   }
 
-  @keyframes chunk-video-spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
   :deep(video.chunk-video) {
     display: block;
     max-width: 100%;
@@ -796,4 +790,11 @@
   }
 
   .chat-markdown-hljs();
+}
+
+// 视频加载遮罩的转圈动画：必须在 mixin 外定义（Less 不允许在 mixin 内嵌套 @keyframes）
+@keyframes chunk-video-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
