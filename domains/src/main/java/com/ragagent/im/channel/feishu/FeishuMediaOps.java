@@ -108,14 +108,20 @@ final class FeishuMediaOps {
             throw new IllegalStateException("image exceeds " + MAX_IMAGE_BYTES + " bytes");
         }
 
+        // 飞书按**文件头**判图片类型；给错 Content-Type / 无扩展名时能上传成功，
+        // 但客户端渲染会一直转圈（生产实测 img_v3_… 拿着却不显示）。
+        String mimeType = detectImageMime(data);
+        String fileName = "image." + mimeType.substring("image/".length());
+        log.info("[{}] uploading image: bytes={} mime={}", service.region.label(), data.length,
+                mimeType);
         String boundary = "----WeKnoraBoundary" + System.nanoTime();
         ByteArrayOutputStream body = new ByteArrayOutputStream();
         String prefix = "--" + boundary + "\r\n"
                 + "Content-Disposition: form-data; name=\"image_type\"\r\n\r\n"
                 + "message\r\n"
                 + "--" + boundary + "\r\n"
-                + "Content-Disposition: form-data; name=\"image\"; filename=\"image\"\r\n"
-                + "Content-Type: application/octet-stream\r\n\r\n";
+                + "Content-Disposition: form-data; name=\"image\"; filename=\"" + fileName + "\"\r\n"
+                + "Content-Type: " + mimeType + "\r\n\r\n";
         body.write(prefix.getBytes(StandardCharsets.UTF_8));
         body.write(data);
         body.write(("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
@@ -139,6 +145,27 @@ final class FeishuMediaOps {
         }
         return imageKey;
     }
+    /** 按 magic bytes 判图片类型（飞书按文件头校验，Content-Type 要与之一致）。 */
+    static String detectImageMime(byte[] data) {
+        if (data == null || data.length < 12) {
+            return "image/jpeg";
+        }
+        if ((data[0] & 0xFF) == 0x89 && data[1] == 'P' && data[2] == 'N' && data[3] == 'G') {
+            return "image/png";
+        }
+        if (data[0] == 'G' && data[1] == 'I' && data[2] == 'F') {
+            return "image/gif";
+        }
+        if (data[0] == 'R' && data[1] == 'I' && data[2] == 'F' && data[3] == 'F'
+                && data[8] == 'W' && data[9] == 'E' && data[10] == 'B' && data[11] == 'P') {
+            return "image/webp";
+        }
+        if (data[0] == 'B' && data[1] == 'M') {
+            return "image/bmp";
+        }
+        return "image/jpeg";
+    }
+
     // ── FileDownloader ──────────────────────────────────────────────────────
 
     public AdapterInterfaces.FileDownloader.DownloadedFile downloadFile(IncomingMessage msg) throws Exception {
