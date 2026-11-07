@@ -90,6 +90,11 @@ public class ResourceCatalogService {
     public Optional<String> createAccessGrant(String reference, java.time.Duration ttl) {
         Optional<StoredResource> resource = resolve(reference);
         if (resource.isEmpty()) {
+            // local:// 等规范化路径不是 resource 手柄：按物理路径回查，
+            // 否则能力链接签不出来，IM 里的图片只能退化成文件名。
+            resource = repo.getByPhysicalPath(reference == null ? "" : reference.trim());
+        }
+        if (resource.isEmpty()) {
             return Optional.empty();
         }
         java.time.Duration effective = ttl == null || ttl.isNegative() || ttl.isZero()

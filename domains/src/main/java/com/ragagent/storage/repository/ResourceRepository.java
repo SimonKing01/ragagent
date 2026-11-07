@@ -76,6 +76,20 @@ public class ResourceRepository {
                 .optional();
     }
 
+    /**
+     * 按物理路径取行。
+     *
+     * <p>历史/规范的 {@code local://…} 引用不是 resource 手柄，但 {[@code /r/{token}]}
+     * 能力链接仍然要能签出来（IM 发图依赖它），所以签名前需要按路径回查资源行。</p>
+     */
+    public Optional<StoredResource> getByPhysicalPath(String physicalPath) {
+        return jdbc.sql("SELECT " + COLS + " FROM resources "
+                        + "WHERE physical_path = ? AND state = ?")
+                .params(physicalPath, StoredResource.STATE_ACTIVE)
+                .query(new ResourceMapper())
+                .optional();
+    }
+
     /** 按租户 + 位置哈希取行（唯一性由 state='active' 承担）。 */
     public Optional<StoredResource> getByTenantLocation(long tenantId, String locationHash) {
         return jdbc.sql("SELECT " + COLS + " FROM resources "
