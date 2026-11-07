@@ -73,6 +73,8 @@ services:
       RETRIEVE_DRIVER: postgres
       SERVER_PORT: "8080"
       LOCAL_STORAGE_BASE_DIR: /app/data/files
+      # 公网地址：把 local:// / resource:// 引用签成可外链的 /r/{token}（IM 发图、对外分享依赖它）
+      APP_EXTERNAL_URL: ${APP_EXTERNAL_URL:-}
       SYSTEM_AES_KEY: ${SYSTEM_AES_KEY:?SYSTEM_AES_KEY 未设置}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET 未设置}
       SPRINGDOC_ENABLED: "false"
