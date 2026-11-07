@@ -704,8 +704,7 @@ export function buildEmbedSnippet(channelId: string, token?: string) {
   const url = escapeHtmlAttr(buildEmbedURL(channelId, token))
   // 默认撑满父容器：宿主把 iframe 放进自己的卡片/抽屉里时不必再改样式。
   // height:100% 依赖父容器高度，片段里带一句说明，避免宿主直接贴进 body 后塌成 150px。
-  return `<!-- 高度由父容器决定：请把下方 iframe 放进有确定高度的容器；想铺满视口可把 height:100% 改成 height:100vh -->\n`
-    + `<iframe src="${url}" style="width:100%;height:100%;border:none;" allow="clipboard-write"></iframe>`
+  return `<iframe src="${url}" style="width:100%;height:100%;border:none;" allow="clipboard-write"></iframe>`
 }
 
 export function buildWidgetSnippet(
