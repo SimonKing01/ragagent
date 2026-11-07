@@ -238,7 +238,9 @@ final class ImChannelRuntimeOps {
             stopChannel(channelId);
             return;
         }
-        if (redisStore != null && isExclusiveChannel(fresh)) {
+        // 长连接持有的是创建时那份凭据：配置变更后必须 stop + start 才生效。
+        // 选主在 startChannel 内（未接 IM Redis 时按单实例直接起）。
+        if (isExclusiveChannel(fresh)) {
             stopChannel(channelId);
             startChannel(fresh);
         }

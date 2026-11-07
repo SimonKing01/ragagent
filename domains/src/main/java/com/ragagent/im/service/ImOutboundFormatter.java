@@ -52,6 +52,8 @@ final class ImOutboundFormatter {
             content = new Rewriter(service.storageResolver, "IM")
                     .rewrite(content);
         }
+        // 卡片/富文本都不认 local:// 图片，留着会让整条消息发不出去
+        content = ImFormat.stripNonHttpImages(content);
         content = ImFormat.stripAudioVideoLinks(content);
         if (!rendersImages) {
             content = ImFormat.degradeMarkdownImages(content);

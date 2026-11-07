@@ -60,6 +60,18 @@ class ImFormatMediaTest {
     }
 
     @Test
+    void stripsNonHttpImageTargets() {
+        // 飞书卡片把 ![](…) 当 image_key 解析，local:// 会让整条更新失败（200570）
+        String md = "![封面](local://1/exports/cover-1.jpg)\n\n![远程](https://cdn.example.com/a.jpg)";
+
+        String out = ImFormat.stripNonHttpImages(md);
+
+        assertThat(out).doesNotContain("local://");
+        assertThat(out).contains("封面");
+        assertThat(out).contains("![远程](https://cdn.example.com/a.jpg)");
+    }
+
+    @Test
     void leavesPlainTextAlone() {
         String text = "没有媒体的普通回答。";
 

@@ -160,10 +160,17 @@ final class ImStreamPipeline {
         }
         assistantMsg.setContent(answer);
         assistantMsg.setCompleted(true);
+        // 落库需要租户上下文（上面的 finally 已清空），这里重设并在结束时清理；
+        // 否则助手消息存不进内容，下一轮读历史时为空。
+        TenantContext.set(tenantId, new TenantContext.Principal(
+                TenantContext.PrincipalTypes.IM_USER, "system-" + tenantId), "viewer",
+                false, "system-" + tenantId, false);
         try {
             service.sessionQaPort.updateMessage(assistantMsg);
         } catch (Exception e) {
             log.warn("[IM] Failed to update assistant message", e);
+        } finally {
+            TenantContext.clear();
         }
         log.info("[IM] Stream reply sent: platform={} user={} answer_len={}",
                 msg.platform, msg.userId, answer.length());

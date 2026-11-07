@@ -78,6 +78,35 @@ public final class ImFormat {
         return sb.toString().replaceAll("\\n{3,}", "\\n\\n").strip();
     }
 
+    /** 任意 markdown 图片（目标可为空 / 非 http）。 */
+    private static final java.util.regex.Pattern MD_IMAGE_ANY =
+            java.util.regex.Pattern.compile("!\\[([^\\]]*)\\]\\(([^)\\s]*)\\)");
+
+    /**
+     * 去掉**非 http** 的 markdown 图片目标（{@code ![](local://…)}）。
+     *
+     * <p>飞书卡片会把 {@code ![](…)} 当 image_key 解析，遇到 {@code local://} 直接整条
+     * 更新失败（{@code 200570 exists empty image key}），用户侧表现为“没有回复”。
+     * 这类引用在出站统一降级为 alt 文本。</p>
+     */
+    public static String stripNonHttpImages(String s) {
+        if (s == null || !s.contains("![")) {
+            return s;
+        }
+        java.util.regex.Matcher m = MD_IMAGE_ANY.matcher(s);
+        StringBuilder sb = new StringBuilder();
+        while (m.find()) {
+            String alt = m.group(1);
+            String url = m.group(2);
+            boolean http = url.regionMatches(true, 0, "http://", 0, 7)
+                    || url.regionMatches(true, 0, "https://", 0, 8);
+            m.appendReplacement(sb, java.util.regex.Matcher.quoteReplacement(
+                    http ? m.group() : alt));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
     /**
      * markdown 图片降级：平台渲染不了 {@code ![](url)} 时改成可点的 {@code [alt](url)}；
      * 链接目标不是 http(s)（未配置 APP_EXTERNAL_URL 等）时只留 alt 文本。
