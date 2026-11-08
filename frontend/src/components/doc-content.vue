@@ -15,7 +15,7 @@ import {
   KNOWLEDGE_CHUNK_PAGE_SIZE,
 } from "@/api/knowledge-base/index";
 import { MessagePlugin } from "tdesign-vue-next";
-import { sanitizeHTML, safeMarkdownToHTML, createSafeImage, isValidImageURL, hydrateProtectedFileImages, isValidURL } from '@/utils/security';
+import { sanitizeHTML, safeMarkdownToHTML, createSafeImage, isValidImageURL, hydrateProtectedFileImages, isValidURL, setSignedMediaResolver } from '@/utils/security';
 import { isProtectedVideoHref } from '@/utils/protectedMedia';
 import { getSignedMediaUrl } from '@/utils/signedMedia';
 import { normalizeSpuriousTablePrefixes } from '@/utils/markdownTableNormalize';
@@ -655,6 +655,8 @@ const scheduleProtectedImageHydration = () => {
 };
 
 onMounted(() => {
+  // 文档页的音视频统一走签名 URL 直连（不分块 / 合并 / 预览），不再下载 blob。
+  setSignedMediaResolver((ref) => (props.kbId ? getSignedMediaUrl(props.kbId, ref) : Promise.resolve('')));
   loadTraceDrawerWidth();
   loadMainDrawerWidth();
   window.addEventListener('resize', onTraceDrawerWindowResize, { passive: true });
@@ -694,6 +696,7 @@ watch(() => props.details?.chunkLoading, (val) => {
   }
 });
 onUnmounted(() => {
+  setSignedMediaResolver(null);
   protectedImageObserver?.disconnect();
   protectedImageObserver = null;
   if (protectedImageTimer !== null) {

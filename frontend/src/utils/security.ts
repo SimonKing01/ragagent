@@ -509,6 +509,18 @@ function applyHydratedProtectedImage(root: ParentNode, sourceURL: string, file: 
  */
 const mediaInflight = new Map<string, Promise<LoadedProtectedFile | null>>();
 
+/**
+ * 可选的「直连地址」解析器：知识库文档页注册后，视频/音频不再先下载成 blob，
+ * 直接用签名 URL（支持 Range，能拖进度条，也不会为同一文件再拉一份）。
+ */
+type SignedMediaResolver = (ref: string) => Promise<string>;
+let signedMediaResolver: SignedMediaResolver | null = null;
+
+/** 注册/清除直连解析器（组件卸载时传 null）。 */
+export function setSignedMediaResolver(resolver: SignedMediaResolver | null): void {
+  signedMediaResolver = resolver;
+}
+
 const VIDEO_SHELL_CLASS = 'chunk-video-shell';
 const VIDEO_OVERLAY_CLASS = 'chunk-video-overlay';
 
@@ -730,6 +742,21 @@ async function hydrateProtectedMedia(
         markVideoReady(shell);
       }
       return;
+    }
+    // 有直连解析器（知识库文档页）时直接用签名 URL：不下载 blob、支持 Range。
+    if (signedMediaResolver) {
+      try {
+        const signed = await signedMediaResolver(sourceURL);
+        if (signed) {
+          video.src = signed;
+          video.dataset.authHydrated = '1';
+          await applyPoster();
+          markReadyOnPlayable();
+          return;
+        }
+      } catch {
+        // 解析失败 → 回落 blob
+      }
     }
     // 同一请求键全页只下 1 次：两个 watcher / 多次重渲染并发水合时共享同一个 Promise，
     // 否则一个 4MB 视频会被下 4 次（每次还各自造一个 blob URL）。
