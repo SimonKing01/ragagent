@@ -139,6 +139,7 @@
 | POST | `/api/v1/knowledge-bases/{id}/faq/search` | VIEWER | `FaqController` |
 | GET | `/api/v1/knowledge-bases/{id}/files` | VIEWER | `KnowledgeBaseFileProxyController` |
 | HEAD | `/api/v1/knowledge-bases/{id}/files` | VIEWER | `KnowledgeBaseFileProxyController` |
+| GET | `/api/v1/knowledge-bases/{id}/files/signed-url` | VIEWER | `KnowledgeBaseFileProxyController` |
 | GET | `/api/v1/knowledge-bases/{id}/hybrid-search` | VIEWER | `KnowledgeBaseController` |
 | POST | `/api/v1/knowledge-bases/{id}/hybrid-search` | VIEWER | `KnowledgeBaseController` |
 | DELETE | `/api/v1/knowledge-bases/{id}/knowledge` | ADMIN | `KnowledgeController` |

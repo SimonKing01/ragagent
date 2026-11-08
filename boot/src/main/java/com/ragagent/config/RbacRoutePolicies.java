@@ -73,6 +73,8 @@ final class RbacRoutePolicies {
         rbac.addRule("POST", "/api/v1/knowledge-bases/*/rebuild-index", TenantRole.CONTRIBUTOR, false);
         // KB 图片代理：Viewer 下限（KB 访问判定在 KnowledgeBaseFileProxyController 内）
         rbac.addRule("GET", "/api/v1/knowledge-bases/*/files", TenantRole.VIEWER, false);
+        // 播放用签名 URL（视频/音频直连，Range + 浏览器缓存）
+        rbac.addRule("GET", "/api/v1/knowledge-bases/*/files/signed-url", TenantRole.VIEWER, false);
         // 文档（OwnedKBOrAdmin 的所有权判定在 controller/service 层，拦截器只做角色下限）
         rbac.addRule("POST", "/api/v1/knowledge-bases/*/knowledge/file", TenantRole.CONTRIBUTOR, false);
         rbac.addRule("POST", "/api/v1/knowledge-bases/*/knowledge/url", TenantRole.CONTRIBUTOR, false);

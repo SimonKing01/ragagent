@@ -1,7 +1,7 @@
 // @ts-nocheck
 <script setup lang="ts">
 import { ref, shallowRef, watch, onMounted, onUnmounted, nextTick, defineAsyncComponent } from 'vue';
-import { previewKnowledgeFile } from '@/api/knowledge-base/index';
+import { previewKnowledgeFile, getSignedFileUrl } from '@/api/knowledge-base/index';
 import { previewTemporaryAttachment } from '@/api/chat/temporary-attachments';
 import { downloadArtifact } from '@/api/chat';
 import hljs from 'highlight.js';
@@ -35,6 +35,9 @@ const { t } = useI18n();
 const props = defineProps<{
   sourceBlob?: Blob;
   knowledgeId?: string;
+  /** 知识库 id + 该文档里的第一个音视频引用：用来换播放用签名 URL。 */
+  kbId?: string;
+  mediaRef?: string;
   sessionId?: string;
   attachmentId?: string;
   messageId?: string;
@@ -51,6 +54,8 @@ const loading = ref(false);
 const error = ref('');
 const previewType = ref<FilePreviewKind>('unsupported');
 const blobUrl = ref('');
+/** 视频直连签名 URL（支持 Range，不用整份 blob）。 */
+const directSrc = ref('');
 const textContent = ref('');
 const highlightedCode = ref('');
 const markdownHtml = ref('');
@@ -379,6 +384,22 @@ async function loadPreview() {
   let ft = resolveFilePreviewExt(props.fileName, props.fileType);
   previewType.value = resolvePreviewKind(ft);
 
+  // 视频优先用签名 URL 直连：支持 Range（边下边播、可拖动），且不再整份下载
+  if (previewType.value === 'video' && props.kbId && props.mediaRef) {
+    try {
+      const res: any = await getSignedFileUrl(props.kbId, props.mediaRef);
+      const url = res?.url || res?.data?.url || '';
+      if (url) {
+        directSrc.value = url;
+        loadedForId = sourceKey;
+        loading.value = false;
+        return;
+      }
+    } catch {
+      // 签发失败 → 回落 blob
+    }
+  }
+
   try {
     const rawBlob = await fetchPreviewBlob();
     let kind = resolvePreviewKind(ft);
@@ -610,8 +631,8 @@ onUnmounted(() => {
     </div>
 
     <!-- Video -->
-    <div v-else-if="previewType === 'video' && blobUrl" class="preview-video">
-      <video ref="previewContent" controls playsinline :src="blobUrl" class="video-element">
+    <div v-else-if="previewType === 'video' && (directSrc || blobUrl)" class="preview-video">
+      <video ref="previewContent" controls playsinline :src="directSrc || blobUrl" class="video-element">
         {{ $t('preview.videoNotSupported') }}
       </video>
     </div>

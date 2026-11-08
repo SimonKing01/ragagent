@@ -22,7 +22,7 @@
 | `EmbeddingModelPort` | `EmbeddingModelAdapter` | domains | wiki | 域间（解耦） |
 | `EmbeddingPort` | `ModelRuntimeEmbeddingAdapter` | model-runtime | knowledge、memory、retrieval-engine | 跨模块（必要） |
 | `EntityExtractionPort` | `EntityExtractionAdapter` | model-runtime | initialization、knowledge、session | 跨模块（必要） |
-| `FileUrlPort` | `DefaultFileUrlPort` | domains | platform、session、storage | 跨模块（必要） |
+| `FileUrlPort` | `DefaultFileUrlPort` | domains | knowledge、platform、session、storage | 跨模块（必要） |
 | `GlobalFileServicePort` | `GlobalFileServiceAdapter` | domains | session | 域间（解耦） |
 | `HybridSearchPort` | `HybridSearchService` | retrieval-engine | knowledge、session | 跨模块（必要） |
 | `KnowledgeBaseCatalogPort` | `KnowledgeBaseCatalogAdapter` | domains | agentmanagement | 域间（解耦） |

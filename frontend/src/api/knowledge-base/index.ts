@@ -370,6 +370,23 @@ export function downKnowledgeDetails(id: string) {
   return getDown(`/api/v1/knowledge/${id}/download`);
 }
 
+/**
+ * 取一个文件的**播放用签名 URL**（`/r/{token}`，12 小时）。
+ *
+ * <p>视频/音频用它直接给 `<video src>`：支持 Range（边下边播、可拖动），
+ * 且 token 在有效期内恒定 → 浏览器缓存可复用，不会每次打开都重下。</p>
+ */
+export function getSignedFileUrl(kbId: string, filePath: string) {
+  return get<{ url: string; expiresInSeconds: number }>(
+    `/api/v1/knowledge-bases/${kbId}/files/signed-url?filePath=${encodeURIComponent(filePath)}`,
+  );
+}
+
+/** 按知识 id 取播放用签名 URL（详情接口不下发 filePath）。 */
+export function getSignedFileUrlByKnowledge(id: string) {
+  return get<{ url: string; expiresInSeconds: number }>(`/api/v1/knowledge/${id}/signed-url`);
+}
+
 export function previewKnowledgeFile(id: string) {
   return getDown(`/api/v1/knowledge/${id}/preview`);
 }

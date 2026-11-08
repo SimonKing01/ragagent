@@ -9,7 +9,7 @@ import "highlight.js/styles/github.css";
 import mermaid from "mermaid";
 import { onMounted, ref, nextTick, onUnmounted, watch, computed } from "vue";
 import {
-  downKnowledgeDetails, deleteGeneratedQuestion, getChunkByIdOnly, previewKnowledgeFile,
+  downKnowledgeDetails, deleteGeneratedQuestion, getChunkByIdOnly, previewKnowledgeFile, getSignedFileUrl,
   updateDocumentChunk, listChunkRevisions, revertDocumentChunk, updateKnowledgeMetadata,
   updateKnowledgeSummary, regenerateKnowledgeSummary, upsertGeneratedQuestion, regenerateGeneratedQuestions, getKnowledgeDetails,
   KNOWLEDGE_CHUNK_PAGE_SIZE,
@@ -646,10 +646,10 @@ const scheduleProtectedImageHydration = () => {
   }
   protectedImageTimer = window.setTimeout(() => {
     protectedImageTimer = null;
-    void hydrateProtectedFileImages(
+    void attachSignedVideoSources(document).then(() => hydrateProtectedFileImages(
       document,
       props.kbId ? { mode: 'knowledgeBase', kbId: props.kbId } : undefined,
-    );
+    ));
   }, 80);
 };
 
@@ -846,12 +846,76 @@ const loadAudioPreview = async () => {
     audioLoading.value = false;
   }
 };
+/** 同一条引用在页面生命周期内复用同一个签名 URL（token 本来就恒定）。 */
+const signedMediaUrls = new Map<string, string>();
+
+/**
+ * 分块里的视频/音频改用签名 URL 直接播放。
+ *
+ * <p>不走 blob：blob 是整份下载、不能拖进度条，而且预览与分块会各下一份。
+ * 签名 URL 支持 Range（206），同一文件有效期内 URL 稳定 → 浏览器缓存复用。</p>
+ */
+/** 分块里的第一个音视频引用：预览页复用它换签名 URL，避免 /preview 全量下载。 */
+const previewMediaRef = computed(() => {
+  const text = (props.details?.md || []).map((c: any) => c?.content || '').join('\n');
+  const m = text.match(/(?:local|resource|storage|minio|s3|cos|tos|oss|ks3|obs):\/\/[^\s)\]"'>]+\.(?:mp4|mov|m4v|webm|mkv|mp3|wav|m4a|flac|ogg)/i);
+  return m ? m[0] : '';
+});
+
+const attachSignedVideoSources = async (root: ParentNode) => {
+  if (!props.kbId) {
+    return;
+  }
+  const nodes = Array.from(root.querySelectorAll<HTMLMediaElement>('video[data-protected-src], audio[data-protected-src]'));
+  for (const node of nodes) {
+    if (node.dataset.authHydrated === '1') {
+      continue;
+    }
+    const ref = node.getAttribute('data-protected-src') || '';
+    if (!ref) {
+      continue;
+    }
+    try {
+      let url = signedMediaUrls.get(ref);
+      if (!url) {
+        const res: any = await getSignedFileUrl(props.kbId, ref);
+        url = res?.url || res?.data?.url || '';
+        if (url) {
+          signedMediaUrls.set(ref, url);
+        }
+      }
+      if (!url) {
+        continue;
+      }
+      node.src = url;
+      node.dataset.authHydrated = '1';
+      const posterRef = node.getAttribute('data-poster-src');
+      if (posterRef) {
+        let poster = signedMediaUrls.get(posterRef);
+        if (!poster) {
+          const res: any = await getSignedFileUrl(props.kbId, posterRef);
+          poster = res?.url || res?.data?.url || '';
+          if (poster) {
+            signedMediaUrls.set(posterRef, poster);
+          }
+        }
+        if (poster) {
+          node.setAttribute('poster', poster);
+        }
+      }
+    } catch {
+      // 签发失败 → 保持原样，交给后面的 blob 水合兜底
+    }
+  }
+};
+
 const runMarkdownPostRenderPipeline = async () => {
   await nextTick();
   const renderRoot = getMarkdownRenderRoot();
   if (!renderRoot) {
     return;
   }
+  await attachSignedVideoSources(renderRoot);
   await hydrateProtectedFileImages(
     renderRoot,
     props.kbId ? { mode: 'knowledgeBase', kbId: props.kbId } : undefined,
@@ -2176,7 +2240,7 @@ const handleChunkPageChange = (pageInfo: { current: number }) => {
 
           <div v-else-if="viewMode === 'preview'">
             <DocumentPreview :knowledgeId="details.id" :fileType="details.fileType" :fileName="details.title"
-              :active="viewMode === 'preview'" />
+              :kbId="kbId" :mediaRef="previewMediaRef" :active="viewMode === 'preview'" />
           </div>
         </section>
       </div>

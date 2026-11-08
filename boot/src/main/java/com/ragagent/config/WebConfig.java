@@ -163,7 +163,8 @@ public class WebConfig implements WebMvcConfigurer {
         // KB 受限 Key 拒绝、full-access 与 retrieve 放行，JWT 直通。
         // 注册先于 rbac（守卫链序：API-Key 守卫 → Viewer）。
         registry.addInterceptor(new AllowFileServeAPIKeyInterceptor())
-                .addPathPatterns("/files", "/api/v1/knowledge-bases/*/files")
+                .addPathPatterns("/files", "/api/v1/knowledge-bases/*/files",
+                        "/api/v1/knowledge-bases/*/files/signed-url")
                 .order(0);
         // presigned-preview 的 DenyAPIKeyPrincipal（角色门禁对 Key 短路，须显式拒绝 Key）。
         registry.addInterceptor(new DenyAPIKeyPrincipalInterceptor())
