@@ -49,6 +49,21 @@ public class GlobalExceptionHandler {
     }
 
 
+    /**
+     * 缺少必填查询参数 → 400（此前落到「未捕获异常」分支，返回 500）。
+     *
+     * <p>例：{@code /files/signed-url} 只认 camel 的 {@code filePath}，
+     * 传 {@code file_path} 时应当明确告诉调用方参数缺失，而不是 500。</p>
+     */
+    @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
+    public ResponseEntity<Object> handleMissingParam(
+            org.springframework.web.bind.MissingServletRequestParameterException ex,
+            HttpServletRequest req) {
+        AppError e = new AppError(ErrorCode.BAD_REQUEST.value(), "请求参数不合法",
+                "缺少必填参数: " + ex.getParameterName(), 400);
+        return respond(e, req);
+    }
+
     // ── 参数校验异常 → 400 信封（details 为字段级中文文案，多条 "\n" 连接）──
 
     /** 请求体约束校验失败（@Valid DTO）与 @ModelAttribute 绑定失败。 */
