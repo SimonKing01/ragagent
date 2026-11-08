@@ -184,6 +184,21 @@ instance.interceptors.response.use(
     if (!error.response) {
       return Promise.reject({ message: t('error.networkError') });
     }
+
+    // 下载类请求用 responseType: 'blob'，错误体也是 Blob：读成文本再按 JSON 解析，
+    // 否则调用方拿不到后端给的错误文案（只看到一个空对象，或直接抛 InvalidStateError）。
+    if (typeof Blob !== 'undefined' && error.response.data instanceof Blob) {
+      try {
+        const text = await error.response.data.text();
+        try {
+          error.response.data = JSON.parse(text);
+        } catch {
+          error.response.data = text ? { message: text } : {};
+        }
+      } catch {
+        error.response.data = {};
+      }
+    }
     
     // 公开接口（auto-setup / login / register / oidc）的 401 不走 JWT refresh 逻辑，
     // 直接返回错误——但嵌入会话票（ems_，30 分钟 TTL）过期要先换票 + 原请求重放一次。
