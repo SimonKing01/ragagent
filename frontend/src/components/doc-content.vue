@@ -17,6 +17,7 @@ import {
 import { MessagePlugin } from "tdesign-vue-next";
 import { sanitizeHTML, safeMarkdownToHTML, createSafeImage, isValidImageURL, hydrateProtectedFileImages, isValidURL } from '@/utils/security';
 import { isProtectedVideoHref } from '@/utils/protectedMedia';
+import { getSignedMediaUrl } from '@/utils/signedMedia';
 import { normalizeSpuriousTablePrefixes } from '@/utils/markdownTableNormalize';
 import { openMermaidFullscreen } from '@/utils/mermaidViewer';
 import { diffWikiLines, type WikiDiffLine } from '@/utils/wikiLineDiff';
@@ -846,9 +847,6 @@ const loadAudioPreview = async () => {
     audioLoading.value = false;
   }
 };
-/** 同一条引用在页面生命周期内复用同一个签名 URL（token 本来就恒定）。 */
-const signedMediaUrls = new Map<string, string>();
-
 /**
  * 分块里的视频/音频改用签名 URL 直接播放。
  *
@@ -867,46 +865,38 @@ const attachSignedVideoSources = async (root: ParentNode) => {
     return;
   }
   const nodes = Array.from(root.querySelectorAll<HTMLMediaElement>('video[data-protected-src], audio[data-protected-src]'));
-  for (const node of nodes) {
-    if (node.dataset.authHydrated === '1') {
-      continue;
+  await Promise.all(nodes.map(async (node) => {
+    if (node.dataset.authHydrated === '1' || node.dataset.signedPending === '1') {
+      return;
     }
     const ref = node.getAttribute('data-protected-src') || '';
     if (!ref) {
-      continue;
+      return;
     }
+    // 先占坑再 await：并行的另一路（80ms 防抖 / 渲染后管线）不会再发起同一个请求，
+    // 也不会提前掉进 blob 水合（那会多下载一份并多一个 blob URL）。
+    node.dataset.signedPending = '1';
     try {
-      let url = signedMediaUrls.get(ref);
+      const url = await getSignedMediaUrl(props.kbId!, ref);
       if (!url) {
-        const res: any = await getSignedFileUrl(props.kbId, ref);
-        url = res?.url || res?.data?.url || '';
-        if (url) {
-          signedMediaUrls.set(ref, url);
-        }
-      }
-      if (!url) {
-        continue;
+        delete node.dataset.signedPending;
+        return;
       }
       node.src = url;
       node.dataset.authHydrated = '1';
+      delete node.dataset.signedPending;
       const posterRef = node.getAttribute('data-poster-src');
       if (posterRef) {
-        let poster = signedMediaUrls.get(posterRef);
-        if (!poster) {
-          const res: any = await getSignedFileUrl(props.kbId, posterRef);
-          poster = res?.url || res?.data?.url || '';
-          if (poster) {
-            signedMediaUrls.set(posterRef, poster);
-          }
-        }
+        const poster = await getSignedMediaUrl(props.kbId!, posterRef);
         if (poster) {
           node.setAttribute('poster', poster);
         }
       }
     } catch {
+      delete node.dataset.signedPending;
       // 签发失败 → 保持原样，交给后面的 blob 水合兜底
     }
-  }
+  }));
 };
 
 const runMarkdownPostRenderPipeline = async () => {
@@ -932,6 +922,20 @@ const runMarkdownPostRenderPipeline = async () => {
   // 渲染 Mermaid 图表
   await renderMermaidDiagrams();
 };
+
+/**
+ * 抽屉打开时先预取分块：预览面板要靠分块正文里的媒体引用换签名 URL，
+ * 否则它会先走 /preview 全量下载（整份 blob，不能拖进度条）。
+ */
+watch([() => props.visible, () => props.details?.id], ([visible, id]) => {
+  if (!visible || !id) {
+    return;
+  }
+  const chunks = props.details?.md;
+  if (!Array.isArray(chunks) || chunks.length === 0) {
+    emit('getDoc', 1);
+  }
+}, { immediate: true, flush: 'post' });
 
 watch(() => props.details.md, () => {
   runMarkdownPostRenderPipeline();

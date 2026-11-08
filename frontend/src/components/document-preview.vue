@@ -1,7 +1,8 @@
 // @ts-nocheck
 <script setup lang="ts">
 import { ref, shallowRef, watch, onMounted, onUnmounted, nextTick, defineAsyncComponent } from 'vue';
-import { previewKnowledgeFile, getSignedFileUrl } from '@/api/knowledge-base/index';
+import { previewKnowledgeFile } from '@/api/knowledge-base/index';
+import { getSignedMediaUrl } from '@/utils/signedMedia';
 import { previewTemporaryAttachment } from '@/api/chat/temporary-attachments';
 import { downloadArtifact } from '@/api/chat';
 import hljs from 'highlight.js';
@@ -363,6 +364,39 @@ async function renderMermaid(blob: Blob) {
   await renderText(new Blob([text], { type: 'text/plain' }), 'mmd');
 }
 
+/**
+ * 正文里的媒体引用可能晚于组件挂载才就绪（chunk 列表单独加载）：
+ * 一旦拿到引用，就把已经用 /preview 全量 blob 播放的视频换成签名 URL（Range 直连）。
+ */
+watch(() => props.mediaRef, async (ref) => {
+  if (!ref || !props.kbId || previewType.value !== 'video' || !loadedForId) {
+    return;
+  }
+  const url = await getSignedMediaUrl(props.kbId, ref);
+  if (url && url !== directSrc.value) {
+    directSrc.value = url;
+  }
+});
+
+/** 等 mediaRef 就绪（最多 timeout 毫秒），期间不发起 /preview。 */
+function waitForMediaRef(timeout = 2500) {
+  if (props.mediaRef) {
+    return Promise.resolve(undefined);
+  }
+  return new Promise((resolve) => {
+    const stop = watch(() => props.mediaRef, (ref) => {
+      if (ref) {
+        stop();
+        resolve(undefined);
+      }
+    });
+    setTimeout(() => {
+      stop();
+      resolve(undefined);
+    }, timeout);
+  });
+}
+
 async function openMermaid() {
   const svg = mermaidSvg.value;
   if (!svg) return;
@@ -385,10 +419,15 @@ async function loadPreview() {
   previewType.value = resolvePreviewKind(ft);
 
   // 视频优先用签名 URL 直连：支持 Range（边下边播、可拖动），且不再整份下载
+  // 视频先等一会儿正文里的媒体引用（分块预取通常 1s 内到）：拿到就能走 Range 直连，
+  // 不必先整份下载 /preview 再换源。
+  if (previewType.value === 'video' && props.kbId && !props.mediaRef) {
+    await waitForMediaRef(2500);
+  }
+
   if (previewType.value === 'video' && props.kbId && props.mediaRef) {
     try {
-      const res: any = await getSignedFileUrl(props.kbId, props.mediaRef);
-      const url = res?.url || res?.data?.url || '';
+      const url = await getSignedMediaUrl(props.kbId, props.mediaRef);
       if (url) {
         directSrc.value = url;
         loadedForId = sourceKey;
