@@ -233,6 +233,34 @@ class MessageReferenceRewriterTest {
     }
 
     @Test
+    void matchesByTailSignatureWhenManyCandidates() {
+        // 两个视频/封面同时在上下文里（候选 >1），但模型拼坏的引用尾部一致，
+        // 仍应能唯一定位到真名。
+        ToolResult toolResult = new ToolResult();
+        toolResult.setOutput("""
+                - poster: local://11/exports/cover-39c1e550-85f8-4de6-87ea-f8edbaa68586_624238583779583.jpg
+                - media: local://11/exports/AION_N60_624238682748666.mp4
+                - poster: local://11/exports/cover-99999999-dead-beef-0000-000000000000_509098126147583.jpg
+                - media: local://11/exports/aion-i60_509098283386166.mp4
+                """);
+        AgentToolCall call = new AgentToolCall();
+        call.setResult(toolResult);
+        AgentStep step = new AgentStep();
+        step.setToolCalls(List.of(call));
+
+        Message message = new Message();
+        message.setContent("![poster](local://11/exports/cover-d1_624238583779583.jpg)\n"
+                + "[play video](local://11/exports/AION_N60_624238682748666.mp4)");
+        message.setAgentSteps(new ArrayList<>(List.of(step)));
+
+        String fixed = MessageReferenceRewriter.correctMediaRefs(message);
+
+        assertThat(fixed).contains(
+                "cover-39c1e550-85f8-4de6-87ea-f8edbaa68586_624238583779583.jpg");
+        assertThat(fixed).doesNotContain("cover-d1_624238583779583.jpg");
+    }
+
+    @Test
     void keepsRefsWhenCandidatesAreAmbiguous() {
         ToolResult first = new ToolResult();
         first.setOutput("<play>local://11/exports/a.mp4</play>");

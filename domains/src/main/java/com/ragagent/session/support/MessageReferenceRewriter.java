@@ -195,18 +195,57 @@ public class MessageReferenceRewriter {
             String token = m.group();
             String replacement = token;
             if (MEDIA_EXT.matcher(token).matches()) {
-                if (!mediaRefs.contains(token) && mediaRefs.size() == 1) {
-                    replacement = mediaRefs.iterator().next();
-                }
+                replacement = pickReplacement(token, mediaRefs);
             } else if (IMAGE_EXT.matcher(token).matches()) {
-                if (!posterRefs.contains(token) && posterRefs.size() == 1) {
-                    replacement = posterRefs.iterator().next();
-                }
+                replacement = pickReplacement(token, posterRefs);
             }
             m.appendReplacement(sb, java.util.regex.Matcher.quoteReplacement(replacement));
         }
         m.appendTail(sb);
         return sb.toString();
+    }
+
+    /**
+     * 从候选里挑出该引用应有的值。
+     *
+     * <p>顺序：本身就是已知值 → 按**尾部签名**唯一匹配（模型常把文档句柄 d1/b2 拼进
+     * 文件名，如 {@code cover-d1_624238583779583.jpg}，而真名是
+     * {@code cover-39c1e550-…_624238583779583.jpg}，尾部一致）→ 只有一个候选时直取。</p>
+     */
+    private static String pickReplacement(String token, java.util.Set<String> candidates) {
+        if (candidates.contains(token)) {
+            return token;
+        }
+        String signature = tailSignature(token);
+        String matched = null;
+        int hits = 0;
+        for (String candidate : candidates) {
+            if (signature.equals(tailSignature(candidate))) {
+                matched = candidate;
+                hits++;
+            }
+        }
+        if (hits == 1) {
+            return matched;
+        }
+        if (candidates.size() == 1) {
+            return candidates.iterator().next();
+        }
+        return token;
+    }
+
+    /** 文件名最后一段（下划线之后 / 扩展名起）：用于跨“句柄前缀被改坏”的匹配。 */
+    static String tailSignature(String ref) {
+        if (ref == null || ref.isEmpty()) {
+            return "";
+        }
+        String name = ref.substring(ref.lastIndexOf('/') + 1);
+        int underscore = name.lastIndexOf('_');
+        if (underscore >= 0 && underscore + 1 < name.length()) {
+            return name.substring(underscore + 1);
+        }
+        int dot = name.lastIndexOf('.');
+        return dot >= 0 ? name.substring(dot) : name;
     }
 
     /** 结构化结果里递归找字符串，按同样的标签/元信息行收集媒体引用。 */

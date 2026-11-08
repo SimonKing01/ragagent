@@ -55,6 +55,8 @@ const loading = ref(false);
 const error = ref('');
 const previewType = ref<FilePreviewKind>('unsupported');
 const blobUrl = ref('');
+/** 播放器状态：loading / ready / failed（与分块视图同款遮罩语义）。 */
+const videoState = ref('loading');
 /** 视频直连签名 URL（支持 Range，不用整份 blob）。 */
 const directSrc = ref('');
 const textContent = ref('');
@@ -368,6 +370,10 @@ async function renderMermaid(blob: Blob) {
  * 正文里的媒体引用可能晚于组件挂载才就绪（chunk 列表单独加载）：
  * 一旦拿到引用，就把已经用 /preview 全量 blob 播放的视频换成签名 URL（Range 直连）。
  */
+watch([directSrc, blobUrl], () => {
+  videoState.value = 'loading';
+});
+
 watch(() => props.mediaRef, async (ref) => {
   if (!ref || !props.kbId || previewType.value !== 'video' || !loadedForId) {
     return;
@@ -395,6 +401,21 @@ function waitForMediaRef(timeout = 2500) {
       resolve(undefined);
     }, timeout);
   });
+}
+
+/** 失败点一下重试：换一个时间戳参数强制重新请求。 */
+function retryVideo() {
+  videoState.value = 'loading';
+  const base = directSrc.value || blobUrl.value;
+  if (!base) {
+    return;
+  }
+  const retryUrl = base.includes('?') ? `${base}&_r=${Date.now()}` : `${base}?_r=${Date.now()}`;
+  if (directSrc.value) {
+    directSrc.value = retryUrl;
+  } else {
+    blobUrl.value = retryUrl;
+  }
 }
 
 async function openMermaid() {
@@ -671,9 +692,17 @@ onUnmounted(() => {
 
     <!-- Video -->
     <div v-else-if="previewType === 'video' && (directSrc || blobUrl)" class="preview-video">
-      <video ref="previewContent" controls playsinline :src="directSrc || blobUrl" class="video-element">
-        {{ $t('preview.videoNotSupported') }}
-      </video>
+      <div class="chunk-video-shell" :data-media-state="videoState">
+        <video ref="previewContent" controls playsinline :src="directSrc || blobUrl" class="video-element"
+          @loadeddata="videoState = 'ready'" @canplay="videoState = 'ready'" @error="videoState = 'failed'">
+          {{ $t('preview.videoNotSupported') }}
+        </video>
+        <div v-if="videoState !== 'ready'" class="chunk-video-overlay"
+          @click="videoState === 'failed' ? retryVideo() : undefined">
+          <template v-if="videoState === 'failed'">{{ $t('chat.videoLoadFailed') }}</template>
+          <template v-else>{{ $t('chat.videoLoadingHint') }}</template>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -1067,11 +1096,52 @@ onUnmounted(() => {
   align-items: center;
   padding: 16px;
   min-height: 280px;
+
+  .chunk-video-shell {
+    position: relative;
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+  }
+
   .video-element {
-    width: 100%;
+    display: block;
+    max-width: 100%;
     max-height: calc(100vh - 240px);
     border-radius: @border-radius;
     background: #000;
+  }
+
+  .chunk-video-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: @border-radius;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.2;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .chunk-video-shell[data-media-state='loading'] .chunk-video-overlay::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: doc-preview-video-spin 0.9s linear infinite;
+  }
+
+  .chunk-video-shell[data-media-state='failed'] .chunk-video-overlay {
+    pointer-events: auto;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.6);
   }
 }
 
@@ -1302,3 +1372,9 @@ html[theme-mode="dark"] {
   }
 }
 </style>
+
+@keyframes doc-preview-video-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
