@@ -2,6 +2,10 @@
 # 与 frontend/Dockerfile 的运行时阶段一致（同一 nginx 固定摘要、同一套模板与入口脚本）。
 FROM nginx:1.30.3-alpine@sha256:0d3b80406a13a767339fbe2f41406d6c7da727ab89cf8fae399e81f780f814d1
 
+# COPY 是「合并」而不是替换：不先清空的话，历次发版的旧 hash 资源会一直留在镜像里
+# （曾累积到 365 个文件 / 28MB）。这里只清构建产物目录，nginx 自带内容保持不动。
+RUN rm -rf /usr/share/nginx/html/assets /usr/share/nginx/html/*.html
+
 COPY dist /usr/share/nginx/html
 
 COPY nginx.conf /etc/nginx/templates/default.conf.template
