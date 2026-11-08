@@ -7,21 +7,22 @@
 | 顺序 | 文档 | 内容 |
 |---|---|---|
 | 1 | [`../README.md`](../README.md) | 项目是什么、四条命令跑起来 |
-| 2 | [`getting-started.md`](getting-started.md) | 30 / 60 / 120 分钟上手与常见失败对照 |
+| 2 | [`architecture/getting-started.md`](architecture/getting-started.md) | 30 / 60 / 120 分钟上手与常见失败对照 |
 | 3 | [`architecture/overview.md`](architecture/overview.md) | 7 个模块、依赖矩阵、代码在哪 |
 | 4 | [`architecture/request-path.md`](architecture/request-path.md) | 一次问答经过哪些模块与类、日志关键字 |
 | 5 | [`architecture/rag-pipeline.md`](architecture/rag-pipeline.md) | 14 个管线阶段与插件装配表 |
 | 6 | [`architecture/ingest-flow.md`](architecture/ingest-flow.md) | 一份文档从入口到入库、富化与收口的一页纸 |
 | 7 | [`architecture/mechanisms.md`](architecture/mechanisms.md) | 队列、事务、embedding、定时任务等反直觉机制 |
-| 8 | [`glossary.md`](glossary.md) | 业务术语与历史代号（K4 / A18 / R3d / B2xx） |
+| 8 | [`architecture/glossary.md`](architecture/glossary.md) | 业务术语与历史代号（K4 / A18 / R3d / B2xx） |
+| 9 | [`详细技术文档.md`](详细技术文档.md) | 详细技术文档（目录页，按章拆为 docs/ 下 30 份）：模型层 / 检索引擎 / 问答与入库管线 / Agent / 渠道 / 安全 / 配置总表 / 部署基线 / 扩展点总表 |
 
 查业务配置：
 
-- 内置模型：[`builtin-models.md`](builtin-models.md) —— 启动时声明式建模型，第一次问答必需
-- 权限与角色：[`rbac.md`](rbac.md) —— 四级角色、路由下限、API Key 范围
-- IM 渠道接入：[`im-integration.md`](im-integration.md) —— 企业微信/微信/飞书/钉钉/Slack
-- 知识图谱：[`knowledge-graph.md`](knowledge-graph.md) —— Neo4j 启用与实体关系抽取
-- API 概览：[`api/README.md`](api/README.md) —— 认证、响应外壳、错误码与主要资源
+- 内置模型：[`architecture/builtin-models.md`](architecture/builtin-models.md) —— 启动时声明式建模型，第一次问答必需
+- 权限与角色：[`architecture/rbac.md`](architecture/rbac.md) —— 四级角色、路由下限、API Key 范围
+- IM 渠道接入：[`architecture/im-integration.md`](architecture/im-integration.md) —— 企业微信/微信/飞书/钉钉/Slack
+- 知识图谱：[`architecture/knowledge-graph.md`](architecture/knowledge-graph.md) —— Neo4j 启用与实体关系抽取
+- API 概览：[`25-HTTP接口速查.md`](25-HTTP接口速查.md) —— 认证、响应外壳、错误码与主要接口（原 `api/README.md` 内容并入此章）
 
 查表（三份由守卫强制与代码同步的链路/接口表）：
 
@@ -46,7 +47,7 @@
 - [`internal/HANDOFF.md`](internal/HANDOFF.md) —— 当前批次、判定标准、闸门与回填；§11 含已知缺口登记，§7 含契约金片布局与重录
 - [`internal/plans/`](internal/plans/) —— 整改方案（v2 与历史版本）
 - [`internal/handoff/`](internal/handoff/) —— 批次记录、专项计划与归档
-- [`architecture-review/`](architecture-review/) —— 历轮架构评审报告（均带评估日期与基线快照声明，非现状文档）
+- [`internal/architecture-review/`](internal/architecture-review/) —— 历轮架构评审报告（均带评估日期与基线快照声明，非现状文档）
 
 ## 约定
 

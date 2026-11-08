@@ -50,7 +50,7 @@
 
 - **流式问答（SSE）**：检索 → 重排 → 生成 → 引用装配的完整链路，全程事件流式推送
 - **Agent 执行循环**：ReAct 风格的思考/行动/观察循环，内置上下文压缩、Token 预算与用量统计
-- **工具族（33 个内置工具，MCP 服务可再挂载外部工具）**：知识检索、Wiki 读写、文档与图片分析、SQL/数据表分析（DuckDB）、网页搜索与抓取、思维链、待办清单、技能读取……
+- **工具族（27 个注册的内置工具，另有 6 个沙箱族工具名保留常量暂未接线，MCP 服务可再挂载外部工具）**：知识检索、Wiki 读写、文档与图片分析、SQL/数据表分析（DuckDB）、网页搜索与抓取、思维链、待办清单、技能读取……
 - **技能（Skills）**：以 `SKILL.md` 为载体的三级注入（元数据 / 正文 / 资源），支持平台内置层与租户自建
 - **会话能力**：多轮上下文、长期记忆召回、运行中转向（steer）与取消、消息附件与图片
 
@@ -175,9 +175,9 @@ bash scripts/dev-up.sh              # 加 --with-frontend 连同前端一起起
 
 起服日志会打印一行 `[capabilities]`（检索 / JWT 密钥来源 / 存储目录 / Redis / 流管理器）；检索关闭或 JWT 随机生成会另起 WARN。
 
-完整的文档索引（新人路径 / 维护者路径）见 [`docs/README.md`](docs/README.md)。
+完整的文档索引（新人路径 / 维护者路径）见 [`docs/README.md`](docs/README.md)；深度阅读见《[详细技术文档](docs/详细技术文档.md)》——按章拆分在 `docs/` 下的 30 份（模型层 / 检索引擎 / 问答与入库管线 / Agent / 渠道 / 安全 / 配置总表 / 部署基线 / 扩展点总表）。
 
-首次使用先注册账号（**首位注册者成为该租户的 owner**）：
+首次使用先注册账号（自助注册会创建你自己的个人空间，你是该空间的 owner）：
 
 ```bash
 curl -s -X POST http://localhost:8083/api/v1/auth/register \
@@ -238,7 +238,7 @@ docker run --rm -p 8080:8080 --env-file .env ragagent-server
 | 网页搜索提供商 | `/api/v1/web-search-providers` |
 | 存储后端 | `/api/v1/storage-backends` |
 | 系统设置与运维 | `/api/v1/system` |
-| 运维探针与指标 | `/actuator/health`（匿名可读）· `/actuator/info` · `/actuator/metrics`（需认证） |
+| 运维探针与指标 | `/actuator/health` · `/actuator/info` · `/actuator/metrics`（三个端点都走认证链：匿名 401，登录态 200；`/health` 才是匿名探针） |
 | 文件代理 / 预签名 | `/api/v1/files/presigned` · `/r/{token}` |
 
 ## 目录结构
@@ -259,6 +259,7 @@ docker run --rm -p 8080:8080 --env-file .env ragagent-server
 ├── migrations/          # Flyway 迁移脚本
 ├── scripts/             # 工程脚本（起停、契约校验、架构守卫）
 ├── deploy/              # 生产部署物料（编排、镜像定义、构建脚本、内置模型样例）
+├── docs/                # 文档：索引 README、详细技术文档（30 章）、architecture/ 专题与机器索引、internal/ 维护者记录
 ├── pom.xml              # 根 pom：版本唯一来源 + Boot BOM + 公共插件配置
 ├── docker-compose.yml   # 本地基础设施
 └── Dockerfile           # 服务镜像

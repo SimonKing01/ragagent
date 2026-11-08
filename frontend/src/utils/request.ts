@@ -293,6 +293,7 @@ export function postUpload(
 ): Promise<WithStatus<any>> {
   return instance.post(url, data, {
     ...config,
+    timeout: config.timeout ?? 10 * 60 * 1000,
     headers: {
       "Content-Type": "multipart/form-data",
       "X-Request-ID": `${generateRandomString(12)}`,

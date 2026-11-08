@@ -81,7 +81,7 @@ LOAD_HISTORY → MEMORY_RECALL → QUERY_UNDERSTAND → CHUNK_SEARCH
 | 改模型接入 | `model-runtime/…/llm/provider/`（实现 `LlmChatClient`） |
 | 改问答流程 | `QaTurnExecutor`（7 步）+ `SessionKnowledgeQaService` |
 | 加一个管线步骤 | 新增 `Plugin` 实现 + 在 `QaWiring` 注册 + 重跑 `gen-pipeline-map.py` |
-| 改错误形态 | `GlobalExceptionHandler`（唯一出口，响应约定见 `docs/api/README.md`） |
+| 改错误形态 | `GlobalExceptionHandler`（唯一出口，响应约定见 `docs/25-HTTP接口速查.md`） |
 | 改路由权限 | `boot/config/RbacRoutePolicies` |
 
 ## 6. 三条不变量（都踩过坑）
