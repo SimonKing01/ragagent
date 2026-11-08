@@ -1095,7 +1095,6 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   padding: 16px;
-  min-height: 280px;
 
   .chunk-video-shell {
     position: relative;
@@ -1371,10 +1370,11 @@ html[theme-mode="dark"] {
     background-color: #67060c;
   }
 }
-</style>
 
+/* 预览播放器的加载转圈：必须写在 style 块内才会被打包 */
 @keyframes doc-preview-video-spin {
   to {
     transform: rotate(360deg);
   }
 }
+</style>
