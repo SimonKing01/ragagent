@@ -2185,8 +2185,10 @@ const handleChunkPageChange = (pageInfo: { current: number }) => {
   </div>
 </template>
 <style scoped lang="less">
-/* 分块正文里的音视频播放器：与聊天侧保持一致的观感 */
-.doc-content :deep(.chunk-video-shell) {
+/* 分块正文里的音视频播放器：与聊天侧保持一致的观感。
+   注意：模板里没有 .doc-content 根节点，选择器不能挂在它下面，否则整段样式不生效
+   （曾导致"加载中"以 inline 文本出现在播放器右侧而不是遮罩）。 */
+:deep(.chunk-video-shell) {
   position: relative;
   display: block;
   width: fit-content;
@@ -2194,11 +2196,13 @@ const handleChunkPageChange = (pageInfo: { current: number }) => {
   margin: 1em auto 1em 0;
 }
 
-.doc-content :deep(.chunk-video-shell video.chunk-video) {
+:deep(.chunk-video-shell video.chunk-video) {
+  display: block;
   margin: 0;
+  max-width: 100%;
 }
 
-.doc-content :deep(.chunk-video-overlay) {
+:deep(.chunk-video-overlay) {
   position: absolute;
   inset: 0;
   display: flex;
@@ -2209,8 +2213,29 @@ const handleChunkPageChange = (pageInfo: { current: number }) => {
   background: rgba(0, 0, 0, 0.45);
   color: #fff;
   font-size: 13px;
+  line-height: 1.2;
   pointer-events: none;
   z-index: 1;
+}
+
+:deep(.chunk-video-shell[data-media-state='loading'] video) {
+  pointer-events: none;
+}
+
+:deep(.chunk-video-shell[data-media-state='loading'] .chunk-video-overlay::before) {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: chunk-video-spin-doc 0.9s linear infinite;
+}
+
+:deep(.chunk-video-shell[data-media-state='failed'] .chunk-video-overlay) {
+  pointer-events: auto;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.6);
 }
 
 .doc-content :deep(.chunk-video-shell[data-media-state='loading'] video) {
@@ -3436,3 +3461,10 @@ body:has(.t-drawer.kp-secondary-drawer--resizing) .trace-drawer-resize-line {
   transition: none !important;
 }
 </style>
+
+/* 分块播放器的加载转圈（顶层定义：Less 不接受嵌套 @keyframes） */
+@keyframes chunk-video-spin-doc {
+  to {
+    transform: rotate(360deg);
+  }
+}
