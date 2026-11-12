@@ -46,6 +46,7 @@
 
 - [`internal/HANDOFF.md`](internal/HANDOFF.md) —— 当前批次、判定标准、闸门与回填；§11 含已知缺口登记，§7 含契约金片布局与重录
 - [`internal/plans/`](internal/plans/) —— 整改方案（v2 与历史版本）
+- [`internal/plans/xiaoling-governance-mvp.md`](internal/plans/xiaoling-governance-mvp.md) —— RagAgent 融合小灵管理能力的 MVP 实施清单与分阶段验收标准（实施前方案）
 - [`internal/handoff/`](internal/handoff/) —— 批次记录、专项计划与归档
 - [`internal/architecture-review/`](internal/architecture-review/) —— 历轮架构评审报告（均带评估日期与基线快照声明，非现状文档）
 
